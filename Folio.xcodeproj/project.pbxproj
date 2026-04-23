@@ -1,0 +1,447 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1C39A6A418377338407BB52B /* FolioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F9A2B6A98896239EB1F0E18 /* FolioTests.swift */; };
+		1D2B0D1D5031B2D5EF2EA609 /* FolioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 609526E32566B580CE3975FE /* FolioApp.swift */; };
+		9B5E0DD06474C4E8239B3127 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 57591270DE5EE125B4459890 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D3324344F318CB5AD9CFD593 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 383A8F7C70F35B855AA13D98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0C56AF64BE26DB444D566E60;
+			remoteInfo = Folio;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		2F9A2B6A98896239EB1F0E18 /* FolioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolioTests.swift; sourceTree = "<group>"; };
+		57591270DE5EE125B4459890 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5B8BAAD0990BFEBF5AC22207 /* Folio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Folio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		609526E32566B580CE3975FE /* FolioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolioApp.swift; sourceTree = "<group>"; };
+		6BB51A125EC50A54621232F6 /* FolioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FolioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7510AF24FB921B6E2EE725A1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		167E3E30A49919FD8D56D74D = {
+			isa = PBXGroup;
+			children = (
+				31FE0679267CFC99B068DC8F /* Sources */,
+				8785B7F798410AA4B23DC847 /* Tests */,
+				62523BE78BDC40FAA03B8BBD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		31FE0679267CFC99B068DC8F /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A06CD015A0D9B226788BA4A9 /* Folio */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		57F98690F92829F6223C6766 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				57591270DE5EE125B4459890 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		5ACFFF9762C2B74D017EDEBD /* App */ = {
+			isa = PBXGroup;
+			children = (
+				609526E32566B580CE3975FE /* FolioApp.swift */,
+				7510AF24FB921B6E2EE725A1 /* Info.plist */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		62523BE78BDC40FAA03B8BBD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5B8BAAD0990BFEBF5AC22207 /* Folio.app */,
+				6BB51A125EC50A54621232F6 /* FolioTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7BA858DC71B908E3ADF44223 /* FolioTests */ = {
+			isa = PBXGroup;
+			children = (
+				2F9A2B6A98896239EB1F0E18 /* FolioTests.swift */,
+			);
+			path = FolioTests;
+			sourceTree = "<group>";
+		};
+		8785B7F798410AA4B23DC847 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				7BA858DC71B908E3ADF44223 /* FolioTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		A06CD015A0D9B226788BA4A9 /* Folio */ = {
+			isa = PBXGroup;
+			children = (
+				5ACFFF9762C2B74D017EDEBD /* App */,
+				57F98690F92829F6223C6766 /* Resources */,
+			);
+			path = Folio;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0C56AF64BE26DB444D566E60 /* Folio */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 053AAE1D1B4F8AD6CAC8296F /* Build configuration list for PBXNativeTarget "Folio" */;
+			buildPhases = (
+				3859F542EDB723E250691952 /* Sources */,
+				8AF20F2D7ED0809F38E8AD11 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Folio;
+			packageProductDependencies = (
+			);
+			productName = Folio;
+			productReference = 5B8BAAD0990BFEBF5AC22207 /* Folio.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1CD6F615502B2F1F3198986F /* FolioTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C86FAFAEDE7927D9F3DE4B94 /* Build configuration list for PBXNativeTarget "FolioTests" */;
+			buildPhases = (
+				2DB195A7169B335485DDE5AE /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				820F63B6E4A2E77B25370426 /* PBXTargetDependency */,
+			);
+			name = FolioTests;
+			packageProductDependencies = (
+			);
+			productName = FolioTests;
+			productReference = 6BB51A125EC50A54621232F6 /* FolioTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		383A8F7C70F35B855AA13D98 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 337CB635EA8B81A92F1BCDDC /* Build configuration list for PBXProject "Folio" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 167E3E30A49919FD8D56D74D;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 62523BE78BDC40FAA03B8BBD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0C56AF64BE26DB444D566E60 /* Folio */,
+				1CD6F615502B2F1F3198986F /* FolioTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8AF20F2D7ED0809F38E8AD11 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9B5E0DD06474C4E8239B3127 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2DB195A7169B335485DDE5AE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1C39A6A418377338407BB52B /* FolioTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3859F542EDB723E250691952 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1D2B0D1D5031B2D5EF2EA609 /* FolioApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		820F63B6E4A2E77B25370426 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0C56AF64BE26DB444D566E60 /* Folio */;
+			targetProxy = D3324344F318CB5AD9CFD593 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1F56EB963860C7169EDF99BD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Sources/Folio/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benji.Folio;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		540D8DA95C79696F3A4D84D2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benji.FolioTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Folio.app/Contents/MacOS/Folio";
+			};
+			name = Debug;
+		};
+		887BC2854F0D4F70EEB71653 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benji.FolioTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Folio.app/Contents/MacOS/Folio";
+			};
+			name = Release;
+		};
+		D3B08A16EE8A1254AC557B5A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		DA92BB9625393CF84A265C86 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_TESTABILITY = YES;
+				INFOPLIST_FILE = Sources/Folio/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benji.Folio;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		E8BDB5BE91E7E273FFFF319A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		053AAE1D1B4F8AD6CAC8296F /* Build configuration list for PBXNativeTarget "Folio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DA92BB9625393CF84A265C86 /* Debug */,
+				1F56EB963860C7169EDF99BD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		337CB635EA8B81A92F1BCDDC /* Build configuration list for PBXProject "Folio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3B08A16EE8A1254AC557B5A /* Debug */,
+				E8BDB5BE91E7E273FFFF319A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C86FAFAEDE7927D9F3DE4B94 /* Build configuration list for PBXNativeTarget "FolioTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				540D8DA95C79696F3A4D84D2 /* Debug */,
+				887BC2854F0D4F70EEB71653 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 383A8F7C70F35B855AA13D98 /* Project object */;
+}
