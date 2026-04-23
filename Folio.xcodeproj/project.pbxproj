@@ -9,7 +9,11 @@
 /* Begin PBXBuildFile section */
 		1C39A6A418377338407BB52B /* FolioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F9A2B6A98896239EB1F0E18 /* FolioTests.swift */; };
 		1D2B0D1D5031B2D5EF2EA609 /* FolioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 609526E32566B580CE3975FE /* FolioApp.swift */; };
+		5CDB51B8BF1607F41CBCF305 /* ShortcutBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889722F5DBC81F03A9909E51 /* ShortcutBinding.swift */; };
+		7888F976B922A3B6F39E5E77 /* KeybindingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF38483522BEDD91EBFACB60 /* KeybindingAction.swift */; };
 		9B5E0DD06474C4E8239B3127 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 57591270DE5EE125B4459890 /* Assets.xcassets */; };
+		9CC87979C524A60DBE45AAF8 /* KeybindingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC82A5D3305957FA6ACABE7 /* KeybindingStoreTests.swift */; };
+		A0CECEE3C5E9136F537701BA /* KeybindingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5265B2EB6CFB697889000002 /* KeybindingStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -24,11 +28,15 @@
 
 /* Begin PBXFileReference section */
 		2F9A2B6A98896239EB1F0E18 /* FolioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolioTests.swift; sourceTree = "<group>"; };
+		5265B2EB6CFB697889000002 /* KeybindingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingStore.swift; sourceTree = "<group>"; };
 		57591270DE5EE125B4459890 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5B8BAAD0990BFEBF5AC22207 /* Folio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Folio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		609526E32566B580CE3975FE /* FolioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolioApp.swift; sourceTree = "<group>"; };
 		6BB51A125EC50A54621232F6 /* FolioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FolioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7510AF24FB921B6E2EE725A1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		889722F5DBC81F03A9909E51 /* ShortcutBinding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutBinding.swift; sourceTree = "<group>"; };
+		DDC82A5D3305957FA6ACABE7 /* KeybindingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingStoreTests.swift; sourceTree = "<group>"; };
+		DF38483522BEDD91EBFACB60 /* KeybindingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingAction.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -47,6 +55,16 @@
 				A06CD015A0D9B226788BA4A9 /* Folio */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		49C0EB0E336177BC144CB21E /* Keybindings */ = {
+			isa = PBXGroup;
+			children = (
+				DF38483522BEDD91EBFACB60 /* KeybindingAction.swift */,
+				5265B2EB6CFB697889000002 /* KeybindingStore.swift */,
+				889722F5DBC81F03A9909E51 /* ShortcutBinding.swift */,
+			);
+			path = Keybindings;
 			sourceTree = "<group>";
 		};
 		57F98690F92829F6223C6766 /* Resources */ = {
@@ -79,6 +97,7 @@
 			isa = PBXGroup;
 			children = (
 				2F9A2B6A98896239EB1F0E18 /* FolioTests.swift */,
+				DDC82A5D3305957FA6ACABE7 /* KeybindingStoreTests.swift */,
 			);
 			path = FolioTests;
 			sourceTree = "<group>";
@@ -95,6 +114,7 @@
 			isa = PBXGroup;
 			children = (
 				5ACFFF9762C2B74D017EDEBD /* App */,
+				49C0EB0E336177BC144CB21E /* Keybindings */,
 				57F98690F92829F6223C6766 /* Resources */,
 			);
 			path = Folio;
@@ -187,6 +207,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1C39A6A418377338407BB52B /* FolioTests.swift in Sources */,
+				9CC87979C524A60DBE45AAF8 /* KeybindingStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,6 +216,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				1D2B0D1D5031B2D5EF2EA609 /* FolioApp.swift in Sources */,
+				7888F976B922A3B6F39E5E77 /* KeybindingAction.swift in Sources */,
+				A0CECEE3C5E9136F537701BA /* KeybindingStore.swift in Sources */,
+				5CDB51B8BF1607F41CBCF305 /* ShortcutBinding.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
