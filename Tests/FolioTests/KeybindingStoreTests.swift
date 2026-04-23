@@ -36,4 +36,11 @@ final class KeybindingStoreTests: XCTestCase {
         let binding = ShortcutBinding(keyCode: 51, modifiers: 0x80000)  // ⌥⌫
         XCTAssertEqual(binding.displayString, "⌥⌫")
     }
+
+    func testCustomBindingPersistsAcrossInstances() throws {
+        let custom = ShortcutBinding(keyCode: 10, modifiers: 0x100000)
+        try store.setBinding(custom, for: .killLine)
+        let store2 = KeybindingStore(defaults: UserDefaults(suiteName: "test-keybindings")!)
+        XCTAssertEqual(store2.binding(for: .killLine), custom)
+    }
 }

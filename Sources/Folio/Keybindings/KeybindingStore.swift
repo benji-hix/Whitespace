@@ -23,7 +23,7 @@ final class KeybindingStore {
     }
 
     func binding(for action: KeybindingAction) -> ShortcutBinding {
-        cache[action] ?? KeybindingAction.defaults[action]!
+        cache[action] ?? action.defaultBinding
     }
 
     func setBinding(_ binding: ShortcutBinding, for action: KeybindingAction) throws {
@@ -31,22 +31,21 @@ final class KeybindingStore {
             if cache[other] == binding { throw KeybindingError.conflict(other) }
         }
         cache[action] = binding
-        if let data = try? JSONEncoder().encode(binding) {
-            defaults.set(data, forKey: key(for: action))
-        }
+        let data = try JSONEncoder().encode(binding)
+        defaults.set(data, forKey: key(for: action))
     }
 
     func resetToDefaults() {
         for action in KeybindingAction.allCases {
             defaults.removeObject(forKey: key(for: action))
-            cache[action] = KeybindingAction.defaults[action]
+            cache[action] = action.defaultBinding
         }
     }
 
     private func loadOrDefault(_ action: KeybindingAction) -> ShortcutBinding {
         guard let data = defaults.data(forKey: key(for: action)),
               let binding = try? JSONDecoder().decode(ShortcutBinding.self, from: data)
-        else { return KeybindingAction.defaults[action]! }
+        else { return action.defaultBinding }
         return binding
     }
 
