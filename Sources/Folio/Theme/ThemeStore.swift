@@ -10,7 +10,7 @@ final class ThemeStore {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        if let raw = defaults.string(forKey: "folio.theme"),
+        if let raw = defaults.string(forKey: key),
            let saved = Theme(rawValue: raw) {
             self.current = saved
         } else {

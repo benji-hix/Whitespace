@@ -14,7 +14,7 @@ enum Theme: String, Codable, CaseIterable {
 
     var textColor: NSColor {
         switch self {
-        case .paper: return NSColor(red: 0.110, green: 0.094, blue: 0.075, alpha: 1)  // #1C1713
+        case .paper: return NSColor(red: 0.110, green: 0.090, blue: 0.075, alpha: 1)  // #1C1713
         case .dark:  return NSColor(red: 0.910, green: 0.878, blue: 0.835, alpha: 1)  // #E8E0D5
         }
     }
