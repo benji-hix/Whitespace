@@ -23,6 +23,7 @@ enum LineHeight: Double, CaseIterable, Codable {
 final class PreferencesStore {
     private let defaults: UserDefaults
     private var _fontSize: Int
+    private var _autoSaveDelay: Int
 
     var fontSize: Int {
         get { _fontSize }
@@ -43,7 +44,12 @@ final class PreferencesStore {
         didSet { defaults.set(autoSaveEnabled, forKey: Keys.autoSaveEnabled) }
     }
     var autoSaveDelay: Int {
-        didSet { defaults.set(autoSaveDelay, forKey: Keys.autoSaveDelay) }
+        get { _autoSaveDelay }
+        set {
+            let clamped = max(1, newValue)
+            _autoSaveDelay = clamped
+            defaults.set(clamped, forKey: Keys.autoSaveDelay)
+        }
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -63,7 +69,7 @@ final class PreferencesStore {
         self.autoSaveEnabled = defaults.bool(forKey: Keys.autoSaveEnabled)
         let rawDelay = defaults.object(forKey: Keys.autoSaveDelay) != nil
             ? defaults.integer(forKey: Keys.autoSaveDelay) : 2
-        self.autoSaveDelay = rawDelay
+        self._autoSaveDelay = max(1, rawDelay)
     }
 
     private enum Keys {
@@ -72,5 +78,11 @@ final class PreferencesStore {
         static let columnWidth     = "folio.prefs.columnWidth"
         static let autoSaveEnabled = "folio.prefs.autoSaveEnabled"
         static let autoSaveDelay   = "folio.prefs.autoSaveDelay"
+    }
+}
+
+extension PreferencesStore {
+    func setFontSize(_ size: Int) {
+        fontSize = size  // clamping happens in the setter
     }
 }
