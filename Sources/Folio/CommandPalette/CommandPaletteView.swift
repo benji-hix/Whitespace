@@ -63,7 +63,10 @@ struct CommandPaletteView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.25), radius: 24, y: 8)
         .onAppear { focused = true; selectedIndex = 0 }
-        .onChange(of: query) { selectedIndex = 0 }
+        .onChange(of: query) { _, _ in selectedIndex = 0 }
+        .onChange(of: fileStore.buffers.count) { _, _ in
+            selectedIndex = min(selectedIndex, max(0, totalRows - 1))
+        }
     }
 
     private var totalRows: Int { filtered.count + 2 }
