@@ -31,7 +31,7 @@ struct ShortcutBinding: Equatable, Codable, Hashable {
         default:
             let source = TISCopyCurrentKeyboardInputSource().takeRetainedValue()
             guard let ptr = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData) else { return "[\(code)]" }
-            let data = Unmanaged<CFData>.fromOpaque(ptr).takeRetainedValue() as Data
+            let data = Unmanaged<CFData>.fromOpaque(ptr).takeUnretainedValue() as Data
             var chars = [UniChar](repeating: 0, count: 4)
             var length = 0
             var deadKey: UInt32 = 0
