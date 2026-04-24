@@ -21,8 +21,8 @@ enum Theme: String, Codable, CaseIterable {
 
     var cursorColor: NSColor {
         switch self {
-        case .paper: return NSColor(red: 0.545, green: 0.451, blue: 0.333, alpha: 1)  // #8B7355
-        case .dark:  return NSColor(red: 0.769, green: 0.659, blue: 0.510, alpha: 1)  // #C4A882
+        case .paper: return NSColor(red: 0.545, green: 0.451, blue: 0.333, alpha: 0.5)  // #8B7355 at 50%
+        case .dark:  return NSColor(red: 0.769, green: 0.659, blue: 0.510, alpha: 0.5)  // #C4A882 at 50%
         }
     }
 

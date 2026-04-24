@@ -57,6 +57,83 @@ final class ZenTextView: NSTextView {
         isVerticallyResizable                = true
         isHorizontallyResizable              = false
         autoresizingMask                     = [.width]
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleSelectionChange(_:)),
+            name: NSTextView.didChangeSelectionNotification,
+            object: self
+        )
+    }
+
+    // MARK: - Typewriter mode
+
+    override func viewDidMoveToSuperview() {
+        super.viewDidMoveToSuperview()
+        guard let scrollView = enclosingScrollView else { return }
+        scrollView.postsFrameChangedNotifications = true
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(scrollViewFrameChanged(_:)),
+            name: NSView.frameDidChangeNotification,
+            object: scrollView
+        )
+        updateTypewriterInsets()
+    }
+
+    @objc private func scrollViewFrameChanged(_ note: Notification) {
+        updateTypewriterInsets()
+        scrollToCurrentLine()
+    }
+
+    private func updateTypewriterInsets() {
+        guard let scrollView = enclosingScrollView else { return }
+        let half = scrollView.contentSize.height / 2
+        guard abs(textContainerInset.height - half) > 1 else { return }
+        textContainerInset = NSSize(width: 0, height: half)
+    }
+
+    private func scrollToCurrentLine() {
+        guard let layoutManager = layoutManager,
+              let scrollView = enclosingScrollView else { return }
+        let lineMidY: CGFloat
+        if layoutManager.numberOfGlyphs == 0 {
+            lineMidY = textContainerInset.height
+        } else {
+            let charIndex = selectedRange().location
+            let glyphRange = layoutManager.glyphRange(
+                forCharacterRange: NSRange(location: max(0, min(charIndex, string.utf16.count > 0 ? string.utf16.count - 1 : 0)), length: 0),
+                actualCharacterRange: nil
+            )
+            let gi = glyphRange.location == NSNotFound ? 0 : min(glyphRange.location, layoutManager.numberOfGlyphs - 1)
+            let lineRect = layoutManager.lineFragmentRect(forGlyphAt: gi, effectiveRange: nil)
+            lineMidY = lineRect.midY + textContainerInset.height
+        }
+        let visibleHeight = scrollView.contentSize.height
+        let targetY = max(0, lineMidY - visibleHeight / 2)
+        scrollView.contentView.scroll(to: NSPoint(x: 0, y: targetY))
+        scrollView.reflectScrolledClipView(scrollView.contentView)
+    }
+
+    @objc private func handleSelectionChange(_ note: Notification) {
+        DispatchQueue.main.async { [weak self] in self?.scrollToCurrentLine() }
+    }
+
+    // MARK: - Cursor
+
+    override func drawInsertionPoint(in rect: NSRect, color: NSColor, turnedOn flag: Bool) {
+        if flag {
+            let fontHeight = (typingAttributes[.font] as? NSFont)?.pointSize ?? 18
+            color.set()
+            NSBezierPath.fill(NSRect(
+                x: rect.minX,
+                y: rect.midY - fontHeight / 2,
+                width: rect.width,
+                height: fontHeight
+            ))
+        } else {
+            super.drawInsertionPoint(in: rect, color: color, turnedOn: false)
+        }
     }
 
     // MARK: - Apply Theme/Prefs
@@ -151,5 +228,6 @@ final class ZenTextView: NSTextView {
     override func didChangeText() {
         super.didChangeText()
         onTextChange?(string)
+        DispatchQueue.main.async { [weak self] in self?.scrollToCurrentLine() }
     }
 }

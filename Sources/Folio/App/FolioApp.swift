@@ -46,6 +46,9 @@ struct FolioApp: App {
                 Button("Shortcut Overlay") { }
                     .keyboardShortcut("/")
                     .disabled(true)
+                Divider()
+                Button("Maximize Window") { NSApp.mainWindow?.zoom(nil) }
+                    .keyboardShortcut("m", modifiers: [.command, .shift])
             }
         }
 
