@@ -9,7 +9,7 @@ struct FolioApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Text("Folio")
+            GrainBackground(theme: .paper)
                 .frame(width: 800, height: 600)
         }
     }
