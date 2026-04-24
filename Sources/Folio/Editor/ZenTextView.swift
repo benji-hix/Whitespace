@@ -65,6 +65,10 @@ final class ZenTextView: NSTextView {
         textColor                  = theme.textColor
         insertionPointColor        = theme.cursorColor
         selectedTextAttributes     = [.backgroundColor: theme.selectionColor]
+        // Ensure new typed characters use theme text color
+        var attrs = typingAttributes
+        attrs[.foregroundColor] = theme.textColor
+        typingAttributes = attrs
     }
 
     func applyFont(size: CGFloat, lineHeightMultiple: CGFloat) {
