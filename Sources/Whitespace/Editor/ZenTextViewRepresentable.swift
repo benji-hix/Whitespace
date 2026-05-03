@@ -36,6 +36,7 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             size: CGFloat(preferences.fontSize),
             lineHeightMultiple: preferences.lineHeightMultiple
         )
+        textView.scrollSpeed = preferences.scrollSpeed
         textView.string = text
         wire(textView)
 
@@ -43,6 +44,7 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         context.coordinator.lastFontSize = CGFloat(preferences.fontSize)
         context.coordinator.lastLineHeight = preferences.lineHeightMultiple
         context.coordinator.lastTheme = theme
+        context.coordinator.lastScrollSpeed = preferences.scrollSpeed
 
         scrollView.documentView = textView
         return scrollView
@@ -68,13 +70,16 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             textView.applyTheme(theme)
             context.coordinator.lastTheme = theme
         }
+        if context.coordinator.lastScrollSpeed != preferences.scrollSpeed {
+            textView.scrollSpeed = preferences.scrollSpeed
+            context.coordinator.lastScrollSpeed = preferences.scrollSpeed
+        }
 
         // Only sync text if changed externally (e.g. file switch)
         if textView.string != text {
-            // The line anchor tracks a character index in the *previous*
-            // text. After replacing the entire string, that index no longer
-            // refers to the same logical line — invalidate so the next
-            // scrollToCurrentLine recomputes from scratch.
+            // The cached scroll target refers to the previous content's
+            // layout. After replacing the entire string, invalidate so the
+            // next recenter snaps unconditionally.
             textView.invalidateScrollAnchor()
             textView.string = text
             // Setting .string resets all attributed string attributes, so reapply
@@ -106,6 +111,7 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         var lastFontSize: CGFloat = 0
         var lastLineHeight: CGFloat = 0
         var lastTheme: Theme? = nil
+        var lastScrollSpeed: Double = .nan
 
         init(_ parent: ZenTextViewRepresentable) {
             self.parent = parent

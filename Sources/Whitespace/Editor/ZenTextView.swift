@@ -1,27 +1,14 @@
 // Sources/Whitespace/Editor/ZenTextView.swift
 import AppKit
-import Carbon
 
 final class ZenTextView: NSTextView {
     var onTextChange: ((String) -> Void)?
     var keybindingStore: KeybindingStore?
 
-    // MARK: - Typewriter smooth scroll state
-    private var scrollTimer: Timer?
-    private var scrollTargetY: CGFloat = 0
-    private var scrollCurrentY: CGFloat = 0
-    // The starting character index of the visual line that contains the
-    // cursor as of the most recent target compute. Used to detect "still on
-    // the same line" and skip retargeting entirely. -1 means "uninitialized,
-    // always retarget on next call" (initial state and after external text
-    // replacement via invalidateScrollAnchor()).
-    private var lastLineCharLocation: Int = -1
+    /// Multiplier for scroll-animation pace. Higher = faster, lower = slower.
+    /// 1.0 is the tuned default; the Settings slider exposes 0.4 ... 2.0.
+    var scrollSpeed: Double = 1.0
 
-    // MARK: - Kinetic wheel scroll state
-    private var wheelTimer: Timer?
-    private var wheelVelocity: CGFloat = 0
-
-    // Callbacks for overlay/app control (set by ZenTextViewRepresentable)
     var onToggleCommandPalette: (() -> Void)?
     var onToggleShortcutOverlay: (() -> Void)?
     var onToggleTheme: (() -> Void)?
@@ -32,15 +19,43 @@ final class ZenTextView: NSTextView {
     var onIncreaseFontSize: (() -> Void)?
     var onDecreaseFontSize: (() -> Void)?
 
-    // MARK: - Init (mirrors ClearText pattern)
+    // Last committed scroll target. Used only to short-circuit redundant
+    // retargets (sub-pixel rounding, repeated selection notifications). NaN
+    // means "uninitialized — next recenter must run."
+    private var currentScrollTarget: CGFloat = .nan
+
+    // Document-character offset of the start of the paragraph currently
+    // being held centered. nil means "no paragraph anchored — next recenter
+    // treats the caret's paragraph as a fresh anchor."
+    private var centeredParagraphOffset: Int?
+
+    // Manual cursor blink. AppKit's built-in blink is unreliable when
+    // NSTextView is SwiftUI-hosted, so we drive it ourselves.
+    private var blinkTimer: Timer?
+    private var cursorOn: Bool = true
+
+    // Dedicated subview for our caret. Adding it as an NSView (rather than
+    // drawing into NSTextView's draw(_:)) means AppKit handles dirty-rect
+    // invalidation when the caret moves — no afterimages — and the caret
+    // doesn't compete with TK2's text sublayers.
+    private let cursorView: CursorBarView = {
+        let v = CursorBarView()
+        v.isHidden = true
+        v.wantsLayer = true
+        return v
+    }()
+
+    // MARK: - Init (TextKit 2 stack)
 
     override convenience init(frame: NSRect) {
-        let storage   = NSTextStorage()
-        let layout    = NSLayoutManager()
-        storage.addLayoutManager(layout)
-        let container = NSTextContainer(size: NSSize(width: frame.width, height: .greatestFiniteMagnitude))
+        let contentStorage = NSTextContentStorage()
+        let layoutManager  = NSTextLayoutManager()
+        let container = NSTextContainer(
+            size: NSSize(width: frame.width, height: .greatestFiniteMagnitude)
+        )
         container.widthTracksTextView = true
-        layout.addTextContainer(container)
+        layoutManager.textContainer = container
+        contentStorage.addTextLayoutManager(layoutManager)
         self.init(frame: frame, textContainer: container)
     }
 
@@ -79,42 +94,102 @@ final class ZenTextView: NSTextView {
             name: NSTextView.didChangeSelectionNotification,
             object: self
         )
+
+        addSubview(cursorView)
     }
 
-    // MARK: - Typewriter mode
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        // blinkTimer is invalidated in viewDidMoveToWindow when the window
+        // becomes nil — we can't touch a non-Sendable Timer from a
+        // nonisolated deinit under Swift 6 strict concurrency.
+    }
 
-    override func viewDidMoveToSuperview() {
-        super.viewDidMoveToSuperview()
-        guard let scrollView = enclosingScrollView else { return }
-        scrollView.postsFrameChangedNotifications = true
+    // MARK: - Typewriter mode (single scroll authority)
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard let window = window else {
+            stopCursorBlink()
+            return
+        }
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(scrollViewFrameChanged(_:)),
-            name: NSView.frameDidChangeNotification,
-            object: scrollView
+            selector: #selector(windowDidResize(_:)),
+            name: NSWindow.didResizeNotification,
+            object: window
         )
-        updateTypewriterInsets()
-        // Snap the scroll to the centered cursor position now, so the first
-        // user interaction (e.g. typing the first character) doesn't trigger
-        // a one-time animated catch-up from y=0 to the centered target.
-        DispatchQueue.main.async { [weak self] in self?.scrollToCurrentLine(snap: true) }
+        // TK2 NSTextView renders its caret via an NSTextInsertionIndicator
+        // subview, not via drawInsertionPoint. Hide any that are already
+        // present so our custom draw can take over.
+        hideSystemInsertionIndicators()
+        startCursorBlink()
+        DispatchQueue.main.async { [weak self] in
+            self?.updateTypewriterInsets()
+            self?.recenter(animated: false)
+        }
     }
 
-    @objc private func scrollViewFrameChanged(_ note: Notification) {
-        updateTypewriterInsets()
-        // Snap (not animate) on layout/resize. Without this, the initial
-        // centering after first layout runs a smooth animation from y=0 to
-        // the centered target — and if the user starts typing before that
-        // animation finishes, the keystroke *appears* to cause a vertical
-        // shift. It doesn't; it's the init centering still playing out.
-        // Window resizes also feel snappier this way.
-        scrollToCurrentLine(snap: true)
+    /// New insertion-indicator views can be added at any time. Catch each
+    /// one and suppress it so only our custom cursor draws.
+    override func didAddSubview(_ subview: NSView) {
+        super.didAddSubview(subview)
+        suppressInsertionIndicators(in: subview)
     }
 
-    override func scrollRangeToVisible(_ range: NSRange) {
-        // Suppressed: our typewriter smooth scroll owns all scroll positioning.
-        // NSTextView's default implementation would instant-scroll on every
-        // keystroke, fighting the smooth scroll timer and causing jitter.
+    /// Walk a view tree and hide any `NSTextInsertionIndicator` we find,
+    /// including private subclasses. NSTextView frequently nests the
+    /// indicator inside an internal container view, so a single-level
+    /// `subviews` check misses it; matching by class-name string also
+    /// catches `_NSTextInsertionIndicator`-style internal subclasses.
+    /// Defense in depth: `displayMode = .hidden`, `isHidden = true`, and
+    /// `frame = .zero` so even if NSTextView resets one, the others hold.
+    private func suppressInsertionIndicators(in view: NSView) {
+        let typeName = String(describing: type(of: view))
+        if typeName.contains("InsertionIndicator") {
+            if #available(macOS 14, *), let indicator = view as? NSTextInsertionIndicator {
+                indicator.displayMode = .hidden
+            }
+            view.isHidden = true
+            view.frame = .zero
+            view.alphaValue = 0
+            view.layer?.opacity = 0
+        }
+        for sub in view.subviews {
+            suppressInsertionIndicators(in: sub)
+        }
+    }
+
+    override func viewWillDraw() {
+        super.viewWillDraw()
+        // Last line of defense: re-suppress before every draw cycle so a
+        // momentarily un-hidden indicator can't reach the screen.
+        hideSystemInsertionIndicators()
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        // Suppress before super so the indicator can't flash during
+        // super's caret-placement work. Also after, in case super un-hid it.
+        hideSystemInsertionIndicators()
+        super.mouseDown(with: event)
+        hideSystemInsertionIndicators()
+    }
+
+    private func hideSystemInsertionIndicators() {
+        // The indicator may be added as a sibling (in the clip view or
+        // scroll view), not as a descendant of self. Walk the entire
+        // window's content view to catch it wherever it lives.
+        let root: NSView = window?.contentView ?? self
+        suppressInsertionIndicators(in: root)
+    }
+
+    @objc private func windowDidResize(_ note: Notification) {
+        // Resize changes the inset and viewport dimensions — re-anchor the
+        // paragraph as if it were a fresh selection so the caret lands at a
+        // known position rather than wherever the deadzone math drifts to.
+        invalidateScrollAnchor()
+        updateTypewriterInsets()
+        recenter(animated: false)
     }
 
     private func updateTypewriterInsets() {
@@ -124,212 +199,319 @@ final class ZenTextView: NSTextView {
         textContainerInset = NSSize(width: 0, height: half)
     }
 
-    /// Reset the line anchor so the next scrollToCurrentLine call always
-    /// recomputes its target. Call this when text is replaced wholesale
-    /// (file open / new doc) — the previously-tracked character index no
-    /// longer refers to the same logical line in the new content.
+    /// Reset the cached scroll target and paragraph anchor. Call after
+    /// wholesale text replacement (file open / new doc) so the next
+    /// recenter is unconditional.
     func invalidateScrollAnchor() {
-        lastLineCharLocation = -1
+        currentScrollTarget = .nan
+        centeredParagraphOffset = nil
     }
 
-    private func scrollToCurrentLine(snap: Bool = false) {
-        guard let layoutManager = layoutManager,
-              let textContainer = textContainer,
-              let scrollView = enclosingScrollView else { return }
-        // When the user selects a range (⌘A, shift-arrow, drag), there's no
-        // single cursor position to center on. Reading selectedRange().location
-        // would jump us to the selection's start, causing an unwanted scroll on
-        // ⌘A. Leave the scroll position alone while a selection is active.
-        if selectedRange().length > 0 { return }
-        // Force layout to be current. NSLayoutManager is lazy: a fresh edit
-        // invalidates fragments but doesn't recompute them until something
-        // queries layout. If we ask for lineFragmentRect / extraLineFragmentRect
-        // before recomputation, we get stale rects from before the edit and our
-        // target disagrees with the post-edit reality — visible as a shift on
-        // the *next* keystroke when the layout has caught up.
-        layoutManager.ensureLayout(for: textContainer)
-
-        // Identify which visual line the cursor is on, by its starting character
-        // index. The previous approach of recomputing a target Y on every
-        // selection change and trusting a half-line threshold to filter noise
-        // worked mid-line but failed on the first 1-2 characters of a new line:
-        // the formula switches branches (extraLineFragmentRect → lineFragmentRect)
-        // and AppKit's accounting for the two rects differs by a few pixels even
-        // when nothing visually moved. Anchoring on the line's *character index*
-        // sidesteps that: same line ⇒ same anchor ⇒ skip target compute entirely.
-        let cursorLoc = selectedRange().location
-        let textLength = (string as NSString).length
-
-        let lineCharLocation: Int
-        let lineRectMinY: CGFloat
-        if layoutManager.numberOfGlyphs == 0 {
-            lineCharLocation = 0
-            lineRectMinY = 0
-        } else {
-            let extraRect = layoutManager.extraLineFragmentRect
-            if cursorLoc >= textLength && extraRect != .zero {
-                // Phantom line after a trailing newline. Its anchor is textLength
-                // — which equals the character index of the first character the
-                // user is about to type. That makes the transition phantom-line
-                // → first-character-on-new-line a no-op for the line tracker.
-                lineCharLocation = textLength
-                lineRectMinY = extraRect.minY
-            } else {
-                let clampedChar = max(0, min(cursorLoc, textLength - 1))
-                let glyphRange = layoutManager.glyphRange(
-                    forCharacterRange: NSRange(location: clampedChar, length: 0),
-                    actualCharacterRange: nil
-                )
-                let gi = glyphRange.location == NSNotFound
-                    ? 0
-                    : min(glyphRange.location, layoutManager.numberOfGlyphs - 1)
-                var effectiveGlyphRange = NSRange()
-                let lineRect = layoutManager.lineFragmentRect(
-                    forGlyphAt: gi,
-                    effectiveRange: &effectiveGlyphRange
-                )
-                let charRange = layoutManager.characterRange(
-                    forGlyphRange: effectiveGlyphRange,
-                    actualGlyphRange: nil
-                )
-                lineCharLocation = charRange.location
-                lineRectMinY = lineRect.minY
-            }
-        }
-
-        // Same visual line as last call ⇒ nothing to do. This is the fix that
-        // the previous formula-tweaking passes were chasing: don't recompute a
-        // target Y at all when the cursor is still on the same line, so AppKit
-        // rect noise can't translate into a visible shift.
-        if !snap && lineCharLocation == lastLineCharLocation { return }
-        lastLineCharLocation = lineCharLocation
-
-        let font = (typingAttributes[.font] as? NSFont) ?? NSFont.systemFont(ofSize: 18)
-        let pStyle = typingAttributes[.paragraphStyle] as? NSParagraphStyle
-        let lhm = (pStyle?.lineHeightMultiple ?? 0) > 0 ? pStyle!.lineHeightMultiple : 1.0
-        let stableHeight = (font.ascender - font.descender + font.leading) * lhm
-        // Anchor on lineRect.minY + half the typing font's line height,
-        // not lineRect.midY. NSLayoutManager grows the fragment vertically
-        // when a tall glyph (descender, cap, '(', etc.) lands on the line —
-        // midY would shift by 1–2px on first occurrence. minY is stable.
-        let lineMidY = lineRectMinY + stableHeight * 0.5 + textContainerInset.height
-        let visibleHeight = scrollView.contentSize.height
-        let newTarget = (max(0, lineMidY - visibleHeight * 0.45)).rounded()
-        // Secondary safeguard: even when the line anchor changed (e.g. layout
-        // reflow shifted earlier paragraphs), suppress sub-half-line-height
-        // target adjustments that would manifest as a 1-2px visual jump.
-        if !snap && abs(newTarget - scrollTargetY) < stableHeight * 0.5 { return }
-        scrollTargetY = newTarget
-        if snap {
-            stopSmoothScroll()
-            scrollCurrentY = newTarget
-            scrollView.contentView.scroll(to: NSPoint(x: 0, y: newTarget))
-            scrollView.reflectScrolledClipView(scrollView.contentView)
-        } else {
-            startSmoothScroll()
-        }
-    }
-
-    private func startSmoothScroll() {
-        guard scrollTimer == nil else { return }
-        // Stop wheel scroll so it doesn't fight the typewriter positioning
-        stopWheelScroll()
-        scrollCurrentY = enclosingScrollView?.contentView.bounds.origin.y ?? scrollTargetY
-        let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
-            self?.smoothScrollTick()
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        scrollTimer = timer
-    }
-
-    private func smoothScrollTick() {
-        guard let scrollView = enclosingScrollView else {
-            stopSmoothScroll()
-            return
-        }
-        scrollCurrentY += (scrollTargetY - scrollCurrentY) * 0.14
-        if abs(scrollCurrentY - scrollTargetY) < 0.5 {
-            scrollCurrentY = scrollTargetY
-            stopSmoothScroll()
-        }
-        // Snap to integer pixels — sub-pixel scroll positions on layer-backed
-        // clip views can jitter visually and read back rounded, fighting the easing.
-        scrollView.contentView.scroll(to: NSPoint(x: 0, y: scrollCurrentY.rounded()))
-        scrollView.reflectScrolledClipView(scrollView.contentView)
-    }
-
-    private func stopSmoothScroll() {
-        scrollTimer?.invalidate()
-        scrollTimer = nil
-    }
-
-    // MARK: - Kinetic wheel scrolling
-
-    override func scrollWheel(with event: NSEvent) {
-        // Trackpad (precise deltas) already has native macOS momentum — pass through
-        if event.hasPreciseScrollingDeltas {
-            super.scrollWheel(with: event)
-            return
-        }
-        let delta = event.scrollingDeltaY
-        guard delta != 0 else { return }
-        // Stop typewriter scroll so it doesn't fight the wheel
-        stopSmoothScroll()
-        // Accumulate velocity; each wheel notch adds an impulse
-        wheelVelocity -= delta * 6
-        if wheelTimer == nil {
-            let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
-                self?.wheelScrollTick()
-            }
-            RunLoop.main.add(timer, forMode: .common)
-            wheelTimer = timer
-        }
-    }
-
-    private func wheelScrollTick() {
-        guard let scrollView = enclosingScrollView else { stopWheelScroll(); return }
-        let maxY = max(0, (scrollView.documentView?.frame.height ?? 0) - scrollView.contentSize.height)
-        let currentY = scrollView.contentView.bounds.origin.y
-        let newY = min(max(0, currentY + wheelVelocity), maxY)
-        scrollView.contentView.scroll(to: NSPoint(x: 0, y: newY))
-        scrollView.reflectScrolledClipView(scrollView.contentView)
-        wheelVelocity *= 0.88
-        if abs(wheelVelocity) < 0.3 { stopWheelScroll() }
-    }
-
-    private func stopWheelScroll() {
-        wheelTimer?.invalidate()
-        wheelTimer = nil
-        wheelVelocity = 0
-    }
-
-    deinit {
-        stopSmoothScroll()
-        stopWheelScroll()
+    /// AppKit calls this when something asks the scroll view to bring a
+    /// range into view (paste, find, programmatic caret moves, IME, …).
+    /// We route everything through `recenter` so there is exactly one
+    /// authority for viewport position. The default implementation would
+    /// instant-scroll and fight our typewriter animation.
+    override func scrollRangeToVisible(_ range: NSRange) {
+        recenter(animated: true)
     }
 
     @objc private func handleSelectionChange(_ note: Notification) {
-        DispatchQueue.main.async { [weak self] in self?.scrollToCurrentLine() }
+        resetCursorBlink()
+        // NSTextView may re-add or un-hide the system insertion indicator
+        // when the caret moves — re-suppress on every selection change.
+        hideSystemInsertionIndicators()
+        // Defer one runloop turn so layout from the triggering edit has
+        // settled before we ask TK2 for the caret rect.
+        DispatchQueue.main.async { [weak self] in
+            self?.recenter(animated: true)
+            self?.hideSystemInsertionIndicators()
+        }
+    }
+
+    /// The single source of truth for viewport position. Computes the
+    /// target Y from the caret, then either snaps or animates the clip
+    /// view's bounds origin. Re-issuing the same target is a no-op.
+    private func recenter(animated: Bool) {
+        guard let scrollView = enclosingScrollView else { return }
+        // Active selection ranges shouldn't move the viewport — ⌘A,
+        // shift-arrow, drag-select would otherwise jump us.
+        if selectedRange().length > 0 { return }
+        guard let target = caretCenterTargetY() else { return }
+
+        if !animated {
+            currentScrollTarget = target
+            scrollView.contentView.setBoundsOrigin(NSPoint(x: 0, y: target))
+            scrollView.reflectScrolledClipView(scrollView.contentView)
+            return
+        }
+
+        if abs(target - currentScrollTarget) < 0.5 { return }
+        let currentY = scrollView.contentView.bounds.origin.y
+        let distance = abs(target - currentY)
+        currentScrollTarget = target
+
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = kineticDuration(forDistance: distance)
+            ctx.timingFunction = kineticTiming(forDistance: distance)
+            ctx.allowsImplicitAnimation = true
+            scrollView.contentView.animator().setBoundsOrigin(
+                NSPoint(x: 0, y: target)
+            )
+        }
+        scrollView.reflectScrolledClipView(scrollView.contentView)
+    }
+
+    /// Distance-scaled animation duration, divided by the user's
+    /// scroll-speed multiplier (Settings → Editor → Scroll Speed).
+    /// Constants below are the post-tuning baseline (formerly experienced
+    /// as "0.62x" before the slider was zeroed to that value).
+    private func kineticDuration(forDistance distance: CGFloat) -> TimeInterval {
+        let scaled = TimeInterval(distance / 680)
+        let base = min(1.13, max(0.68, scaled))
+        return base / max(0.05, scrollSpeed)
+    }
+
+    /// Kinetic ease curve. Both curves bias the cubic-bezier's second
+    /// control point toward `(0, 1)` so the animation spends a long tail
+    /// approaching its final value — a slow, lingering settle.
+    private func kineticTiming(forDistance distance: CGFloat) -> CAMediaTimingFunction {
+        if distance < 150 {
+            // Pronounced ease-in into a long soft tail.
+            return CAMediaTimingFunction(controlPoints: 0.5, 0.0, 0.08, 1.0)
+        } else {
+            // Faster mid-travel, even longer settle.
+            return CAMediaTimingFunction(controlPoints: 0.3, 0.5, 0.04, 1.0)
+        }
+    }
+
+    /// Compute the desired clip-view bounds origin Y for the current caret.
+    ///
+    /// Two regimes:
+    /// 1. **Paragraph change.** When the caret enters a different paragraph
+    ///    (click, Enter, arrow across boundary), animate to put that
+    ///    paragraph's midpoint at ~45% of the viewport. If the paragraph is
+    ///    taller than the viewport's middle 70%, clamp so the caret stays
+    ///    visible.
+    /// 2. **Within the same paragraph.** Hold position unless the caret
+    ///    leaves the central deadzone (middle 60% of viewport). When it
+    ///    does, scroll just enough to bring it to the deadzone edge it
+    ///    crossed — typewriter "page flip" feel without per-keystroke drift.
+    ///
+    /// Returns nil to mean "don't scroll" — used in the deadzone case.
+    private func caretCenterTargetY() -> CGFloat? {
+        guard let tlm = textLayoutManager,
+              let scrollView = enclosingScrollView,
+              scrollView.contentSize.height > 0 else { return nil }
+
+        let caret: NSTextLocation
+        if let selection = tlm.textSelections.first?.textRanges.first {
+            caret = selection.location
+        } else {
+            caret = tlm.documentRange.location
+        }
+
+        let caretRange = NSTextRange(location: caret)
+        // TK2 layout is lazy. Force the caret region current before we
+        // ask for geometry — otherwise we read pre-edit rects.
+        tlm.ensureLayout(for: caretRange)
+
+        var caretFrame: CGRect = .null
+        tlm.enumerateTextSegments(
+            in: caretRange,
+            type: .selection,
+            options: [.rangeNotRequired]
+        ) { _, segmentFrame, _, _ in
+            caretFrame = segmentFrame
+            return false
+        }
+        guard !caretFrame.isNull,
+              let fragment = tlm.textLayoutFragment(for: caret),
+              let elementRange = fragment.textElement?.elementRange else {
+            return nil
+        }
+
+        let inset          = textContainerOrigin.y
+        let visibleHeight  = scrollView.contentSize.height
+        let currentY       = scrollView.contentView.bounds.origin.y
+        let paragraphMidY  = fragment.layoutFragmentFrame.midY + inset
+        let caretMinY      = caretFrame.minY + inset
+        let caretMaxY      = caretFrame.maxY + inset
+        let paragraphOffset = tlm.offset(
+            from: tlm.documentRange.location,
+            to: elementRange.location
+        )
+
+        let paragraphChanged = (centeredParagraphOffset != paragraphOffset)
+        centeredParagraphOffset = paragraphOffset
+
+        if paragraphChanged {
+            // Place paragraph midpoint at 45% of the viewport.
+            var target = paragraphMidY - visibleHeight * 0.45
+            // Caret-visibility safety net: paragraph taller than the safe
+            // zone falls back to caret-line clamping so the cursor stays
+            // inside the middle 70% of the viewport.
+            let safeMin = visibleHeight * 0.15
+            let safeMax = visibleHeight * 0.85
+            let caretMinAtTarget = caretMinY - target
+            let caretMaxAtTarget = caretMaxY - target
+            if caretMinAtTarget < safeMin {
+                target = caretMinY - safeMin
+            } else if caretMaxAtTarget > safeMax {
+                target = caretMaxY - safeMax
+            }
+            return max(0, target.rounded())
+        }
+
+        // Same paragraph: hold position unless the caret leaves the deadzone.
+        let deadzoneTop    = currentY + visibleHeight * 0.30
+        let deadzoneBottom = currentY + visibleHeight * 0.70
+        if caretMinY >= deadzoneTop && caretMaxY <= deadzoneBottom {
+            return nil
+        }
+        let target: CGFloat
+        if caretMaxY > deadzoneBottom {
+            // Caret fell below — scroll so the caret returns to the top of
+            // the deadzone, giving room to keep writing downward.
+            target = caretMinY - visibleHeight * 0.30
+        } else {
+            // Caret rose above — symmetric: caret to the deadzone bottom.
+            target = caretMaxY - visibleHeight * 0.70
+        }
+        return max(0, target.rounded())
     }
 
     // MARK: - Cursor
 
-    override func drawInsertionPoint(in rect: NSRect, color: NSColor, turnedOn flag: Bool) {
-        if flag {
-            let font = typingAttributes[.font] as? NSFont ?? NSFont.systemFont(ofSize: 18)
-            // ascender - descender spans from top of caps to bottom of descenders;
-            // anchor to rect.maxY so the cursor tracks the text baseline regardless of lineHeightMultiple
-            let cursorHeight = font.ascender - font.descender
-            color.set()
-            NSBezierPath.fill(NSRect(
-                x: rect.minX,
-                y: rect.maxY - cursorHeight,
-                width: rect.width,
-                height: cursorHeight
-            ))
-        } else {
-            super.drawInsertionPoint(in: rect, color: color, turnedOn: false)
+    /// Compute the cursor bar's rect in this text view's coordinate space.
+    ///
+    /// Two-tier strategy:
+    /// 1. **Preferred:** read the baseline from TK2's actual rendered
+    ///    layout via `NSTextLineFragment.glyphOrigin` (no font-metric
+    ///    assumptions, baseline-correct by construction).
+    /// 2. **Fallback:** if any of TK2's layout queries return nil/empty
+    ///    (which happens at end-of-text and during early layout passes),
+    ///    derive the baseline from the segment frame minus `|descender|`.
+    ///    This is a few pixels off in worst cases but keeps the cursor
+    ///    visible — much better than returning nil and hiding it.
+    private func currentCursorBarRect() -> NSRect? {
+        guard selectedRange().length == 0,
+              let tlm = textLayoutManager else { return nil }
+        let caret = tlm.textSelections.first?.textRanges.first?.location
+            ?? tlm.documentRange.location
+        let caretRange = NSTextRange(location: caret)
+        tlm.ensureLayout(for: caretRange)
+
+        var caretFrame: CGRect = .null
+        tlm.enumerateTextSegments(
+            in: caretRange,
+            type: .selection,
+            options: [.rangeNotRequired]
+        ) { _, segmentFrame, _, _ in
+            caretFrame = segmentFrame
+            return false
         }
+        guard !caretFrame.isNull else { return nil }
+
+        let font = typingAttributes[.font] as? NSFont ?? NSFont.systemFont(ofSize: 18)
+        let baselineY = preciseBaselineY(at: caret, caretFrame: caretFrame, tlm: tlm)
+            ?? (caretFrame.maxY + textContainerOrigin.y - abs(font.descender))
+
+        // Extend 2pt below the baseline so the cursor reads as anchored
+        // to the text rather than floating above it. Cap-tall bars that
+        // end exactly at baseline visually appear a hair too high.
+        let belowBaselineExtension: CGFloat = 2
+        let cursorBottomY = (baselineY + belowBaselineExtension).rounded()
+        let cursorTopY = (baselineY - font.ascender).rounded()
+        let cursorX = (caretFrame.minX + textContainerOrigin.x + 1).rounded()
+
+        return NSRect(
+            x: cursorX,
+            y: cursorTopY,
+            width: 1.0,
+            height: max(1, cursorBottomY - cursorTopY)
+        )
+    }
+
+    /// Try to read the baseline Y from TK2's layout fragments. Returns nil
+    /// if the fragment / line fragment lookup fails — caller falls back to
+    /// segment-based approximation.
+    private func preciseBaselineY(
+        at caret: NSTextLocation,
+        caretFrame: CGRect,
+        tlm: NSTextLayoutManager
+    ) -> CGFloat? {
+        // textLayoutFragment(for:) can return nil for end-of-text. If so,
+        // step back one location and try again — that catches the fragment
+        // for the last real character.
+        var fragment = tlm.textLayoutFragment(for: caret)
+        if fragment == nil,
+           let prev = tlm.location(caret, offsetBy: -1) {
+            fragment = tlm.textLayoutFragment(for: prev)
+        }
+        guard let layoutFragment = fragment else { return nil }
+
+        let fragmentFrame = layoutFragment.layoutFragmentFrame
+        let caretYInFragment = caretFrame.midY - fragmentFrame.origin.y
+        let pickedLineFragment =
+            layoutFragment.textLineFragments.first(where: { lf in
+                lf.typographicBounds.minY <= caretYInFragment
+                    && caretYInFragment <= lf.typographicBounds.maxY
+            })
+            ?? layoutFragment.textLineFragments.last
+            ?? layoutFragment.textLineFragments.first
+        guard let lineFragment = pickedLineFragment else { return nil }
+
+        let baselineInFragment =
+            lineFragment.typographicBounds.origin.y + lineFragment.glyphOrigin.y
+        let baselineInContainer = fragmentFrame.origin.y + baselineInFragment
+        return baselineInContainer + textContainerOrigin.y
+    }
+
+    /// Update `cursorView`'s frame and visibility from the current caret
+    /// state. Call whenever the caret may have moved or the blink state
+    /// toggled. AppKit invalidates the old + new frames automatically.
+    private func updateCursorView() {
+        guard cursorOn, let bar = currentCursorBarRect() else {
+            cursorView.isHidden = true
+            return
+        }
+        // The theme's cursor color is 0.5 alpha for a soft system-cursor
+        // look, but with our thinner 1pt bar that reads as faint. Bump
+        // alpha so the cursor reads as confidently present.
+        cursorView.color = insertionPointColor.withAlphaComponent(0.85)
+        cursorView.frame = bar
+        cursorView.isHidden = false
+    }
+
+    private func startCursorBlink() {
+        stopCursorBlink()
+        cursorOn = true
+        updateCursorView()
+        let timer = Timer(timeInterval: 0.53, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                self.cursorOn.toggle()
+                self.updateCursorView()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        blinkTimer = timer
+    }
+
+    private func stopCursorBlink() {
+        blinkTimer?.invalidate()
+        blinkTimer = nil
+        cursorOn = true
+    }
+
+    /// Re-phase the blink so the cursor is solid for a full on-cycle right
+    /// after user activity (typing, clicking, arrow keys).
+    private func resetCursorBlink() {
+        guard blinkTimer != nil else { return }
+        cursorOn = true
+        updateCursorView()
+        startCursorBlink()
     }
 
     // MARK: - Apply Theme/Prefs
@@ -338,7 +520,6 @@ final class ZenTextView: NSTextView {
         textColor                  = theme.textColor
         insertionPointColor        = theme.cursorColor
         selectedTextAttributes     = [.backgroundColor: theme.selectionColor]
-        // Ensure new typed characters use theme text color
         var attrs = typingAttributes
         attrs[.foregroundColor] = theme.textColor
         typingAttributes = attrs
@@ -436,7 +617,6 @@ final class ZenTextView: NSTextView {
         if cmd && !shift && !ctrl && event.keyCode == 24 { onIncreaseFontSize?();     return }  // ⌘+
         if cmd && !shift && !ctrl && event.keyCode == 27 { onDecreaseFontSize?();     return }  // ⌘-
 
-        // Vim-inspired editor shortcuts via keybindingStore
         let pressed = ShortcutBinding(
             keyCode: event.keyCode,
             modifiers: UInt64(flags.rawValue) & ShortcutBinding.modifierMask
@@ -477,13 +657,28 @@ final class ZenTextView: NSTextView {
         }
     }
 
-    // MARK: - NSTextView change notification
-
     override func didChangeText() {
         super.didChangeText()
         onTextChange?(string)
-        // No scroll trigger here: typing always moves the selection, so
-        // handleSelectionChange already schedules scrollToCurrentLine.
-        // Calling it again from here doubled the work per keystroke.
+        resetCursorBlink()
+    }
+}
+
+/// Tiny NSView that draws a single colored bar filling its bounds.
+/// Used as a sibling/subview overlay for the caret so AppKit handles
+/// invalidation of the old + new frames automatically when the caret
+/// moves — no afterimages, no fighting NSTextView's text sublayers.
+final class CursorBarView: NSView {
+    var color: NSColor = .black {
+        didSet { needsDisplay = true }
+    }
+
+    override var isFlipped: Bool { true }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { false }
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override func draw(_ dirtyRect: NSRect) {
+        color.set()
+        bounds.fill()
     }
 }

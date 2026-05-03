@@ -103,6 +103,19 @@ private struct GeneralTabView: View {
                     }
                 }
 
+                PrefSection("Editor") {
+                    PrefRow("Scroll Speed") {
+                        HStack(spacing: 10) {
+                            Text(String(format: "%.2fx", prefs.scrollSpeed))
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(Color.primary.opacity(0.38))
+                                .frame(width: 56, alignment: .trailing)
+                            Slider(value: $prefs.scrollSpeed, in: 0.4...2.0)
+                                .frame(width: 140)
+                        }
+                    }
+                }
+
                 PrefSection("Auto-Save") {
                     PrefRow("Enabled") {
                         Toggle("", isOn: $prefs.autoSaveEnabled)
