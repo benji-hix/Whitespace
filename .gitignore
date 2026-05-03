@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Xcode user-specific state
+xcuserdata/
+*.xcuserstate
+
+# Claude Code session state and worktrees
+.claude/

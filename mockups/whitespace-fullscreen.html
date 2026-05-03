@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Whitespace — Fullscreen Mockup</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,500;1,300&family=JetBrains+Mono:wght@400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Paper theme — pulled from Theme.swift */
+    --paper-bg:      #F5F0E8;
+    --paper-text:    #1C1713;
+    --paper-cursor:  rgba(139, 115, 85, 0.5);   /* #8B7355 @ 50% */
+    --paper-select:  rgba(139, 115, 85, 0.25);
+
+    /* Dark theme */
+    --dark-bg:       #181114;
+    --dark-text:     #E8E0D5;
+    --dark-cursor:   rgba(196, 168, 130, 0.5);  /* #C4A882 @ 50% */
+    --dark-select:   rgba(196, 168, 130, 0.25);
+
+    /* Layout */
+    --canvas-w: 1280px;       /* macOS window @ ~fullscreen 16:10 ratio */
+    --canvas-h: 800px;
+    --column-max: 680px;      /* PreferencesStore.ColumnWidth.medium */
+    --font-size: 18px;        /* default fontSize */
+    --line-height: 1.6;       /* default lineHeightMultiple */
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: #2a2a2a;
+    color: #ddd;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Page chrome ---------- */
+  .page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 48px 32px 96px;
+  }
+  .page header h1 {
+    font-family: 'Crimson Pro', serif;
+    font-weight: 300;
+    font-size: 32px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .page header p {
+    margin: 0 0 32px;
+    color: #888;
+    font-size: 14px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 56px;
+  }
+  .row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .row h2 {
+    font-family: 'Crimson Pro', serif;
+    font-weight: 300;
+    font-size: 22px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .row .meta { color: #777; font-size: 13px; margin: 0 0 8px; }
+
+  /* ---------- The canvas — represents the macOS window in fullscreen ---------- */
+  .canvas {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1280 / 800;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.45),
+                0 0 0 1px rgba(255,255,255,0.04);
+    isolation: isolate;
+  }
+  .canvas.paper { background: var(--paper-bg); color: var(--paper-text); }
+  .canvas.dark  { background: var(--dark-bg);  color: var(--dark-text);  }
+
+  /* Radial vignette — paper only, mirrors Theme.gradientOverlay */
+  .canvas.paper::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 50%,
+                  rgba(0,0,0,0) 250px,
+                  rgba(0,0,0,0.05) 900px);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Film grain — CIRandomGenerator @ 5.5% opacity, multiply on paper, screen on dark */
+  .canvas::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.055;
+    pointer-events: none;
+    z-index: 2;
+    mix-blend-mode: multiply;
+  }
+  .canvas.dark::after { mix-blend-mode: screen; }
+
+  /* Centered text column */
+  .column {
+    position: absolute; inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    z-index: 3;
+  }
+  .column .text {
+    width: 100%;
+    max-width: var(--column-max);
+    padding: 0 16px;
+    overflow: hidden;
+    /* The vertical fade mask from CanvasView */
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 10%,
+      black 30%,
+      black 70%,
+      transparent 90%,
+      transparent 100%
+    );
+            mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 10%,
+      black 30%,
+      black 70%,
+      transparent 90%,
+      transparent 100%
+    );
+    display: flex;
+    align-items: center;     /* typewriter centering */
+    justify-content: center;
+  }
+  .column .text .body {
+    width: 100%;
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-weight: 300;
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+    letter-spacing: 0.005em;
+  }
+  .column .text .body p {
+    margin: 0 0 1em;
+    text-indent: 0;
+  }
+  .column .text .body p + p { text-indent: 1.5em; }
+
+  /* Cursor — block, font-height, semi-transparent (Theme.cursorColor) */
+  .caret {
+    display: inline-block;
+    width: 0.55em;
+    height: 1em;
+    vertical-align: -0.18em;
+    margin: 0 0.02em;
+    background: var(--cursor);
+  }
+  .canvas.paper .caret { background: var(--paper-cursor); }
+  .canvas.dark  .caret { background: var(--dark-cursor); }
+
+  /* Optional selection illustration */
+  .sel { background: var(--sel); border-radius: 1px; }
+  .canvas.paper .sel { background: var(--paper-select); }
+  .canvas.dark  .sel { background: var(--dark-select); }
+
+  /* ---------- Command palette overlay ---------- */
+  .scrim {
+    position: absolute; inset: 0;
+    z-index: 4;
+    background: rgba(0,0,0,0.04);
+    backdrop-filter: blur(0.5px);
+  }
+  .canvas.dark .scrim { background: rgba(0,0,0,0.18); }
+
+  .palette {
+    position: absolute;
+    top: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 420px;
+    z-index: 5;
+    border-radius: 12px;
+    overflow: hidden;
+    /* .ultraThinMaterial proxy */
+    background: rgba(255,255,255,0.62);
+    backdrop-filter: blur(28px) saturate(1.4);
+    -webkit-backdrop-filter: blur(28px) saturate(1.4);
+    box-shadow: 0 24px 48px -8px rgba(0,0,0,0.25),
+                inset 0 0 0 0.5px rgba(255,255,255,0.5);
+    color: #1c1713;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .canvas.dark .palette {
+    background: rgba(40,32,36,0.55);
+    color: #E8E0D5;
+    box-shadow: 0 24px 48px -8px rgba(0,0,0,0.55),
+                inset 0 0 0 0.5px rgba(255,255,255,0.08);
+  }
+  .palette .search {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+  .palette .search .icon { opacity: 0.55; width: 14px; height: 14px; }
+  .palette .search input {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+  .palette .search .placeholder { opacity: 0.55; }
+  .palette .divider { height: 1px; background: currentColor; opacity: 0.12; }
+  .palette .list { padding: 4px 0; max-height: 280px; overflow: hidden; }
+  .palette .row-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  .palette .row-item .icon { opacity: 0.55; width: 16px; }
+  .palette .row-item.selected { background: rgba(0,0,0,0.06); }
+  .canvas.dark .palette .row-item.selected { background: rgba(255,255,255,0.06); }
+  .palette .row-sep {
+    height: 1px;
+    background: currentColor;
+    opacity: 0.12;
+    margin: 4px 16px;
+  }
+
+  /* ---------- Shortcut overlay ---------- */
+  .shortcuts {
+    position: absolute;
+    top: 50%;
+    right: calc(100% / 18);   /* geo.size.width / 18 from CanvasView */
+    transform: translateY(-50%);
+    width: 220px;
+    z-index: 5;
+    border-radius: 14px;
+    padding: 28px 30px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.02);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .canvas.paper .shortcuts {
+    background: rgba(245, 240, 232, 0.88);
+    color: var(--paper-text);
+    border: 0.5px solid rgba(28,23,19,0.08);
+  }
+  .canvas.dark .shortcuts {
+    background: rgba(24, 17, 20, 0.88);
+    color: var(--dark-text);
+    border: 0.5px solid rgba(232,224,213,0.08);
+  }
+  .shortcuts .title {
+    font-size: 9px;
+    font-weight: 400;
+    opacity: 0.28;
+    margin-bottom: 16px;
+  }
+  .shortcuts .section {
+    font-size: 8px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    opacity: 0.28;
+    margin-top: 14px;
+    margin-bottom: 3px;
+  }
+  .shortcuts .section:first-of-type { margin-top: 0; }
+  .shortcuts .item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 3px 0;
+    font-size: 11px;
+  }
+  .shortcuts .label { opacity: 0.50; }
+  .shortcuts .key {
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    opacity: 0.28;
+    font-size: 11px;
+  }
+
+  /* ---------- Caption row beneath each canvas ---------- */
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .label-tag {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Whitespace — Fullscreen Mockup</h1>
+    <p>Three states × two themes. Centered text column, font-height block cursor, vertical fade mask, film grain.</p>
+  </header>
+
+  <div class="grid">
+
+    <!-- ============== STATE 1 — RESTING ============== -->
+    <section class="row">
+      <h2>1. Resting state</h2>
+      <p class="meta">Just the centered column, vertical fade mask, grain background. No overlays. Block cursor sits in the middle of the visible column (typewriter centering keeps the active line vertically centered).</p>
+      <div class="pair">
+        <!-- PAPER -->
+        <div>
+          <div class="label-tag">Paper</div>
+          <div class="canvas paper">
+            <div class="column">
+              <div class="text">
+                <div class="body">
+                  <p>The morning light came in slow through the eastern windows, settling on the desk in long pale rectangles. She set down her coffee and watched the steam climb into the cold air of the room.</p>
+                  <p>For a long moment she did not write anything at all. The cursor blinked at the end of the unfinished sentence, and the cursor was patient<span class="caret"></span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- DARK -->
+        <div>
+          <div class="label-tag">Dark</div>
+          <div class="canvas dark">
+            <div class="column">
+              <div class="text">
+                <div class="body">
+                  <p>The morning light came in slow through the eastern windows, settling on the desk in long pale rectangles. She set down her coffee and watched the steam climb into the cold air of the room.</p>
+                  <p>For a long moment she did not write anything at all. The cursor blinked at the end of the unfinished sentence, and the cursor was patient<span class="caret"></span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== STATE 2 — COMMAND PALETTE ============== -->
+    <section class="row">
+      <h2>2. Command palette open (⌘P)</h2>
+      <p class="meta">Floating 420 pt panel, ultra-thin material, 12 pt corner radius, soft shadow. Selected row highlighted at 6–8% primary opacity. Editor remains visible behind a faint scrim.</p>
+      <div class="pair">
+        <!-- PAPER -->
+        <div>
+          <div class="label-tag">Paper</div>
+          <div class="canvas paper">
+            <div class="column">
+              <div class="text">
+                <div class="body">
+                  <p>The morning light came in slow through the eastern windows, settling on the desk in long pale rectangles. She set down her coffee and watched the steam climb into the cold air of the room.</p>
+                  <p>For a long moment she did not write anything at all. The cursor blinked at the end of the unfinished sentence, and the cursor was patient.</p>
+                </div>
+              </div>
+            </div>
+            <div class="scrim"></div>
+            <div class="palette">
+              <div class="search">
+                <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 L14 14"/></svg>
+                <span>chapter</span>
+              </div>
+              <div class="divider"></div>
+              <div class="list">
+                <div class="row-item selected">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="2" width="10" height="12" rx="1"/><path d="M5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg>
+                  chapter-01.md
+                </div>
+                <div class="row-item">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="2" width="10" height="12" rx="1"/><path d="M5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg>
+                  chapter-02-draft.md
+                </div>
+                <div class="row-item">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="2" width="10" height="12" rx="1"/><path d="M5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg>
+                  chapter-notes.md
+                </div>
+                <div class="row-sep"></div>
+                <div class="row-item">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 5l1.5-1.5h3L8 5h6v8H2z"/></svg>
+                  Open file…
+                </div>
+                <div class="row-item">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 3v10M3 8h10"/></svg>
+                  New file
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DARK -->
+        <div>
+          <div class="label-tag">Dark</div>
+          <div class="canvas dark">
+            <div class="column">
+              <div class="text">
+                <div class="body">
+                  <p>The morning light came in slow through the eastern windows, settling on the desk in long pale rectangles. She set down her coffee and watched the steam climb into the cold air of the room.</p>
+                  <p>For a long moment she did not write anything at all. The cursor blinked at the end of the unfinished sentence, and the cursor was patient.</p>
+                </div>
+              </div>
+            </div>
+            <div class="scrim"></div>
+            <div class="palette">
+              <div class="search">
+                <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 L14 14"/></svg>
+                <span>chapter</span>
+              </div>
+              <div class="divider"></div>
+              <div class="list">
+                <div class="row-item selected">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="2" width="10" height="12" rx="1"/><path d="M5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg>
+                  chapter-01.md
+                </div>
+                <div class="row-item">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="2" width="10" height="12" rx="1"/><path d="M5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg>
+                  chapter-02-draft.md
+                </div>
+                <div class="row-item">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="2" width="10" height="12" rx="1"/><path d="M5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg>
+                  chapter-notes.md
+                </div>
+                <div class="row-sep"></div>
+                <div class="row-item">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 5l1.5-1.5h3L8 5h6v8H2z"/></svg>
+                  Open file…
+                </div>
+                <div class="row-item">
+                  <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 3v10M3 8h10"/></svg>
+                  New file
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============== STATE 3 — SHORTCUT OVERLAY ============== -->
+    <section class="row">
+      <h2>3. Shortcut overlay open (⌘/)</h2>
+      <p class="meta">220 pt panel pinned to right margin (canvas width / 18). Section headers at 8 pt, labels at 11 pt / 50% opacity, monospaced bindings at 28% opacity. Editor remains live.</p>
+      <div class="pair">
+        <!-- PAPER -->
+        <div>
+          <div class="label-tag">Paper</div>
+          <div class="canvas paper">
+            <div class="column">
+              <div class="text">
+                <div class="body">
+                  <p>The morning light came in slow through the eastern windows, settling on the desk in long pale rectangles. She set down her coffee and watched the steam climb into the cold air of the room.</p>
+                  <p>For a long moment she did not write anything at all. The cursor blinked at the end of the unfinished sentence, and the cursor was patient<span class="caret"></span></p>
+                </div>
+              </div>
+            </div>
+            <aside class="shortcuts">
+              <div class="title">Shortcuts</div>
+              <div class="section">EDITOR</div>
+              <div class="item"><span class="label">Delete Word Left</span>     <span class="key">⌥⌫</span></div>
+              <div class="item"><span class="label">Delete Word Right</span>    <span class="key">⌥⌦</span></div>
+              <div class="item"><span class="label">Delete to Line Start</span> <span class="key">⌘⌫</span></div>
+              <div class="item"><span class="label">Delete to Line End</span>   <span class="key">⌘⌦</span></div>
+              <div class="item"><span class="label">Kill Line</span>            <span class="key">⌃K</span></div>
+              <div class="item"><span class="label">Delete Char Forward</span>  <span class="key">⌃D</span></div>
+              <div class="section">APP</div>
+              <div class="item"><span class="label">Open Command Palette</span> <span class="key">⌘P</span></div>
+              <div class="item"><span class="label">Toggle Shortcut Overlay</span><span class="key">⌘/</span></div>
+              <div class="item"><span class="label">Toggle Dark Mode</span>     <span class="key">⌘⇧D</span></div>
+              <div class="item"><span class="label">New File</span>             <span class="key">⌘N</span></div>
+              <div class="item"><span class="label">Open File</span>            <span class="key">⌘O</span></div>
+              <div class="item"><span class="label">Save</span>                 <span class="key">⌘S</span></div>
+              <div class="item"><span class="label">Save As</span>              <span class="key">⌘⇧S</span></div>
+              <div class="item"><span class="label">Preferences</span>          <span class="key">⌘,</span></div>
+              <div class="item"><span class="label">Increase Font</span>        <span class="key">⌘+</span></div>
+              <div class="item"><span class="label">Decrease Font</span>        <span class="key">⌘–</span></div>
+            </aside>
+          </div>
+        </div>
+
+        <!-- DARK -->
+        <div>
+          <div class="label-tag">Dark</div>
+          <div class="canvas dark">
+            <div class="column">
+              <div class="text">
+                <div class="body">
+                  <p>The morning light came in slow through the eastern windows, settling on the desk in long pale rectangles. She set down her coffee and watched the steam climb into the cold air of the room.</p>
+                  <p>For a long moment she did not write anything at all. The cursor blinked at the end of the unfinished sentence, and the cursor was patient<span class="caret"></span></p>
+                </div>
+              </div>
+            </div>
+            <aside class="shortcuts">
+              <div class="title">Shortcuts</div>
+              <div class="section">EDITOR</div>
+              <div class="item"><span class="label">Delete Word Left</span>     <span class="key">⌥⌫</span></div>
+              <div class="item"><span class="label">Delete Word Right</span>    <span class="key">⌥⌦</span></div>
+              <div class="item"><span class="label">Delete to Line Start</span> <span class="key">⌘⌫</span></div>
+              <div class="item"><span class="label">Delete to Line End</span>   <span class="key">⌘⌦</span></div>
+              <div class="item"><span class="label">Kill Line</span>            <span class="key">⌃K</span></div>
+              <div class="item"><span class="label">Delete Char Forward</span>  <span class="key">⌃D</span></div>
+              <div class="section">APP</div>
+              <div class="item"><span class="label">Open Command Palette</span> <span class="key">⌘P</span></div>
+              <div class="item"><span class="label">Toggle Shortcut Overlay</span><span class="key">⌘/</span></div>
+              <div class="item"><span class="label">Toggle Dark Mode</span>     <span class="key">⌘⇧D</span></div>
+              <div class="item"><span class="label">New File</span>             <span class="key">⌘N</span></div>
+              <div class="item"><span class="label">Open File</span>            <span class="key">⌘O</span></div>
+              <div class="item"><span class="label">Save</span>                 <span class="key">⌘S</span></div>
+              <div class="item"><span class="label">Save As</span>              <span class="key">⌘⇧S</span></div>
+              <div class="item"><span class="label">Preferences</span>          <span class="key">⌘,</span></div>
+              <div class="item"><span class="label">Increase Font</span>        <span class="key">⌘+</span></div>
+              <div class="item"><span class="label">Decrease Font</span>        <span class="key">⌘–</span></div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+</body>
+</html>
