@@ -1,4 +1,4 @@
-name: Folio
+name: Whitespace
 
 options:
   bundleIdPrefix: com.benji
@@ -8,21 +8,21 @@ options:
   createIntermediateGroups: true
 
 targets:
-  Folio:
+  Whitespace:
     type: application
     platform: macOS
     deploymentTarget: "26.0"
     sources:
-      - path: Sources/Folio
+      - path: Sources/Whitespace
     info:
-      path: Sources/Folio/App/Info.plist
+      path: Sources/Whitespace/App/Info.plist
       properties:
         NSPrincipalClass: NSApplication
-        CFBundleDisplayName: Folio
+        CFBundleDisplayName: Whitespace
     settings:
       base:
         PRODUCT_NAME: "$(TARGET_NAME)"
-        PRODUCT_BUNDLE_IDENTIFIER: com.benji.Folio
+        PRODUCT_BUNDLE_IDENTIFIER: com.benji.Whitespace
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "6.0"
@@ -31,28 +31,28 @@ targets:
         Debug:
           ENABLE_TESTABILITY: YES
 
-  FolioTests:
+  WhitespaceTests:
     type: bundle.unit-test
     platform: macOS
     deploymentTarget: "26.0"
     sources:
-      - path: Tests/FolioTests
+      - path: Tests/WhitespaceTests
     settings:
       base:
         PRODUCT_NAME: "$(TARGET_NAME)"
-        PRODUCT_BUNDLE_IDENTIFIER: com.benji.FolioTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.benji.WhitespaceTests
         SWIFT_VERSION: "6.0"
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: "$(TEST_HOST)"
     dependencies:
-      - target: Folio
+      - target: Whitespace
 
 schemes:
-  Folio:
+  Whitespace:
     build:
       targets:
-        Folio: all
-        FolioTests: [test]
+        Whitespace: all
+        WhitespaceTests: [test]
     test:
       targets:
-        - FolioTests
+        - WhitespaceTests
