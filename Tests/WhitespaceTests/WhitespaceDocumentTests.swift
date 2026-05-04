@@ -50,4 +50,14 @@ final class WhitespaceDocumentTests: XCTestCase {
         let data = try doc.encodedData(for: markdown)
         XCTAssertEqual(String(data: data, encoding: .utf8), "# Hi")
     }
+
+    func testWritableContentTypesPlainTextFirst() {
+        XCTAssertEqual(WhitespaceDocument.writableContentTypes.first, .plainText)
+        XCTAssertTrue(WhitespaceDocument.writableContentTypes.contains(WhitespaceDocument.markdownType))
+    }
+
+    func testReadableContentTypesIncludesMarkdown() {
+        XCTAssertTrue(WhitespaceDocument.readableContentTypes.contains(WhitespaceDocument.markdownType))
+        XCTAssertTrue(WhitespaceDocument.readableContentTypes.contains(.plainText))
+    }
 }
