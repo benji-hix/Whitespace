@@ -2,7 +2,8 @@
 import SwiftUI
 
 struct CanvasView: View {
-    @Environment(FileStore.self) private var fileStore
+    @Binding var document: WhitespaceDocument
+
     @Environment(ThemeStore.self) private var themeStore
     @Environment(PreferencesStore.self) private var prefs
     @Environment(KeybindingStore.self) private var keybindingStore
@@ -10,34 +11,25 @@ struct CanvasView: View {
     @State private var showCommandPalette = false
     @State private var showShortcutOverlay = false
 
-    private var activeText: Binding<String> {
-        Binding(
-            get: { fileStore.activeBuffer?.text ?? "" },
-            set: { fileStore.updateActiveText($0) }
-        )
-    }
-
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Layer 1: Background
                 GrainBackground(theme: themeStore.current)
 
-                // Layer 2: Editor (centered column)
                 HStack {
                     Spacer(minLength: 0)
                     ZenTextViewRepresentable(
-                        text: activeText,
+                        text: $document.text,
                         theme: themeStore.current,
                         preferences: prefs,
                         keybindingStore: keybindingStore,
                         onToggleCommandPalette: { showCommandPalette.toggle() },
                         onToggleShortcutOverlay: { showShortcutOverlay.toggle() },
                         onToggleTheme: { themeStore.toggle() },
-                        onSave: { Task { try? await fileStore.saveActive() } },
-                        onSaveAs: { _ = fileStore.saveAsPanel() },
-                        onOpen: { fileStore.openPanel() },
-                        onNew: { fileStore.newBuffer() },
+                        onSave: { NSApp.sendAction(#selector(NSDocument.save(_:)), to: nil, from: nil) },
+                        onSaveAs: { NSApp.sendAction(#selector(NSDocument.saveAs(_:)), to: nil, from: nil) },
+                        onOpen: { NSApp.sendAction(#selector(NSDocumentController.openDocument(_:)), to: nil, from: nil) },
+                        onNew: { NSApp.sendAction(#selector(NSDocumentController.newDocument(_:)), to: nil, from: nil) },
                         onIncreaseFontSize: { prefs.setFontSize(prefs.fontSize + 1) },
                         onDecreaseFontSize: { prefs.setFontSize(prefs.fontSize - 1) }
                     )
@@ -59,7 +51,6 @@ struct CanvasView: View {
                     Spacer(minLength: 0)
                 }
 
-                // Layer 3: Overlays
                 if showCommandPalette {
                     Color.clear
                         .contentShape(Rectangle())
@@ -82,13 +73,5 @@ struct CanvasView: View {
         }
         .animation(.easeInOut(duration: 0.15), value: showCommandPalette)
         .animation(.easeInOut(duration: 0.15), value: showShortcutOverlay)
-        .onChange(of: fileStore.activeBuffer?.text) { _, _ in
-            if prefs.autoSaveEnabled {
-                fileStore.scheduleAutoSave(delay: prefs.autoSaveDelay)
-            }
-        }
-        .onAppear {
-            if fileStore.buffers.isEmpty { fileStore.newBuffer() }
-        }
     }
 }

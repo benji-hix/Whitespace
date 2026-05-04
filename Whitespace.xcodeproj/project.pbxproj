@@ -12,12 +12,9 @@
 		19F35FA543BDE3D7867127BB /* GrainBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3115E494FF9618E84B02CAA /* GrainBackground.swift */; };
 		1C39A6A418377338407BB52B /* WhitespaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F9A2B6A98896239EB1F0E18 /* WhitespaceTests.swift */; };
 		1D2B0D1D5031B2D5EF2EA609 /* WhitespaceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 609526E32566B580CE3975FE /* WhitespaceApp.swift */; };
-		1E002441FF125BC7F4DB482E /* FileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8C7E26551C0CCF636D8B78 /* FileStore.swift */; };
 		20748E3C8306FAB032C915C0 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F525A1B86AFA5FAF21A1C1 /* Theme.swift */; };
-		2B73A45EC19CEA02A8EA37F0 /* FileBufferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A768C4BBAEC4E99C7EFB3630 /* FileBufferTests.swift */; };
 		31D13B796AC875AF414CA457 /* ShortcutOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B55D4CC66F0F8C381513D423 /* ShortcutOverlayView.swift */; };
 		37A8B3DBBAB1E65519054C4C /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86530798628758E57A221D00 /* FontNames.swift */; };
-		428D8DC968D19232E9AC85B3 /* FileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39B9DF0DC0F288E92B2326E /* FileStoreTests.swift */; };
 		5CDB51B8BF1607F41CBCF305 /* ShortcutBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889722F5DBC81F03A9909E51 /* ShortcutBinding.swift */; };
 		693C731DBD711D9F4D9B1794 /* CrimsonPro-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 830CFAFDB2220E36602CC2B6 /* CrimsonPro-MediumItalic.ttf */; };
 		7888F976B922A3B6F39E5E77 /* KeybindingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF38483522BEDD91EBFACB60 /* KeybindingAction.swift */; };
@@ -29,7 +26,6 @@
 		9CC87979C524A60DBE45AAF8 /* KeybindingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC82A5D3305957FA6ACABE7 /* KeybindingStoreTests.swift */; };
 		A0CECEE3C5E9136F537701BA /* KeybindingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5265B2EB6CFB697889000002 /* KeybindingStore.swift */; };
 		A949F023BECFDBA35EB2628D /* PreferencesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA7A8DC09D17820EF5137A7 /* PreferencesStoreTests.swift */; };
-		C6E260EBCCE4C25001540780 /* FileBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5188023590BD2386372FEF32 /* FileBuffer.swift */; };
 		CB206BF3EDC2DC717D56E0EB /* PreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7557D5A85774B0E1098DC0DB /* PreferencesStore.swift */; };
 		D7A9F779313D55C234A3EDF5 /* ThemeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED40FDD890675F91043C3B0E /* ThemeStore.swift */; };
 		D976B1F14010B056ED9AD750 /* CrimsonPro-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9819BBD16C5BA5EE38B7AEAA /* CrimsonPro-LightItalic.ttf */; };
@@ -50,10 +46,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0C8C7E26551C0CCF636D8B78 /* FileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStore.swift; sourceTree = "<group>"; };
 		2F9A2B6A98896239EB1F0E18 /* WhitespaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceTests.swift; sourceTree = "<group>"; };
 		40486A9B315C1CDB3DF7AA92 /* ThemeStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeStoreTests.swift; sourceTree = "<group>"; };
-		5188023590BD2386372FEF32 /* FileBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileBuffer.swift; sourceTree = "<group>"; };
 		5265B2EB6CFB697889000002 /* KeybindingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingStore.swift; sourceTree = "<group>"; };
 		57591270DE5EE125B4459890 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5B8BAAD0990BFEBF5AC22207 /* Whitespace.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Whitespace.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -69,10 +63,8 @@
 		889722F5DBC81F03A9909E51 /* ShortcutBinding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutBinding.swift; sourceTree = "<group>"; };
 		9819BBD16C5BA5EE38B7AEAA /* CrimsonPro-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-LightItalic.ttf"; sourceTree = "<group>"; };
 		A4D4A3C2EAA9C5293487EAF6 /* WhitespaceDocument.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WhitespaceDocument.swift; sourceTree = "<group>"; };
-		A768C4BBAEC4E99C7EFB3630 /* FileBufferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileBufferTests.swift; sourceTree = "<group>"; };
 		AB3AC6247E56F15D3DFA925D /* ZenTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextView.swift; sourceTree = "<group>"; };
 		B1F525A1B86AFA5FAF21A1C1 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		B39B9DF0DC0F288E92B2326E /* FileStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStoreTests.swift; sourceTree = "<group>"; };
 		B55D4CC66F0F8C381513D423 /* ShortcutOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutOverlayView.swift; sourceTree = "<group>"; };
 		BEA7A8DC09D17820EF5137A7 /* PreferencesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesStoreTests.swift; sourceTree = "<group>"; };
 		C49610AEA1A9AAFF2EB61201 /* WhitespaceDocumentTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WhitespaceDocumentTests.swift; sourceTree = "<group>"; };
@@ -165,8 +157,6 @@
 		7BA858DC71B908E3ADF44223 /* WhitespaceTests */ = {
 			isa = PBXGroup;
 			children = (
-				A768C4BBAEC4E99C7EFB3630 /* FileBufferTests.swift */,
-				B39B9DF0DC0F288E92B2326E /* FileStoreTests.swift */,
 				2F9A2B6A98896239EB1F0E18 /* WhitespaceTests.swift */,
 				DDC82A5D3305957FA6ACABE7 /* KeybindingStoreTests.swift */,
 				BEA7A8DC09D17820EF5137A7 /* PreferencesStoreTests.swift */,
@@ -238,8 +228,6 @@
 		BE235F3FFA5239787B8F20CE /* Files */ = {
 			isa = PBXGroup;
 			children = (
-				5188023590BD2386372FEF32 /* FileBuffer.swift */,
-				0C8C7E26551C0CCF636D8B78 /* FileStore.swift */,
 				A4D4A3C2EAA9C5293487EAF6 /* WhitespaceDocument.swift */,
 			);
 			path = Files;
@@ -331,8 +319,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B73A45EC19CEA02A8EA37F0 /* FileBufferTests.swift in Sources */,
-				428D8DC968D19232E9AC85B3 /* FileStoreTests.swift in Sources */,
 				1C39A6A418377338407BB52B /* WhitespaceTests.swift in Sources */,
 				9CC87979C524A60DBE45AAF8 /* KeybindingStoreTests.swift in Sources */,
 				A949F023BECFDBA35EB2628D /* PreferencesStoreTests.swift in Sources */,
@@ -347,8 +333,6 @@
 			files = (
 				DC478B7A71460C3ADE52F7F8 /* CanvasView.swift in Sources */,
 				804FBC51F1E926A461BEDC16 /* CommandPaletteView.swift in Sources */,
-				C6E260EBCCE4C25001540780 /* FileBuffer.swift in Sources */,
-				1E002441FF125BC7F4DB482E /* FileStore.swift in Sources */,
 				1D2B0D1D5031B2D5EF2EA609 /* WhitespaceApp.swift in Sources */,
 				37A8B3DBBAB1E65519054C4C /* FontNames.swift in Sources */,
 				19F35FA543BDE3D7867127BB /* GrainBackground.swift in Sources */,

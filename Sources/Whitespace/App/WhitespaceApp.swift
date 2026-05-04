@@ -4,7 +4,6 @@ import CoreText
 
 @main
 struct WhitespaceApp: App {
-    @State private var fileStore        = FileStore()
     @State private var keybindingStore  = KeybindingStore()
     @State private var themeStore       = ThemeStore()
     @State private var preferencesStore = PreferencesStore()
@@ -12,29 +11,15 @@ struct WhitespaceApp: App {
     init() { registerFonts() }
 
     var body: some Scene {
-        WindowGroup {
-            CanvasView()
-                .environment(fileStore)
+        DocumentGroup(newDocument: WhitespaceDocument()) { file in
+            CanvasView(document: file.$document)
                 .environment(keybindingStore)
                 .environment(themeStore)
                 .environment(preferencesStore)
                 .background(WindowConfigurator())
                 .frame(minWidth: 600, minHeight: 400)
         }
-        .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 900, height: 650)
         .commands {
-            CommandGroup(replacing: .newItem) {
-                Button("New") { fileStore.newBuffer() }
-                    .keyboardShortcut("n")
-                Button("Open…") { fileStore.openPanel() }
-                    .keyboardShortcut("o")
-                Divider()
-                Button("Save") { Task { try? await fileStore.saveActive() } }
-                    .keyboardShortcut("s")
-                Button("Save As…") { _ = fileStore.saveAsPanel() }
-                    .keyboardShortcut("s", modifiers: [.command, .shift])
-            }
             CommandGroup(replacing: .printItem) { }
 
             CommandMenu("View") {
