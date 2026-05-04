@@ -677,6 +677,22 @@ final class CursorBarView: NSView {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { false }
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
+    // Layer-backed NSViews get a default ~0.25s implicit CALayer animation
+    // on position/bounds/hidden, which makes the caret slide to a new line
+    // (e.g. after pressing Enter) instead of snapping. Suppress all the
+    // implicit actions so the cursor moves instantaneously.
+    override func makeBackingLayer() -> CALayer {
+        let layer = CALayer()
+        layer.actions = [
+            "position": NSNull(),
+            "bounds":   NSNull(),
+            "frame":    NSNull(),
+            "hidden":   NSNull(),
+            "opacity":  NSNull(),
+        ]
+        return layer
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         color.set()
         bounds.fill()
