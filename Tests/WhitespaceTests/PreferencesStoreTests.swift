@@ -19,8 +19,6 @@ final class PreferencesStoreTests: XCTestCase {
         XCTAssertEqual(store.fontSize, 18)
         XCTAssertEqual(store.lineHeightMultiple, 1.6)
         XCTAssertEqual(store.columnWidth, .medium)
-        XCTAssertFalse(store.autoSaveEnabled)
-        XCTAssertEqual(store.autoSaveDelay, 2)
     }
 
     func testFontSizeClampedOnSave() {
@@ -42,20 +40,4 @@ final class PreferencesStoreTests: XCTestCase {
         XCTAssertEqual(store2.columnWidth, .wide)
     }
 
-    func testAutoSaveEnabledPersists() {
-        store.autoSaveEnabled = true
-        let store2 = PreferencesStore(defaults: UserDefaults(suiteName: "test-prefs")!)
-        XCTAssertTrue(store2.autoSaveEnabled)
-    }
-
-    func testAutoSaveDelayPersists() {
-        store.autoSaveDelay = 5
-        let store2 = PreferencesStore(defaults: UserDefaults(suiteName: "test-prefs")!)
-        XCTAssertEqual(store2.autoSaveDelay, 5)
-    }
-
-    func testAutoSaveDelayClampedToMinimum() {
-        store.autoSaveDelay = 0
-        XCTAssertEqual(store.autoSaveDelay, 1)
-    }
 }
