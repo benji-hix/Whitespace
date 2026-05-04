@@ -1,9 +1,12 @@
 // Sources/Whitespace/App/WhitespaceApp.swift
 import SwiftUI
+import AppKit
 import CoreText
 
 @main
 struct WhitespaceApp: App {
+    @NSApplicationDelegateAdaptor(WhitespaceAppDelegate.self) private var appDelegate
+
     @State private var keybindingStore  = KeybindingStore()
     @State private var themeStore       = ThemeStore()
     @State private var preferencesStore = PreferencesStore()
@@ -63,8 +66,20 @@ struct WindowConfigurator: NSViewRepresentable {
             window.titleVisibility = .hidden
             window.styleMask.insert(.fullSizeContentView)
             window.isMovableByWindowBackground = true
+            window.standardWindowButton(.closeButton)?.isHidden = true
+            window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+            window.standardWindowButton(.zoomButton)?.isHidden = true
         }
         return view
     }
     func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+final class WhitespaceAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        // Force the shared NSDocumentController to instantiate before
+        // SwiftUI's DocumentGroup wires up its menus, so the standard
+        // "Open Recent" tracking and menu population kick in reliably.
+        _ = NSDocumentController.shared
+    }
 }
