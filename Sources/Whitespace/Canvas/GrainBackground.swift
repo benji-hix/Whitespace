@@ -3,24 +3,41 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 
 struct GrainBackground: View {
-    let theme: Theme
+    let themeStore: ThemeStore
 
     @State private var grainImage: NSImage?
 
+    private var theme: Theme { themeStore.current }
+    private var previous: Theme { themeStore.previous }
+    private var progress: Double { themeStore.transitionProgress }
+
     var body: some View {
         ZStack {
-            Color(nsColor: theme.backgroundColor)
+            Color(nsColor: themeStore.displayedBackgroundColor)
                 .ignoresSafeArea()
 
-            theme.gradientOverlay
-                .ignoresSafeArea()
+            // Cross-fade gradient overlays (paper has a vignette, dark has none).
+            ZStack {
+                previous.gradientOverlay
+                    .opacity(1 - progress)
+                theme.gradientOverlay
+                    .opacity(progress)
+            }
+            .ignoresSafeArea()
 
             if let grain = grainImage {
-                Image(nsImage: grain)
-                    .resizable(resizingMode: .tile)
-                    .opacity(0.055)
-                    .blendMode(theme.grainIsLight ? .screen : .multiply)
-                    .ignoresSafeArea()
+                // Cross-fade the grain blend mode by stacking two passes.
+                ZStack {
+                    Image(nsImage: grain)
+                        .resizable(resizingMode: .tile)
+                        .opacity(0.055 * (1 - progress))
+                        .blendMode(previous.grainIsLight ? .screen : .multiply)
+                    Image(nsImage: grain)
+                        .resizable(resizingMode: .tile)
+                        .opacity(0.055 * progress)
+                        .blendMode(theme.grainIsLight ? .screen : .multiply)
+                }
+                .ignoresSafeArea()
             }
         }
         .task(id: theme) {

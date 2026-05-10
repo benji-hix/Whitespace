@@ -24,6 +24,7 @@ final class PreferencesStore {
     private let defaults: UserDefaults
     private var _fontSize: Int
     private var _autoSaveDelay: Int
+    private var _shortcutsAutoDismissDelay: Int
 
     var fontSize: Int {
         get { _fontSize }
@@ -55,6 +56,19 @@ final class PreferencesStore {
         }
     }
 
+    var shortcutsAutoDismissEnabled: Bool {
+        didSet { defaults.set(shortcutsAutoDismissEnabled, forKey: Keys.shortcutsAutoDismissEnabled) }
+    }
+
+    var shortcutsAutoDismissDelay: Int {
+        get { _shortcutsAutoDismissDelay }
+        set {
+            let clamped = max(1, newValue)
+            _shortcutsAutoDismissDelay = clamped
+            defaults.set(clamped, forKey: Keys.shortcutsAutoDismissDelay)
+        }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let rawFontSize = defaults.object(forKey: Keys.fontSize) != nil
@@ -76,6 +90,10 @@ final class PreferencesStore {
         let rawSpeed = defaults.object(forKey: Keys.scrollSpeed) != nil
             ? defaults.double(forKey: Keys.scrollSpeed) : 1.0
         self.scrollSpeed = min(2.0, max(0.4, rawSpeed))
+        self.shortcutsAutoDismissEnabled = defaults.bool(forKey: Keys.shortcutsAutoDismissEnabled)
+        let rawShortcutDelay = defaults.object(forKey: Keys.shortcutsAutoDismissDelay) != nil
+            ? defaults.integer(forKey: Keys.shortcutsAutoDismissDelay) : 4
+        self._shortcutsAutoDismissDelay = max(1, rawShortcutDelay)
     }
 
     private enum Keys {
@@ -85,6 +103,8 @@ final class PreferencesStore {
         static let autoSaveEnabled = "whitespace.prefs.autoSaveEnabled"
         static let autoSaveDelay   = "whitespace.prefs.autoSaveDelay"
         static let scrollSpeed     = "whitespace.prefs.scrollSpeed"
+        static let shortcutsAutoDismissEnabled = "whitespace.prefs.shortcutsAutoDismissEnabled"
+        static let shortcutsAutoDismissDelay   = "whitespace.prefs.shortcutsAutoDismissDelay"
     }
 }
 

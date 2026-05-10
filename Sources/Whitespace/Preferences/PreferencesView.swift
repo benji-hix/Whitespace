@@ -116,6 +116,32 @@ private struct GeneralTabView: View {
                     }
                 }
 
+                PrefSection("Shortcuts Panel") {
+                    PrefRow("Auto-dismiss") {
+                        Toggle("", isOn: $prefs.shortcutsAutoDismissEnabled)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                    }
+
+                    if prefs.shortcutsAutoDismissEnabled {
+                        PrefRow("Hide after") {
+                            HStack(spacing: 10) {
+                                TextField("", value: Binding(
+                                    get: { prefs.shortcutsAutoDismissDelay },
+                                    set: { prefs.shortcutsAutoDismissDelay = $0 }
+                                ), format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(size: 12, design: .monospaced))
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 56)
+                                Text("seconds")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.primary.opacity(0.38))
+                            }
+                        }
+                    }
+                }
+
                 PrefSection("Auto-Save") {
                     PrefRow("Enabled") {
                         Toggle("", isOn: $prefs.autoSaveEnabled)

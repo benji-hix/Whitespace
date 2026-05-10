@@ -517,12 +517,23 @@ final class ZenTextView: NSTextView {
     // MARK: - Apply Theme/Prefs
 
     func applyTheme(_ theme: Theme) {
-        textColor                  = theme.textColor
-        insertionPointColor        = theme.cursorColor
-        selectedTextAttributes     = [.backgroundColor: theme.selectionColor]
+        applyColors(text: theme.textColor, cursor: theme.cursorColor, selection: theme.selectionColor)
+    }
+
+    func applyColors(text: NSColor, cursor: NSColor, selection: NSColor) {
+        textColor                  = text
+        insertionPointColor        = cursor
+        selectedTextAttributes     = [.backgroundColor: selection]
         var attrs = typingAttributes
-        attrs[.foregroundColor] = theme.textColor
+        attrs[.foregroundColor] = text
         typingAttributes = attrs
+        // Re-color any already-laid-out glyphs so the body text follows the
+        // animated tint, not just future typing.
+        if let storage = textStorage, storage.length > 0 {
+            storage.beginEditing()
+            storage.addAttribute(.foregroundColor, value: text, range: NSRange(location: 0, length: storage.length))
+            storage.endEditing()
+        }
     }
 
     func applyFont(size: CGFloat, lineHeightMultiple: CGFloat) {
