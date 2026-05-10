@@ -471,7 +471,15 @@ final class ZenTextView: NSTextView {
     /// Update `cursorView`'s frame and visibility from the current caret
     /// state. Call whenever the caret may have moved or the blink state
     /// toggled. AppKit invalidates the old + new frames automatically.
+    ///
+    /// Frame and hidden updates are wrapped in a no-actions CATransaction
+    /// so the cursor snaps instantly between lines (e.g. after Enter)
+    /// instead of sliding via CALayer's default ~0.25s implicit animation.
     private func updateCursorView() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+
         guard cursorOn, let bar = currentCursorBarRect() else {
             cursorView.isHidden = true
             return
@@ -687,22 +695,6 @@ final class CursorBarView: NSView {
     override var isFlipped: Bool { true }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { false }
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
-
-    // Layer-backed NSViews get a default ~0.25s implicit CALayer animation
-    // on position/bounds/hidden, which makes the caret slide to a new line
-    // (e.g. after pressing Enter) instead of snapping. Suppress all the
-    // implicit actions so the cursor moves instantaneously.
-    override func makeBackingLayer() -> CALayer {
-        let layer = CALayer()
-        layer.actions = [
-            "position": NSNull(),
-            "bounds":   NSNull(),
-            "frame":    NSNull(),
-            "hidden":   NSNull(),
-            "opacity":  NSNull(),
-        ]
-        return layer
-    }
 
     override func draw(_ dirtyRect: NSRect) {
         color.set()
