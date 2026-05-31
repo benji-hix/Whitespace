@@ -10,17 +10,18 @@ struct CanvasView: View {
 
     @State private var showCommandPalette = false
     @State private var showShortcutOverlay = false
+    @State private var autoDismissTask: Task<Void, Never>?
 
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                GrainBackground(theme: themeStore.current)
+                GrainBackground(themeStore: themeStore)
 
                 HStack {
                     Spacer(minLength: 0)
                     ZenTextViewRepresentable(
                         text: $document.text,
-                        theme: themeStore.current,
+                        themeStore: themeStore,
                         preferences: prefs,
                         keybindingStore: keybindingStore,
                         onToggleCommandPalette: { showCommandPalette.toggle() },
@@ -60,18 +61,28 @@ struct CanvasView: View {
                         .transition(.opacity.combined(with: .scale(scale: 0.97)))
                 }
 
-                if showShortcutOverlay {
-                    HStack {
-                        Spacer(minLength: 0)
-                        ShortcutOverlayView(theme: themeStore.current)
-                            .padding(.trailing, geo.size.width / 18)
-                    }
-                    .frame(maxHeight: .infinity, alignment: .center)
-                    .transition(.opacity)
+                HStack {
+                    Spacer(minLength: 0)
+                    ShortcutOverlayView(themeStore: themeStore)
+                        .padding(.trailing, geo.size.width / 18)
                 }
+                .frame(maxHeight: .infinity, alignment: .center)
+                .opacity(showShortcutOverlay ? 1 : 0)
+                .allowsHitTesting(showShortcutOverlay)
             }
         }
         .animation(.easeInOut(duration: 0.15), value: showCommandPalette)
-        .animation(.easeInOut(duration: 0.15), value: showShortcutOverlay)
+        .animation(.timingCurve(0.6, 0.0, 0.4, 1.0, duration: 0.6), value: showShortcutOverlay)
+        .onChange(of: showShortcutOverlay) { _, isOn in
+            autoDismissTask?.cancel()
+            autoDismissTask = nil
+            guard isOn, prefs.shortcutsAutoDismissEnabled else { return }
+            let seconds = prefs.shortcutsAutoDismissDelay
+            autoDismissTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: UInt64(seconds) * 1_000_000_000)
+                guard !Task.isCancelled else { return }
+                showShortcutOverlay = false
+            }
+        }
     }
 }

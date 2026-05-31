@@ -4,9 +4,11 @@ import SwiftUI
 
 struct ZenTextViewRepresentable: NSViewRepresentable {
     @Binding var text: String
-    let theme: Theme
+    let themeStore: ThemeStore
     let preferences: PreferencesStore
     let keybindingStore: KeybindingStore
+
+    private var theme: Theme { themeStore.current }
 
     var onToggleCommandPalette: () -> Void = {}
     var onToggleShortcutOverlay: () -> Void = {}
@@ -31,7 +33,11 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
         textView.delegate = context.coordinator
         textView.keybindingStore = keybindingStore
-        textView.applyTheme(theme)
+        textView.applyColors(
+            text: themeStore.displayedTextColor,
+            cursor: themeStore.displayedCursorColor,
+            selection: themeStore.displayedSelectionColor
+        )
         textView.applyFont(
             size: CGFloat(preferences.fontSize),
             lineHeightMultiple: preferences.lineHeightMultiple
@@ -43,6 +49,7 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         // Sync coordinator tracking state to avoid redundant calls on first updateNSView
         context.coordinator.lastFontSize = CGFloat(preferences.fontSize)
         context.coordinator.lastLineHeight = preferences.lineHeightMultiple
+        context.coordinator.lastProgress = themeStore.transitionProgress
         context.coordinator.lastTheme = theme
         context.coordinator.lastScrollSpeed = preferences.scrollSpeed
 
@@ -66,9 +73,18 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             context.coordinator.lastFontSize = newSize
             context.coordinator.lastLineHeight = newLH
         }
-        if context.coordinator.lastTheme != theme {
-            textView.applyTheme(theme)
+        // Apply colors any time the displayed values change — either because
+        // the logical theme switched, or because we're mid-transition.
+        let progress = themeStore.transitionProgress
+        if context.coordinator.lastTheme != theme ||
+           context.coordinator.lastProgress != progress {
+            textView.applyColors(
+                text: themeStore.displayedTextColor,
+                cursor: themeStore.displayedCursorColor,
+                selection: themeStore.displayedSelectionColor
+            )
             context.coordinator.lastTheme = theme
+            context.coordinator.lastProgress = progress
         }
         if context.coordinator.lastScrollSpeed != preferences.scrollSpeed {
             textView.scrollSpeed = preferences.scrollSpeed
@@ -84,7 +100,11 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             textView.string = text
             // Setting .string resets all attributed string attributes, so reapply
             textView.applyFont(size: CGFloat(preferences.fontSize), lineHeightMultiple: preferences.lineHeightMultiple)
-            textView.applyTheme(theme)
+            textView.applyColors(
+                text: themeStore.displayedTextColor,
+                cursor: themeStore.displayedCursorColor,
+                selection: themeStore.displayedSelectionColor
+            )
         }
 
         wire(textView)
@@ -111,6 +131,7 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         var lastFontSize: CGFloat = 0
         var lastLineHeight: CGFloat = 0
         var lastTheme: Theme? = nil
+        var lastProgress: Double = .nan
         var lastScrollSpeed: Double = .nan
 
         init(_ parent: ZenTextViewRepresentable) {
