@@ -67,4 +67,30 @@ enum PasteNormalizer {
         }
         return runs
     }
+
+    /// Stage 2: rebuild an attributed string from flag-only runs, using the
+    /// editor's current typing attributes as the base. Overrides only `.font`
+    /// (the matching WhitespaceFont face at the base size) and `.underlineStyle`.
+    static func attributedString(runs: [StyledRun],
+                                 baseAttributes: [NSAttributedString.Key: Any]) -> NSAttributedString {
+        let size = (baseAttributes[.font] as? NSFont)?.pointSize ?? 18
+        let result = NSMutableAttributedString()
+
+        for run in runs {
+            let name = fontName(bold: run.bold, italic: run.italic)
+            let font = NSFont(name: name, size: size)
+                ?? NSFont(name: WhitespaceFont.regular, size: size)
+                ?? NSFont.systemFont(ofSize: size)
+
+            var attrs = baseAttributes
+            attrs[.font] = font
+            if run.underline {
+                attrs[.underlineStyle] = NSUnderlineStyle.single.rawValue
+            } else {
+                attrs[.underlineStyle] = nil
+            }
+            result.append(NSAttributedString(string: run.text, attributes: attrs))
+        }
+        return result
+    }
 }

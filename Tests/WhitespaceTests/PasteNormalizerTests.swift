@@ -69,4 +69,30 @@ final class PasteNormalizerTests: XCTestCase {
             StyledRun(text: "fox",     bold: false, italic: true,  underline: false),
         ])
     }
+
+    func testAttributedStringAppliesBaseStyleAndUnderline() {
+        let pStyle = NSMutableParagraphStyle()
+        pStyle.firstLineHeadIndent = 36
+        let base: [NSAttributedString.Key: Any] = [
+            .font:            NSFont.systemFont(ofSize: 20),
+            .paragraphStyle:  pStyle,
+            .foregroundColor: NSColor.green,
+        ]
+        let runs = [
+            StyledRun(text: "a", bold: false, italic: false, underline: false),
+            StyledRun(text: "b", bold: false, italic: false, underline: true),
+        ]
+
+        let out = PasteNormalizer.attributedString(runs: runs, baseAttributes: base)
+        XCTAssertEqual(out.string, "ab")
+
+        let a0 = out.attributes(at: 0, effectiveRange: nil)
+        XCTAssertEqual(a0[.paragraphStyle] as? NSParagraphStyle, pStyle)
+        XCTAssertEqual(a0[.foregroundColor] as? NSColor, NSColor.green)
+        XCTAssertEqual((a0[.font] as? NSFont)?.pointSize, 20)   // size from base
+        XCTAssertNil(a0[.underlineStyle])                       // run 0 not underlined
+
+        let a1 = out.attributes(at: 1, effectiveRange: nil)
+        XCTAssertEqual(a1[.underlineStyle] as? Int, NSUnderlineStyle.single.rawValue)
+    }
 }
