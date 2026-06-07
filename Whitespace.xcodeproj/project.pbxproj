@@ -28,6 +28,8 @@
 		9CC87979C524A60DBE45AAF8 /* KeybindingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC82A5D3305957FA6ACABE7 /* KeybindingStoreTests.swift */; };
 		A0CECEE3C5E9136F537701BA /* KeybindingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5265B2EB6CFB697889000002 /* KeybindingStore.swift */; };
 		A949F023BECFDBA35EB2628D /* PreferencesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA7A8DC09D17820EF5137A7 /* PreferencesStoreTests.swift */; };
+		B11F1BB22FD634A5002CFA02 /* PasteNormalizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11F1BB12FD634A5002CFA02 /* PasteNormalizerTests.swift */; };
+		B11F1BB42FD634D4002CFA02 /* PasteNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11F1BB32FD634D4002CFA02 /* PasteNormalizer.swift */; };
 		C6E260EBCCE4C25001540780 /* FileBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5188023590BD2386372FEF32 /* FileBuffer.swift */; };
 		CB206BF3EDC2DC717D56E0EB /* PreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7557D5A85774B0E1098DC0DB /* PreferencesStore.swift */; };
 		D7A9F779313D55C234A3EDF5 /* ThemeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED40FDD890675F91043C3B0E /* ThemeStore.swift */; };
@@ -68,6 +70,8 @@
 		9819BBD16C5BA5EE38B7AEAA /* CrimsonPro-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-LightItalic.ttf"; sourceTree = "<group>"; };
 		A768C4BBAEC4E99C7EFB3630 /* FileBufferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileBufferTests.swift; sourceTree = "<group>"; };
 		AB3AC6247E56F15D3DFA925D /* ZenTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextView.swift; sourceTree = "<group>"; };
+		B11F1BB12FD634A5002CFA02 /* PasteNormalizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteNormalizerTests.swift; sourceTree = "<group>"; };
+		B11F1BB32FD634D4002CFA02 /* PasteNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteNormalizer.swift; sourceTree = "<group>"; };
 		B1F525A1B86AFA5FAF21A1C1 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		B39B9DF0DC0F288E92B2326E /* FileStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStoreTests.swift; sourceTree = "<group>"; };
 		B55D4CC66F0F8C381513D423 /* ShortcutOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutOverlayView.swift; sourceTree = "<group>"; };
@@ -167,6 +171,7 @@
 				DDC82A5D3305957FA6ACABE7 /* KeybindingStoreTests.swift */,
 				BEA7A8DC09D17820EF5137A7 /* PreferencesStoreTests.swift */,
 				40486A9B315C1CDB3DF7AA92 /* ThemeStoreTests.swift */,
+				B11F1BB12FD634A5002CFA02 /* PasteNormalizerTests.swift */,
 			);
 			path = WhitespaceTests;
 			sourceTree = "<group>";
@@ -218,6 +223,7 @@
 			children = (
 				AB3AC6247E56F15D3DFA925D /* ZenTextView.swift */,
 				62642690F802CF6188C0EDB0 /* ZenTextViewRepresentable.swift */,
+				B11F1BB32FD634D4002CFA02 /* PasteNormalizer.swift */,
 			);
 			path = Editor;
 			sourceTree = "<group>";
@@ -286,8 +292,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2600;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 337CB635EA8B81A92F1BCDDC /* Build configuration list for PBXProject "Whitespace" */;
 			developmentRegion = en;
@@ -329,6 +333,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B11F1BB22FD634A5002CFA02 /* PasteNormalizerTests.swift in Sources */,
 				2B73A45EC19CEA02A8EA37F0 /* FileBufferTests.swift in Sources */,
 				428D8DC968D19232E9AC85B3 /* FileStoreTests.swift in Sources */,
 				1C39A6A418377338407BB52B /* WhitespaceTests.swift in Sources */,
@@ -348,6 +353,7 @@
 				1E002441FF125BC7F4DB482E /* FileStore.swift in Sources */,
 				1D2B0D1D5031B2D5EF2EA609 /* WhitespaceApp.swift in Sources */,
 				37A8B3DBBAB1E65519054C4C /* FontNames.swift in Sources */,
+				B11F1BB42FD634D4002CFA02 /* PasteNormalizer.swift in Sources */,
 				19F35FA543BDE3D7867127BB /* GrainBackground.swift in Sources */,
 				7888F976B922A3B6F39E5E77 /* KeybindingAction.swift in Sources */,
 				A0CECEE3C5E9136F537701BA /* KeybindingStore.swift in Sources */,
