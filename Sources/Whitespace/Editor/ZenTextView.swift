@@ -574,12 +574,7 @@ final class ZenTextView: NSTextView {
     }
 
     private func fontName(bold: Bool, italic: Bool) -> String {
-        switch (bold, italic) {
-        case (true,  true):  return WhitespaceFont.boldItalic
-        case (true,  false): return WhitespaceFont.bold
-        case (false, true):  return WhitespaceFont.italic
-        case (false, false): return WhitespaceFont.regular
-        }
+        PasteNormalizer.fontName(bold: bold, italic: italic)
     }
 
     private func toggleBold() {
@@ -611,6 +606,39 @@ final class ZenTextView: NSTextView {
         var attrs = typingAttributes
         attrs[.font] = newFont
         typingAttributes = attrs
+    }
+
+    // MARK: - Paste / Drag normalization
+
+    override func readSelection(from pboard: NSPasteboard) -> Bool {
+        let source: NSAttributedString
+        if let data = pboard.data(forType: .rtfd),
+           let s = NSAttributedString(rtfd: data, documentAttributes: nil) {
+            source = s
+        } else if let data = pboard.data(forType: .rtf),
+                  let s = NSAttributedString(rtf: data, documentAttributes: nil) {
+            source = s
+        } else if let data = pboard.data(forType: .html),
+                  let s = try? NSAttributedString(
+                      data: data,
+                      options: [.documentType: NSAttributedString.DocumentType.html],
+                      documentAttributes: nil) {
+            source = s
+        } else if let str = pboard.string(forType: .string) {
+            source = NSAttributedString(string: str)
+        } else {
+            return super.readSelection(from: pboard)
+        }
+
+        let runs = PasteNormalizer.styledRuns(from: source)
+        let normalized = PasteNormalizer.attributedString(runs: runs, baseAttributes: typingAttributes)
+
+        let range = selectedRange()
+        guard shouldChangeText(in: range, replacementString: normalized.string) else { return false }
+        textStorage?.replaceCharacters(in: range, with: normalized)
+        didChangeText()
+        setSelectedRange(NSRange(location: range.location + normalized.length, length: 0))
+        return true
     }
 
     // MARK: - keyDown
