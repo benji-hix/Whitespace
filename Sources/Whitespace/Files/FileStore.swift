@@ -6,7 +6,11 @@ import AppKit
 final class FileStore {
     private(set) var buffers: [FileBuffer] = []
     var activeIndex: Int = 0
-    private var autoSaveTask: Task<Void, Never>?
+    var autoSaveTasks: [UUID: Task<Void, Never>] = [:]
+
+    var hasUnsavedChanges: Bool {
+        buffers.contains { $0.isDirty }
+    }
 
     var activeBuffer: FileBuffer? {
         get { buffers.indices.contains(activeIndex) ? buffers[activeIndex] : nil }
@@ -29,12 +33,26 @@ final class FileStore {
         activeIndex = buffers.count - 1
     }
 
-    func saveActive() async throws {
-        guard var buffer = activeBuffer else { return }
-        guard let url = buffer.url else { return }
-        try buffer.text.write(to: url, atomically: true, encoding: .utf8)
-        buffer.isDirty = false
-        activeBuffer = buffer
+    func saveActive() throws {
+        guard let buffer = activeBuffer else { return }
+        try save(bufferID: buffer.id)
+    }
+
+    /// Entry point for the user-initiated Save command: an untitled buffer
+    /// gets the Save As panel instead of silently doing nothing.
+    func saveActiveOrPrompt() {
+        if activeBuffer?.url == nil {
+            saveAsPanel()
+        } else {
+            try? saveActive()
+        }
+    }
+
+    private func save(bufferID: UUID) throws {
+        guard let idx = buffers.firstIndex(where: { $0.id == bufferID }),
+              let url = buffers[idx].url else { return }
+        try buffers[idx].text.write(to: url, atomically: true, encoding: .utf8)
+        buffers[idx].isDirty = false
     }
 
     func closeActive() {
@@ -50,12 +68,18 @@ final class FileStore {
         activeBuffer = buffer
     }
 
+    /// Debounced per buffer: a new edit in the same buffer resets its timer,
+    /// but a save pending for one buffer survives edits and switches in
+    /// others — the buffer captured here is the one written, not whichever
+    /// is active when the timer fires.
     func scheduleAutoSave(delay: Int) {
-        autoSaveTask?.cancel()
-        autoSaveTask = Task { [weak self] in
+        guard let id = activeBuffer?.id else { return }
+        autoSaveTasks[id]?.cancel()
+        autoSaveTasks[id] = Task { [weak self] in
             try? await Task.sleep(for: .seconds(delay))
             guard !Task.isCancelled, let self else { return }
-            try? await self.saveActive()
+            self.autoSaveTasks[id] = nil
+            try? self.save(bufferID: id)
         }
     }
 
@@ -80,7 +104,7 @@ final class FileStore {
             buffer.url = url
             activeBuffer = buffer
         }
-        Task { try? await self.saveActive() }
+        try? saveActive()
         return url
     }
 }

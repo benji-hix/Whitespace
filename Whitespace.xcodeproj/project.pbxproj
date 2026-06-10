@@ -35,6 +35,7 @@
 		C4D89E637AE1DB67F4B25EF5 /* ShortcutOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */; };
 		C62300013927B7A86C72158A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61BDD010DB318CAC9C447F2A /* Assets.xcassets */; };
 		CC5D5BDA008C4D1CC48AB2FC /* ThemeStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */; };
+		CE55EF6F45B53C792CC8B5B5 /* FileStoreAutoSaveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4B6C6C449C31538D730619 /* FileStoreAutoSaveTests.swift */; };
 		D0843F665308E0BA5895EDE7 /* WhitespaceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDB160E7B27250240BBC8C6 /* WhitespaceApp.swift */; };
 		D8DADF38B89DC67FCAAED4CA /* GrainBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B146CB05F9ACC18393DF80 /* GrainBackground.swift */; };
 		F2B7540DE970F753FA39B6CA /* FileBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182BF5BC9BCBD77DA215D50B /* FileBuffer.swift */; };
@@ -65,6 +66,7 @@
 		2C6B2B485641E84681143C37 /* CrimsonPro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-Medium.ttf"; sourceTree = "<group>"; };
 		2D75062FED11C19CCFD2778A /* KeybindingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingAction.swift; sourceTree = "<group>"; };
 		32B39BF59EA2D2989005F57C /* CrimsonPro-MediumItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-MediumItalic.ttf"; sourceTree = "<group>"; };
+		4F4B6C6C449C31538D730619 /* FileStoreAutoSaveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStoreAutoSaveTests.swift; sourceTree = "<group>"; };
 		5416ECD2411E3CBFB9A1A6E4 /* FileBufferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileBufferTests.swift; sourceTree = "<group>"; };
 		61BDD010DB318CAC9C447F2A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6A0CE42F87EEFEEDEB2DE787 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 			isa = PBXGroup;
 			children = (
 				5416ECD2411E3CBFB9A1A6E4 /* FileBufferTests.swift */,
+				4F4B6C6C449C31538D730619 /* FileStoreAutoSaveTests.swift */,
 				7682AC4A858FB9483A85B61F /* FileStoreTests.swift */,
 				0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */,
 				0A1B831753D816E4C2F6BBFA /* PasteNormalizerTests.swift */,
@@ -345,6 +348,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				099383C43D4AC24449046513 /* FileBufferTests.swift in Sources */,
+				CE55EF6F45B53C792CC8B5B5 /* FileStoreAutoSaveTests.swift in Sources */,
 				0EA35F8DA06CA1081663207C /* FileStoreTests.swift in Sources */,
 				F9178DF3C8307F56A738C60F /* KeybindingStoreTests.swift in Sources */,
 				15BEC40FBC879A6179EBF017 /* PasteNormalizerTests.swift in Sources */,

@@ -2,8 +2,23 @@
 import SwiftUI
 import CoreText
 
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    var fileStore: FileStore?
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let fileStore, fileStore.hasUnsavedChanges else { return .terminateNow }
+        let alert = NSAlert()
+        alert.messageText = "You have unsaved changes"
+        alert.informativeText = "Quitting now will discard them."
+        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: "Quit Anyway")
+        return alert.runModal() == .alertFirstButtonReturn ? .terminateCancel : .terminateNow
+    }
+}
+
 @main
 struct WhitespaceApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var fileStore        = FileStore()
     @State private var keybindingStore  = KeybindingStore()
     @State private var themeStore       = ThemeStore()
@@ -20,6 +35,7 @@ struct WhitespaceApp: App {
                 .environment(preferencesStore)
                 .background(WindowConfigurator())
                 .frame(minWidth: 600, minHeight: 400)
+                .onAppear { appDelegate.fileStore = fileStore }
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 900, height: 650)
@@ -30,7 +46,7 @@ struct WhitespaceApp: App {
                 Button("Open…") { fileStore.openPanel() }
                     .keyboardShortcut("o")
                 Divider()
-                Button("Save") { Task { try? await fileStore.saveActive() } }
+                Button("Save") { fileStore.saveActiveOrPrompt() }
                     .keyboardShortcut("s")
                 Button("Save As…") { _ = fileStore.saveAsPanel() }
                     .keyboardShortcut("s", modifiers: [.command, .shift])

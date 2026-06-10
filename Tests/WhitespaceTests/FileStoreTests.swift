@@ -35,7 +35,7 @@ final class FileStoreTests: XCTestCase {
     func testSaveWritesToDisk() async throws {
         try await store.open(url: tmpURL)
         store.updateActiveText("updated")
-        try await store.saveActive()
+        try store.saveActive()
         let content = try String(contentsOf: tmpURL, encoding: .utf8)
         XCTAssertEqual(content, "updated")
     }
