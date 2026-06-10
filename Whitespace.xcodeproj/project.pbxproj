@@ -24,6 +24,7 @@
 		5F0FF0FC644F2F54C0C63AD8 /* CrimsonPro-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8E0CB9D1D61C42DDE5907771 /* CrimsonPro-LightItalic.ttf */; };
 		6E82C0D1B6AAAB9706808D4D /* FileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E69693EC1764B42EFD53493 /* FileStore.swift */; };
 		7430C26A34C58DE214EA9DAC /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */; };
+		7C62784B113B52CDD1F99D44 /* CanvasUIState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEF2008F149F31FECC10343 /* CanvasUIState.swift */; };
 		7D4E0EFB8788922C148A4AA2 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1001F43E5CA7F698FDB60C /* CanvasView.swift */; };
 		839E84072B89984DEBC8089A /* WhitespaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */; };
 		87CCC792F82FA3CDC209EAD8 /* ZenTextViewKeyDownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */; };
@@ -77,6 +78,7 @@
 		8BAFA904E83176E665C23DC1 /* CommandPaletteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPaletteView.swift; sourceTree = "<group>"; };
 		8E0CB9D1D61C42DDE5907771 /* CrimsonPro-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-LightItalic.ttf"; sourceTree = "<group>"; };
 		934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesStoreTests.swift; sourceTree = "<group>"; };
+		9AEF2008F149F31FECC10343 /* CanvasUIState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasUIState.swift; sourceTree = "<group>"; };
 		9E69693EC1764B42EFD53493 /* FileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStore.swift; sourceTree = "<group>"; };
 		A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceTests.swift; sourceTree = "<group>"; };
 		A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 		70275FD8B06BF02802F1B3AF /* Canvas */ = {
 			isa = PBXGroup;
 			children = (
+				9AEF2008F149F31FECC10343 /* CanvasUIState.swift */,
 				2B1001F43E5CA7F698FDB60C /* CanvasView.swift */,
 				13B146CB05F9ACC18393DF80 /* GrainBackground.swift */,
 			);
@@ -365,6 +368,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C62784B113B52CDD1F99D44 /* CanvasUIState.swift in Sources */,
 				7D4E0EFB8788922C148A4AA2 /* CanvasView.swift in Sources */,
 				FCFAA0E90CD215D024535FC0 /* CommandPaletteView.swift in Sources */,
 				F2B7540DE970F753FA39B6CA /* FileBuffer.swift in Sources */,

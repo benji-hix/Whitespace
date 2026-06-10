@@ -7,6 +7,7 @@ struct CommandPaletteView: View {
 
     @State private var query = ""
     @State private var selectedIndex = 0
+    @State private var escapeMonitor: Any?
     @FocusState private var focused: Bool
 
     private var filtered: [FileBuffer] {
@@ -25,10 +26,7 @@ struct CommandPaletteView: View {
                 TextField("Open file or switch…", text: $query)
                     .textFieldStyle(.plain)
                     .focused($focused)
-                    .onKeyPress(.upArrow) { selectedIndex = max(0, selectedIndex - 1); return .handled }
-                    .onKeyPress(.downArrow) { selectedIndex = min(totalRows - 1, selectedIndex + 1); return .handled }
-                    .onKeyPress(.return) { commitSelection(); return .handled }
-                    .onKeyPress(.escape) { dismiss(); return .handled }
+                    .onSubmit { commitSelection() }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -62,7 +60,33 @@ struct CommandPaletteView: View {
         .frame(width: 420)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.25), radius: 24, y: 8)
-        .onAppear { focused = true; selectedIndex = 0 }
+        // Arrows never reach onKeyPress/onMoveCommand while the AppKit field
+        // editor has focus, but key equivalents are matched before the field
+        // editor sees the event — so navigation lives on invisible buttons.
+        // Escape is consumed even earlier than the equivalent chain, so it
+        // needs a local event monitor.
+        .background {
+            Group {
+                Button("") { selectedIndex = max(0, selectedIndex - 1) }
+                    .keyboardShortcut(.upArrow, modifiers: [])
+                Button("") { selectedIndex = min(totalRows - 1, selectedIndex + 1) }
+                    .keyboardShortcut(.downArrow, modifiers: [])
+            }
+            .opacity(0)
+        }
+        .onAppear {
+            focused = true
+            selectedIndex = 0
+            escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                guard event.keyCode == 53 else { return event }
+                dismiss()
+                return nil
+            }
+        }
+        .onDisappear {
+            if let escapeMonitor { NSEvent.removeMonitor(escapeMonitor) }
+            escapeMonitor = nil
+        }
         .onChange(of: query) { _, _ in selectedIndex = 0 }
         .onChange(of: fileStore.buffers.count) { _, _ in
             selectedIndex = min(selectedIndex, max(0, totalRows - 1))

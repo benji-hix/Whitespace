@@ -27,22 +27,6 @@ final class ZenTextViewKeyDownTests: XCTestCase {
         )!
     }
 
-    func testCmdPFiresCommandPaletteCallback() {
-        let tv = makeView()
-        var fired = false
-        tv.onToggleCommandPalette = { fired = true }
-        tv.keyDown(with: chord("p", keyCode: 35))
-        XCTAssertTrue(fired)
-    }
-
-    func testCmdSlashFiresShortcutOverlayCallback() {
-        let tv = makeView()
-        var fired = false
-        tv.onToggleShortcutOverlay = { fired = true }
-        tv.keyDown(with: chord("/", keyCode: 44))
-        XCTAssertTrue(fired)
-    }
-
     func testCmdPlusAndMinusFireFontSizeCallbacks() {
         let tv = makeView()
         var increased = false

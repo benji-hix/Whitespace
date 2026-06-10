@@ -10,8 +10,10 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
 
     private var theme: Theme { themeStore.current }
 
-    var onToggleCommandPalette: () -> Void = {}
-    var onToggleShortcutOverlay: () -> Void = {}
+    /// Incremented by the owner to ask the editor to take first responder
+    /// back (e.g. after the command palette is dismissed).
+    var focusRequestID: Int = 0
+
     var onIncreaseFontSize: () -> Void = {}
     var onDecreaseFontSize: () -> Void = {}
 
@@ -85,6 +87,10 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             textView.scrollSpeed = preferences.scrollSpeed
             context.coordinator.lastScrollSpeed = preferences.scrollSpeed
         }
+        if context.coordinator.lastFocusRequestID != focusRequestID {
+            context.coordinator.lastFocusRequestID = focusRequestID
+            textView.window?.makeFirstResponder(textView)
+        }
 
         // Only sync text if changed externally (e.g. file switch)
         if textView.string != text {
@@ -111,10 +117,8 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     private func wire(_ textView: ZenTextView) {
-        textView.onToggleCommandPalette  = onToggleCommandPalette
-        textView.onToggleShortcutOverlay = onToggleShortcutOverlay
-        textView.onIncreaseFontSize      = onIncreaseFontSize
-        textView.onDecreaseFontSize      = onDecreaseFontSize
+        textView.onIncreaseFontSize = onIncreaseFontSize
+        textView.onDecreaseFontSize = onDecreaseFontSize
     }
 
     // MARK: - Coordinator
@@ -126,6 +130,7 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         var lastTheme: Theme? = nil
         var lastProgress: Double = .nan
         var lastScrollSpeed: Double = .nan
+        var lastFocusRequestID: Int = 0
 
         init(_ parent: ZenTextViewRepresentable) {
             self.parent = parent

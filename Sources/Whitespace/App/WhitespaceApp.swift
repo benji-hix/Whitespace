@@ -23,6 +23,7 @@ struct WhitespaceApp: App {
     @State private var keybindingStore  = KeybindingStore()
     @State private var themeStore       = ThemeStore()
     @State private var preferencesStore = PreferencesStore()
+    @State private var uiState          = CanvasUIState()
 
     init() { registerFonts() }
 
@@ -33,6 +34,7 @@ struct WhitespaceApp: App {
                 .environment(keybindingStore)
                 .environment(themeStore)
                 .environment(preferencesStore)
+                .environment(uiState)
                 .background(WindowConfigurator())
                 .frame(minWidth: 600, minHeight: 400)
                 .onAppear { appDelegate.fileStore = fileStore }
@@ -53,15 +55,15 @@ struct WhitespaceApp: App {
             }
             CommandGroup(replacing: .printItem) { }
 
-            CommandMenu("View") {
+            // .toolbar placement lands these in the system View menu rather
+            // than adding a second, custom "View" menu.
+            CommandGroup(after: .toolbar) {
                 Button("Toggle Dark Mode") { themeStore.toggle() }
                     .keyboardShortcut("d", modifiers: [.command, .shift])
-                Button("Command Palette") { }
+                Button("Command Palette") { uiState.showCommandPalette.toggle() }
                     .keyboardShortcut("p")
-                    .disabled(true)
-                Button("Shortcut Overlay") { }
+                Button("Shortcut Overlay") { uiState.showShortcutOverlay.toggle() }
                     .keyboardShortcut("/")
-                    .disabled(true)
                 Divider()
                 Button("Maximize Window") { NSApp.mainWindow?.zoom(nil) }
                     .keyboardShortcut("m", modifiers: [.command, .shift])

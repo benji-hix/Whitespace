@@ -8,8 +8,6 @@ final class ZenTextView: NSTextView {
     /// 1.0 is the tuned default; the Settings slider exposes 0.4 ... 2.0.
     var scrollSpeed: Double = 1.0
 
-    var onToggleCommandPalette: (() -> Void)?
-    var onToggleShortcutOverlay: (() -> Void)?
     var onIncreaseFontSize: (() -> Void)?
     var onDecreaseFontSize: (() -> Void)?
 
@@ -645,14 +643,12 @@ final class ZenTextView: NSTextView {
 
         // Only chords with no menu equivalent live here — AppKit dispatches
         // menu key equivalents before keyDown, so menu-backed shortcuts
-        // (⌘S, ⌘N, ⌘Z, …) never reach this method.
-        // keyCode constants: B=11, I=34, P=35, /=44, +=24, -=27
-        if cmd && !shift && !ctrl && event.keyCode == 11 { toggleBold();              return }  // ⌘B
-        if cmd && !shift && !ctrl && event.keyCode == 34 { toggleItalic();            return }  // ⌘I
-        if cmd && !shift && !ctrl && event.keyCode == 35 { onToggleCommandPalette?(); return }  // ⌘P
-        if cmd && !shift && !ctrl && event.keyCode == 44 { onToggleShortcutOverlay?(); return } // ⌘/
-        if cmd && !shift && !ctrl && event.keyCode == 24 { onIncreaseFontSize?();     return }  // ⌘+
-        if cmd && !shift && !ctrl && event.keyCode == 27 { onDecreaseFontSize?();     return }  // ⌘-
+        // (⌘S, ⌘N, ⌘Z, ⌘P, …) never reach this method.
+        // keyCode constants: B=11, I=34, +=24, -=27
+        if cmd && !shift && !ctrl && event.keyCode == 11 { toggleBold();          return }  // ⌘B
+        if cmd && !shift && !ctrl && event.keyCode == 34 { toggleItalic();        return }  // ⌘I
+        if cmd && !shift && !ctrl && event.keyCode == 24 { onIncreaseFontSize?(); return }  // ⌘+
+        if cmd && !shift && !ctrl && event.keyCode == 27 { onDecreaseFontSize?(); return }  // ⌘-
 
         let pressed = ShortcutBinding(
             keyCode: event.keyCode,
