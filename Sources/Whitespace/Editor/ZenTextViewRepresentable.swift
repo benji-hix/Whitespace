@@ -48,6 +48,11 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         context.coordinator.lastScrollSpeed = preferences.scrollSpeed
 
         scrollView.documentView = textView
+        // The window doesn't exist yet; claim first responder once it does
+        // so the user can type immediately on launch.
+        DispatchQueue.main.async {
+            textView.window?.makeFirstResponder(textView)
+        }
         return scrollView
     }
 
