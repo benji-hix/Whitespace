@@ -37,7 +37,12 @@ struct WhitespaceApp: App {
                 .environment(uiState)
                 .background(WindowConfigurator())
                 .frame(minWidth: 600, minHeight: 400)
-                .onAppear { appDelegate.fileStore = fileStore }
+                .onAppear {
+                    appDelegate.fileStore = fileStore
+                    fileStore.autoSavePolicy = { [preferencesStore] in
+                        (preferencesStore.autoSaveEnabled, preferencesStore.autoSaveDelay)
+                    }
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 900, height: 650)

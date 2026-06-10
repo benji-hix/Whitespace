@@ -61,11 +61,17 @@ final class FileStore {
         activeIndex = max(0, min(activeIndex, buffers.count - 1))
     }
 
+    /// Reads the user's auto-save preference at edit time. Wired once at
+    /// startup; defaults to off so headless tests opt in explicitly.
+    var autoSavePolicy: () -> (enabled: Bool, delaySeconds: Int) = { (false, 0) }
+
     func updateActiveText(_ text: String) {
         guard var buffer = activeBuffer else { return }
         buffer.text = text
         buffer.isDirty = true
         activeBuffer = buffer
+        let policy = autoSavePolicy()
+        if policy.enabled { scheduleAutoSave(delay: policy.delaySeconds) }
     }
 
     /// Debounced per buffer: a new edit in the same buffer resets its timer,

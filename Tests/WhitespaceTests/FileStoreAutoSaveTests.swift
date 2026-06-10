@@ -77,6 +77,22 @@ final class FileStoreAutoSaveTests: XCTestCase {
         XCTAssertEqual(store.buffers[0].isDirty, false)
     }
 
+    func testEditSchedulesAutoSaveWhenPolicyEnabled() async throws {
+        store.autoSavePolicy = { (true, 1) }
+        store.activeIndex = 0
+        store.updateActiveText("policy save")
+        await drainAutoSaves()
+
+        XCTAssertEqual(try String(contentsOf: urlA, encoding: .utf8), "policy save")
+    }
+
+    func testEditDoesNotScheduleAutoSaveWhenPolicyDisabled() {
+        store.activeIndex = 0
+        store.updateActiveText("no autosave")
+
+        XCTAssertTrue(store.autoSaveTasks.isEmpty)
+    }
+
     func testHasUnsavedChangesReflectsDirtyBuffers() {
         XCTAssertFalse(store.hasUnsavedChanges)
         store.activeIndex = 0

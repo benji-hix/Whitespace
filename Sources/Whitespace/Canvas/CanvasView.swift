@@ -34,9 +34,7 @@ struct CanvasView: View {
                         themeStore: themeStore,
                         preferences: prefs,
                         keybindingStore: keybindingStore,
-                        focusRequestID: editorFocusRequest,
-                        onIncreaseFontSize: { prefs.setFontSize(prefs.fontSize + 1) },
-                        onDecreaseFontSize: { prefs.setFontSize(prefs.fontSize - 1) }
+                        focusRequestID: editorFocusRequest
                     )
                     .frame(maxWidth: prefs.columnWidth.maxPoints, maxHeight: .infinity)
                     .mask {
@@ -92,11 +90,6 @@ struct CanvasView: View {
                 try? await Task.sleep(nanoseconds: UInt64(seconds) * 1_000_000_000)
                 guard !Task.isCancelled else { return }
                 ui.showShortcutOverlay = false
-            }
-        }
-        .onChange(of: fileStore.activeBuffer?.text) { _, _ in
-            if prefs.autoSaveEnabled {
-                fileStore.scheduleAutoSave(delay: prefs.autoSaveDelay)
             }
         }
         .onAppear {

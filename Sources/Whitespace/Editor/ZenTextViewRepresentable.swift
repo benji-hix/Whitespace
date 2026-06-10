@@ -14,9 +14,6 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
     /// back (e.g. after the command palette is dismissed).
     var focusRequestID: Int = 0
 
-    var onIncreaseFontSize: () -> Void = {}
-    var onDecreaseFontSize: () -> Void = {}
-
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
         scrollView.hasVerticalScroller = false
@@ -117,8 +114,9 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     private func wire(_ textView: ZenTextView) {
-        textView.onIncreaseFontSize = onIncreaseFontSize
-        textView.onDecreaseFontSize = onDecreaseFontSize
+        let prefs = preferences
+        textView.onIncreaseFontSize = { prefs.setFontSize(prefs.fontSize + 1) }
+        textView.onDecreaseFontSize = { prefs.setFontSize(prefs.fontSize - 1) }
     }
 
     // MARK: - Coordinator
