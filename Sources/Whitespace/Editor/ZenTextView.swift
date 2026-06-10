@@ -2,7 +2,6 @@
 import AppKit
 
 final class ZenTextView: NSTextView {
-    var onTextChange: ((String) -> Void)?
     var keybindingStore: KeybindingStore?
 
     /// Multiplier for scroll-animation pace. Higher = faster, lower = slower.
@@ -11,11 +10,6 @@ final class ZenTextView: NSTextView {
 
     var onToggleCommandPalette: (() -> Void)?
     var onToggleShortcutOverlay: (() -> Void)?
-    var onToggleTheme: (() -> Void)?
-    var onSave: (() -> Void)?
-    var onSaveAs: (() -> Void)?
-    var onOpen: (() -> Void)?
-    var onNew: (() -> Void)?
     var onIncreaseFontSize: (() -> Void)?
     var onDecreaseFontSize: (() -> Void)?
 
@@ -485,9 +479,8 @@ final class ZenTextView: NSTextView {
             cursorView.isHidden = true
             return
         }
-        // The theme's cursor color is 0.5 alpha for a soft system-cursor
-        // look, but with our thinner 1pt bar that reads as faint. Bump
-        // alpha so the cursor reads as confidently present.
+        // 0.85 alpha softens the 1pt bar against the page; the exact value
+        // is tuned by eye, not derived from the theme.
         cursorView.color = insertionPointColor.withAlphaComponent(0.85)
         cursorView.frame = bar
         cursorView.isHidden = false
@@ -650,18 +643,14 @@ final class ZenTextView: NSTextView {
         let shift  = flags.contains(.shift)
         let ctrl   = flags.contains(.control)
 
-        // App-level shortcuts (keyCode constants: P=35, /=44, D=2, S=1, O=31, N=45, +=24, -=27)
-        if cmd && !shift && !ctrl && event.keyCode == 6  { undoManager?.undo();       return }  // ⌘Z
-        if cmd && shift  && !ctrl && event.keyCode == 6  { undoManager?.redo();       return }  // ⌘⇧Z
+        // Only chords with no menu equivalent live here — AppKit dispatches
+        // menu key equivalents before keyDown, so menu-backed shortcuts
+        // (⌘S, ⌘N, ⌘Z, …) never reach this method.
+        // keyCode constants: B=11, I=34, P=35, /=44, +=24, -=27
         if cmd && !shift && !ctrl && event.keyCode == 11 { toggleBold();              return }  // ⌘B
         if cmd && !shift && !ctrl && event.keyCode == 34 { toggleItalic();            return }  // ⌘I
         if cmd && !shift && !ctrl && event.keyCode == 35 { onToggleCommandPalette?(); return }  // ⌘P
         if cmd && !shift && !ctrl && event.keyCode == 44 { onToggleShortcutOverlay?(); return } // ⌘/
-        if cmd && shift  && !ctrl && event.keyCode == 2  { onToggleTheme?();          return }  // ⌘⇧D
-        if cmd && !shift && !ctrl && event.keyCode == 1  { onSave?();                 return }  // ⌘S
-        if cmd && shift  && !ctrl && event.keyCode == 1  { onSaveAs?();               return }  // ⌘⇧S
-        if cmd && !shift && !ctrl && event.keyCode == 31 { onOpen?();                 return }  // ⌘O
-        if cmd && !shift && !ctrl && event.keyCode == 45 { onNew?();                  return }  // ⌘N
         if cmd && !shift && !ctrl && event.keyCode == 24 { onIncreaseFontSize?();     return }  // ⌘+
         if cmd && !shift && !ctrl && event.keyCode == 27 { onDecreaseFontSize?();     return }  // ⌘-
 
@@ -707,7 +696,6 @@ final class ZenTextView: NSTextView {
 
     override func didChangeText() {
         super.didChangeText()
-        onTextChange?(string)
         resetCursorBlink()
     }
 }

@@ -20,20 +20,6 @@ enum KeybindingAction: String, CaseIterable, Codable {
         }
     }
 
-    static let defaults: [KeybindingAction: ShortcutBinding] = {
-        let opt  = CGEventFlags.maskAlternate.rawValue
-        let cmd  = CGEventFlags.maskCommand.rawValue
-        let ctrl = CGEventFlags.maskControl.rawValue
-        return [
-            .deleteWordLeft:     ShortcutBinding(keyCode: 51,  modifiers: opt),
-            .deleteWordRight:    ShortcutBinding(keyCode: 117, modifiers: opt),
-            .deleteToLineStart:  ShortcutBinding(keyCode: 51,  modifiers: cmd),
-            .deleteToLineEnd:    ShortcutBinding(keyCode: 117, modifiers: cmd),
-            .killLine:           ShortcutBinding(keyCode: 40,  modifiers: ctrl),
-            .deleteCharForward:  ShortcutBinding(keyCode: 2,   modifiers: ctrl),
-        ]
-    }()
-
     var defaultBinding: ShortcutBinding {
         let opt  = CGEventFlags.maskAlternate.rawValue
         let cmd  = CGEventFlags.maskCommand.rawValue

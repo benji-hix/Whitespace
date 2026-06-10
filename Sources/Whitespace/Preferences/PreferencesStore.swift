@@ -12,12 +12,6 @@ enum ColumnWidth: String, CaseIterable, Codable {
     }
 }
 
-enum LineHeight: Double, CaseIterable, Codable {
-    case compact = 1.4
-    case normal  = 1.6
-    case relaxed = 1.8
-}
-
 @Observable
 @MainActor
 final class PreferencesStore {

@@ -12,11 +12,6 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
 
     var onToggleCommandPalette: () -> Void = {}
     var onToggleShortcutOverlay: () -> Void = {}
-    var onToggleTheme: () -> Void = {}
-    var onSave: () -> Void = {}
-    var onSaveAs: () -> Void = {}
-    var onOpen: () -> Void = {}
-    var onNew: () -> Void = {}
     var onIncreaseFontSize: () -> Void = {}
     var onDecreaseFontSize: () -> Void = {}
 
@@ -118,11 +113,6 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
     private func wire(_ textView: ZenTextView) {
         textView.onToggleCommandPalette  = onToggleCommandPalette
         textView.onToggleShortcutOverlay = onToggleShortcutOverlay
-        textView.onToggleTheme           = onToggleTheme
-        textView.onSave                  = onSave
-        textView.onSaveAs                = onSaveAs
-        textView.onOpen                  = onOpen
-        textView.onNew                   = onNew
         textView.onIncreaseFontSize      = onIncreaseFontSize
         textView.onDecreaseFontSize      = onDecreaseFontSize
     }

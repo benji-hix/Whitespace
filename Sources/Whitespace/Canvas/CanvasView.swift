@@ -34,11 +34,6 @@ struct CanvasView: View {
                         keybindingStore: keybindingStore,
                         onToggleCommandPalette: { showCommandPalette.toggle() },
                         onToggleShortcutOverlay: { showShortcutOverlay.toggle() },
-                        onToggleTheme: { themeStore.toggle() },
-                        onSave: { Task { try? await fileStore.saveActive() } },
-                        onSaveAs: { _ = fileStore.saveAsPanel() },
-                        onOpen: { fileStore.openPanel() },
-                        onNew: { fileStore.newBuffer() },
                         onIncreaseFontSize: { prefs.setFontSize(prefs.fontSize + 1) },
                         onDecreaseFontSize: { prefs.setFontSize(prefs.fontSize - 1) }
                     )
