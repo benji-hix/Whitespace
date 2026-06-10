@@ -97,6 +97,9 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             // layout. After replacing the entire string, invalidate so the
             // next recenter snaps unconditionally.
             textView.invalidateScrollAnchor()
+            // The undo stack refers to the previous buffer's content; undo
+            // after a switch must not resurrect another buffer's text.
+            textView.undoManager?.removeAllActions()
             textView.string = text
             // Setting .string resets all attributed string attributes, so reapply
             textView.applyFont(size: CGFloat(preferences.fontSize), lineHeightMultiple: preferences.lineHeightMultiple)

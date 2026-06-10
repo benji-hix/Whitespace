@@ -72,6 +72,7 @@ final class ZenTextView: NSTextView {
     // MARK: - Configuration
 
     private func configure() {
+        allowsUndo                           = true
         isRichText                           = true
         importsGraphics                      = false
         isAutomaticSpellingCorrectionEnabled = false
