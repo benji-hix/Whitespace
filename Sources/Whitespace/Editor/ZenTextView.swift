@@ -278,20 +278,9 @@ final class ZenTextView: NSTextView {
         }
     }
 
-    /// Compute the desired clip-view bounds origin Y for the current caret.
-    ///
-    /// Two regimes:
-    /// 1. **Paragraph change.** When the caret enters a different paragraph
-    ///    (click, Enter, arrow across boundary), animate to put that
-    ///    paragraph's midpoint at ~45% of the viewport. If the paragraph is
-    ///    taller than the viewport's middle 70%, clamp so the caret stays
-    ///    visible.
-    /// 2. **Within the same paragraph.** Hold position unless the caret
-    ///    leaves the central deadzone (middle 60% of viewport). When it
-    ///    does, scroll just enough to bring it to the deadzone edge it
-    ///    crossed — typewriter "page flip" feel without per-keystroke drift.
-    ///
-    /// Returns nil to mean "don't scroll" — used in the deadzone case.
+    /// Gather caret/paragraph geometry from TK2 and delegate the scroll
+    /// decision to `TypewriterScroll.target(for:)`, which holds the (tested)
+    /// placement and deadzone math. Returns nil to mean "don't scroll".
     private func caretCenterTargetY() -> CGFloat? {
         guard let tlm = textLayoutManager,
               let scrollView = enclosingScrollView,
@@ -335,43 +324,17 @@ final class ZenTextView: NSTextView {
             to: elementRange.location
         )
 
-        let paragraphChanged = (centeredParagraphOffset != paragraphOffset)
+        let input = TypewriterScroll.Input(
+            caretMinY: caretMinY,
+            caretMaxY: caretMaxY,
+            paragraphMidY: paragraphMidY,
+            paragraphOffset: paragraphOffset,
+            anchoredParagraphOffset: centeredParagraphOffset,
+            viewportY: currentY,
+            viewportHeight: visibleHeight
+        )
         centeredParagraphOffset = paragraphOffset
-
-        if paragraphChanged {
-            // Place paragraph midpoint at 45% of the viewport.
-            var target = paragraphMidY - visibleHeight * 0.45
-            // Caret-visibility safety net: paragraph taller than the safe
-            // zone falls back to caret-line clamping so the cursor stays
-            // inside the middle 70% of the viewport.
-            let safeMin = visibleHeight * 0.15
-            let safeMax = visibleHeight * 0.85
-            let caretMinAtTarget = caretMinY - target
-            let caretMaxAtTarget = caretMaxY - target
-            if caretMinAtTarget < safeMin {
-                target = caretMinY - safeMin
-            } else if caretMaxAtTarget > safeMax {
-                target = caretMaxY - safeMax
-            }
-            return max(0, target.rounded())
-        }
-
-        // Same paragraph: hold position unless the caret leaves the deadzone.
-        let deadzoneTop    = currentY + visibleHeight * 0.30
-        let deadzoneBottom = currentY + visibleHeight * 0.70
-        if caretMinY >= deadzoneTop && caretMaxY <= deadzoneBottom {
-            return nil
-        }
-        let target: CGFloat
-        if caretMaxY > deadzoneBottom {
-            // Caret fell below — scroll so the caret returns to the top of
-            // the deadzone, giving room to keep writing downward.
-            target = caretMinY - visibleHeight * 0.30
-        } else {
-            // Caret rose above — symmetric: caret to the deadzone bottom.
-            target = caretMaxY - visibleHeight * 0.70
-        }
-        return max(0, target.rounded())
+        return TypewriterScroll.target(for: input)
     }
 
     // MARK: - Cursor

@@ -170,6 +170,10 @@ Ordered by leverage ÷ (risk × effort). Behavior-**changing** items are marked 
 
 **Deliberately not recommended:** S4 (rich-text persistence — decide on the `feat/nsdocument-markdown` branch, not here), L6 (transition repaint perf), any command-registry/DI abstraction, incremental text sync.
 
+### Addendum (found during R6 verification): typewriter recentering does not follow the caret — pre-existing
+
+While feel-checking R6, sustained typing in an untitled buffer left the viewport pinned at the document top: the caret walked below the deadzone (and below the bottom fade) without any recenter. Bisect confirmed identical behavior at the untouched audit baseline `a204d70`, before R6, and after R6 — so the extraction preserves behavior exactly, and this is a **pre-existing bug** in the scroll-follow path (suspect: TK2 lazy-layout returning a stale caret frame during `handleSelectionChange`'s deferred recenter, or the cached `currentScrollTarget` swallowing retargets; the now-tested decision math is exonerated by the R6 unit tests). Single-line edits and initial placement behave correctly, which is why the audit's runtime checks missed it. **Recommend as a follow-up fix item (behavior change, needs approval) — not silently bundled into R6.**
+
 ---
 
 *Phase 2 process (agreed): one item per commit, plan stated before each change, characterization tests before touching uncovered code, build + full suite after each change, stop-and-revert if risk exceeds estimate. On completion this document becomes `ARCHITECTURE.md` (resulting structure + conventions for future sessions + retained debt).*
