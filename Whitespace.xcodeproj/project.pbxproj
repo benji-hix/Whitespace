@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00AF82D5A1CD7B2384C5722B /* PlainTextConversionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DC686870094AA198CF697B /* PlainTextConversionGate.swift */; };
 		080EBDECDA7550C7FB5F3944 /* ZenTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3FC6DE99BFCA46B60E63B7 /* ZenTextView.swift */; };
 		09FD237F67F4F2A761DA99C0 /* CrimsonPro-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 32B39BF59EA2D2989005F57C /* CrimsonPro-MediumItalic.ttf */; };
 		0D8814A3993504A3BAE63ABB /* CrimsonPro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2C6B2B485641E84681143C37 /* CrimsonPro-Medium.ttf */; };
@@ -18,6 +19,7 @@
 		24305DD06BEB53E4439665A8 /* PreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10A908D4DCBCA45DD80015B /* PreferencesStore.swift */; };
 		2C75898E00F1FB98CF52B520 /* ShortcutBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD0C5E01898C8DF154BF663 /* ShortcutBinding.swift */; };
 		3096B4DCD2761FFA849DCA8A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0CE42F87EEFEEDEB2DE787 /* Theme.swift */; };
+		3B5EECD891E77EED4CC18A53 /* PlainTextConversionGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFFC7E8D4A48F89E04DEAB85 /* PlainTextConversionGateTests.swift */; };
 		48C97738E411B05362A9BDA5 /* ZenTextViewUndoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAD920D0BF825E5BDF4FDD8 /* ZenTextViewUndoTests.swift */; };
 		4BB62E4C69F9C03EA4CBDAF4 /* PreferencesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */; };
 		4E5D22B04D77F3F8278F2280 /* ZenTextViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4BDC64A28B1377AC3663BCD /* ZenTextViewRepresentable.swift */; };
@@ -67,6 +69,7 @@
 		13B146CB05F9ACC18393DF80 /* GrainBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrainBackground.swift; sourceTree = "<group>"; };
 		1A30AB9FC437A9C192893FDA /* ThemeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeStore.swift; sourceTree = "<group>"; };
 		1FAD920D0BF825E5BDF4FDD8 /* ZenTextViewUndoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewUndoTests.swift; sourceTree = "<group>"; };
+		27DC686870094AA198CF697B /* PlainTextConversionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlainTextConversionGate.swift; sourceTree = "<group>"; };
 		2B1001F43E5CA7F698FDB60C /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
 		2BAC30E0BA131A44D52081DE /* WhitespaceDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceDocument.swift; sourceTree = "<group>"; };
 		2C6B2B485641E84681143C37 /* CrimsonPro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-Medium.ttf"; sourceTree = "<group>"; };
@@ -95,6 +98,7 @@
 		D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextDecodeTests.swift; sourceTree = "<group>"; };
 		D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutOverlayView.swift; sourceTree = "<group>"; };
 		DCDB160E7B27250240BBC8C6 /* WhitespaceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceApp.swift; sourceTree = "<group>"; };
+		DFFC7E8D4A48F89E04DEAB85 /* PlainTextConversionGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlainTextConversionGateTests.swift; sourceTree = "<group>"; };
 		E323B210251D5471E8C494F5 /* Whitespace.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Whitespace.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDD0C5E01898C8DF154BF663 /* ShortcutBinding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutBinding.swift; sourceTree = "<group>"; };
 		EF973C33D75FACC3ED963840 /* FontNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontNames.swift; sourceTree = "<group>"; };
@@ -105,6 +109,7 @@
 		0980EDC238F80984F7619694 /* Files */ = {
 			isa = PBXGroup;
 			children = (
+				27DC686870094AA198CF697B /* PlainTextConversionGate.swift */,
 				2BAC30E0BA131A44D52081DE /* WhitespaceDocument.swift */,
 			);
 			path = Files;
@@ -203,6 +208,7 @@
 				D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */,
 				B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */,
 				0A1B831753D816E4C2F6BBFA /* PasteNormalizerTests.swift */,
+				DFFC7E8D4A48F89E04DEAB85 /* PlainTextConversionGateTests.swift */,
 				934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */,
 				B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */,
 				7DC4B4A0538F1C47BD4D9A28 /* TypewriterScrollTests.swift */,
@@ -363,6 +369,7 @@
 				186AA5A248B450638EE1AF9C /* MarkdownTextDecodeTests.swift in Sources */,
 				AAA8D611B0F4CDBEA5030A12 /* MarkdownTextEncodeTests.swift in Sources */,
 				15BEC40FBC879A6179EBF017 /* PasteNormalizerTests.swift in Sources */,
+				3B5EECD891E77EED4CC18A53 /* PlainTextConversionGateTests.swift in Sources */,
 				4BB62E4C69F9C03EA4CBDAF4 /* PreferencesStoreTests.swift in Sources */,
 				CC5D5BDA008C4D1CC48AB2FC /* ThemeStoreTests.swift in Sources */,
 				1A10F1B09096FD8513AFA28A /* TypewriterScrollTests.swift in Sources */,
@@ -388,6 +395,7 @@
 				9886773E6AAC3729C4A6B6B3 /* KeybindingStore.swift in Sources */,
 				98758B7BA74D73512A0D7E0D /* MarkdownText.swift in Sources */,
 				C0B27D73542FC020B12ACC35 /* PasteNormalizer.swift in Sources */,
+				00AF82D5A1CD7B2384C5722B /* PlainTextConversionGate.swift in Sources */,
 				24305DD06BEB53E4439665A8 /* PreferencesStore.swift in Sources */,
 				7430C26A34C58DE214EA9DAC /* PreferencesView.swift in Sources */,
 				2C75898E00F1FB98CF52B520 /* ShortcutBinding.swift in Sources */,

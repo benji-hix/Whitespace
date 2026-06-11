@@ -54,6 +54,11 @@ struct WhitespaceDocument: FileDocument {
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        if !configuration.contentType.conforms(to: Self.markdownType),
+           PlainTextConversionGate.shouldWarnSync(runs: runs) {
+            Task { @MainActor in PlainTextConversionGate.presentWarning() }
+            throw CocoaError(.userCancelled)
+        }
         let data = try encodedData(for: configuration.contentType)
         return FileWrapper(regularFileWithContents: data)
     }
