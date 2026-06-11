@@ -2,11 +2,10 @@
 import SwiftUI
 import AppKit
 import CoreText
+import UniformTypeIdentifiers
 
 @main
 struct WhitespaceApp: App {
-    @NSApplicationDelegateAdaptor(WhitespaceAppDelegate.self) private var appDelegate
-
     @State private var keybindingStore  = KeybindingStore()
     @State private var themeStore       = ThemeStore()
     @State private var preferencesStore = PreferencesStore()
@@ -27,6 +26,10 @@ struct WhitespaceApp: App {
                 .environment(preferencesStore)
                 .background(WindowConfigurator())
                 .frame(minWidth: 600, minHeight: 400)
+                // Declarative: stop DocumentGroup from installing its
+                // title-bar toolbar at all, instead of stripping it after
+                // the fact (which flickers on window swaps and drags).
+                .toolbarVisibility(.hidden, for: .windowToolbar)
         }
         .commands {
             CommandGroup(replacing: .printItem) { }
@@ -132,11 +135,8 @@ private final class WindowStylingView: NSView {
     }
 }
 
-final class WhitespaceAppDelegate: NSObject, NSApplicationDelegate {
-    func applicationWillFinishLaunching(_ notification: Notification) {
-        // Force the shared NSDocumentController to instantiate before
-        // SwiftUI's DocumentGroup wires up its menus, so the standard
-        // "Open Recent" tracking and menu population kick in reliably.
-        _ = NSDocumentController.shared
-    }
-}
+// NOTE: SwiftUI installs its own NSDocumentController subclass
+// (SwiftUI.PlatformDocumentController) before applicationWillFinishLaunching,
+// so neither pinning the shared controller nor subclassing it can influence
+// document behavior — untitled typing is steered through the content-type
+// list order on WhitespaceDocument instead.

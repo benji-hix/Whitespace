@@ -71,7 +71,7 @@ graph TD
 Rules that must not regress:
 - **The user never sees markdown syntax in a markdown document** — it is a storage format only.
 - **Underline does not exist anywhere in the app.** `StyledRun` has no underline field; do not add one (markdown cannot express it).
-- New documents default to `.md`; Settings ▸ Documents ▸ New Files switches the default (`whitespace.prefs.newDocumentType`).
+- New documents default to `.md`; Settings ▸ Documents ▸ New Files switches the default (`whitespace.prefs.newDocumentType`). The mechanism is the ORDER of `readableContentTypes`/`writableContentTypes`: SwiftUI's private document controller (`SwiftUI.PlatformDocumentController`, installed before `applicationWillFinishLaunching` — it cannot be replaced or subclassed) types untitled documents and defaults the save panel from the first entry, ignoring `defaultType` overrides and the instance's `contentType`. Keep both lists preference-ordered.
 - Saving formatted content to `.plainText` triggers one warning via `PlainTextConversionGate` (suppression: `whitespace.prefs.suppressPlainTextConversionWarning`). `fileWrapper` must never present UI — it throws `userCancelled`; the gate re-drives the save after approval.
 - Dialect limits (accepted): only bold/italic round-trip; foreign markdown constructs (links, code spans; block syntax is never interpreted) flatten to their visible text on load; a file's single trailing newline is dropped on first load (stable thereafter).
 
@@ -112,11 +112,11 @@ Rules that must not regress:
 
 **Open bug — typewriter recentering doesn't follow sustained typing.** Pre-existing (verified identical at the pre-engagement baseline): the viewport can stay pinned while the caret walks below the deadzone. The decision math is tested and exonerated; suspect TK2 stale caret geometry in the deferred recenter or the `currentScrollTarget` cache. Top candidate for the next fix; behavior change needs owner approval.
 
-**Pending live verification** (unit-tested, modal flows need the screen awake): P3.6 — a new document's save sheet defaults to `Untitled.md`/Markdown; P3.7 — the conversion-warning matrix (warns once, Cancel aborts the save, Save Anyway writes flattened, suppression checkbox persists).
+**Pending live verification** (unit-tested; the modal flow needs a manual pass): P3.7 — the conversion-warning matrix (warns once, Cancel aborts the save, Save Anyway writes flattened, suppression checkbox persists). P3.6's save-sheet default was owner-verified.
 
 **Kept as-is, on purpose:**
 - Launch shows the standard open panel instead of an untitled window — NSDocument default; owner UX call pending.
-- Open Recent never populates under DocumentGroup on this macOS (despite the NSDocumentController pinning) — revisit on OS updates.
+- Open Recent never populates under DocumentGroup on this macOS — and the historical NSDocumentController "pinning" was proven inert (SwiftUI's controller exists first) and removed. Revisit on OS updates.
 - First render of loaded content can flash dimmed momentarily; document proxy-icon ghost faintly visible top-left — cosmetic.
 - Re-saving formatted content as `.txt` without suppression warns on every save — matches "warn per destructive save"; revisit if it annoys.
 - Full-storage `foregroundColor` repaint ~94×/theme toggle — imperceptible at prose scale; revisit only with profiling evidence.

@@ -5,14 +5,23 @@ import UniformTypeIdentifiers
 struct WhitespaceDocument: FileDocument {
     static let markdownType = UTType(importedAs: "net.daringfireball.markdown")
 
-    static var readableContentTypes: [UTType] { [.plainText, .text, markdownType] }
+    /// SwiftUI's document controller types untitled documents (and defaults
+    /// the save panel's format popup) from the FIRST readable/writable
+    /// entry, ignoring the instance's contentType — so the order of both
+    /// lists must follow the new-files preference.
+    private static var prefersPlainText: Bool {
+        UserDefaults.standard.string(forKey: NewDocumentType.defaultsKey)
+            == NewDocumentType.plainText.rawValue
+    }
 
-    /// SwiftUI types untitled documents (and defaults the save panel's
-    /// format popup) from the FIRST entry here, ignoring the instance's
-    /// contentType — so the order must follow the new-files preference.
+    static var readableContentTypes: [UTType] {
+        prefersPlainText
+            ? [.plainText, .text, markdownType]
+            : [markdownType, .plainText, .text]
+    }
+
     static var writableContentTypes: [UTType] {
-        let raw = UserDefaults.standard.string(forKey: NewDocumentType.defaultsKey)
-        return raw == NewDocumentType.plainText.rawValue
+        prefersPlainText
             ? [.plainText, markdownType]
             : [markdownType, .plainText]
     }
