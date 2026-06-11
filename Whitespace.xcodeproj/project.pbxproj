@@ -15,6 +15,7 @@
 		0EA35F8DA06CA1081663207C /* FileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7682AC4A858FB9483A85B61F /* FileStoreTests.swift */; };
 		11B0DF8C78B10D6AA54E6BBD /* CrimsonPro-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 085AE12F636F5CD805E819BA /* CrimsonPro-Light.ttf */; };
 		15BEC40FBC879A6179EBF017 /* PasteNormalizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B831753D816E4C2F6BBFA /* PasteNormalizerTests.swift */; };
+		186AA5A248B450638EE1AF9C /* MarkdownTextDecodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */; };
 		1A10F1B09096FD8513AFA28A /* TypewriterScrollTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC4B4A0538F1C47BD4D9A28 /* TypewriterScrollTests.swift */; };
 		24305DD06BEB53E4439665A8 /* PreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10A908D4DCBCA45DD80015B /* PreferencesStore.swift */; };
 		2C75898E00F1FB98CF52B520 /* ShortcutBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD0C5E01898C8DF154BF663 /* ShortcutBinding.swift */; };
@@ -95,6 +96,7 @@
 		B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewKeyDownTests.swift; sourceTree = "<group>"; };
 		B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextEncodeTests.swift; sourceTree = "<group>"; };
 		C4BDC64A28B1377AC3663BCD /* ZenTextViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewRepresentable.swift; sourceTree = "<group>"; };
+		D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextDecodeTests.swift; sourceTree = "<group>"; };
 		D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutOverlayView.swift; sourceTree = "<group>"; };
 		DCDB160E7B27250240BBC8C6 /* WhitespaceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceApp.swift; sourceTree = "<group>"; };
 		E323B210251D5471E8C494F5 /* Whitespace.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Whitespace.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -206,6 +208,7 @@
 				4F4B6C6C449C31538D730619 /* FileStoreAutoSaveTests.swift */,
 				7682AC4A858FB9483A85B61F /* FileStoreTests.swift */,
 				0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */,
+				D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */,
 				B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */,
 				0A1B831753D816E4C2F6BBFA /* PasteNormalizerTests.swift */,
 				934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */,
@@ -366,6 +369,7 @@
 				CE55EF6F45B53C792CC8B5B5 /* FileStoreAutoSaveTests.swift in Sources */,
 				0EA35F8DA06CA1081663207C /* FileStoreTests.swift in Sources */,
 				F9178DF3C8307F56A738C60F /* KeybindingStoreTests.swift in Sources */,
+				186AA5A248B450638EE1AF9C /* MarkdownTextDecodeTests.swift in Sources */,
 				AAA8D611B0F4CDBEA5030A12 /* MarkdownTextEncodeTests.swift in Sources */,
 				15BEC40FBC879A6179EBF017 /* PasteNormalizerTests.swift in Sources */,
 				4BB62E4C69F9C03EA4CBDAF4 /* PreferencesStoreTests.swift in Sources */,

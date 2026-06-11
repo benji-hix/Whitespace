@@ -58,4 +58,38 @@ enum MarkdownText {
         }
         return out
     }
+
+    /// Inline-only parsing keeps newlines literal and ignores block syntax;
+    /// emphasis arrives as presentation intents, which map straight onto
+    /// StyledRun flags. A file that fails to parse is treated as plain text
+    /// rather than rejected — this is a boundary, not a validator.
+    static func decode(_ markdown: String) -> [StyledRun] {
+        let normalized = markdown
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        guard !normalized.isEmpty else { return [] }
+
+        let options = AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace
+        )
+        guard let attributed = try? AttributedString(markdown: normalized, options: options) else {
+            return [StyledRun(text: normalized, bold: false, italic: false, underline: false)]
+        }
+
+        var runs: [StyledRun] = []
+        for run in attributed.runs {
+            let intent = run.inlinePresentationIntent ?? []
+            let bold = intent.contains(.stronglyEmphasized)
+            let italic = intent.contains(.emphasized)
+            let text = String(attributed.characters[run.range])
+            guard !text.isEmpty else { continue }
+            if var last = runs.last, last.bold == bold, last.italic == italic {
+                last.text += text
+                runs[runs.count - 1] = last
+            } else {
+                runs.append(StyledRun(text: text, bold: bold, italic: italic, underline: false))
+            }
+        }
+        return runs
+    }
 }
