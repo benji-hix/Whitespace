@@ -30,8 +30,10 @@
 		839E84072B89984DEBC8089A /* WhitespaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */; };
 		87CCC792F82FA3CDC209EAD8 /* ZenTextViewKeyDownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */; };
 		8D3A523F82BE76372FCA4D67 /* KeybindingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D75062FED11C19CCFD2778A /* KeybindingAction.swift */; };
+		98758B7BA74D73512A0D7E0D /* MarkdownText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF57D5CFB9136B872802774 /* MarkdownText.swift */; };
 		9886773E6AAC3729C4A6B6B3 /* KeybindingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C54D6384B105A8E6BC83046 /* KeybindingStore.swift */; };
 		997E42F699BEE988CC7CF08E /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF973C33D75FACC3ED963840 /* FontNames.swift */; };
+		AAA8D611B0F4CDBEA5030A12 /* MarkdownTextEncodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */; };
 		B5D55721331403463F04186F /* ZenTextViewPasteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21505C013FBCFB3D697DD6 /* ZenTextViewPasteTests.swift */; };
 		C0B27D73542FC020B12ACC35 /* PasteNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */; };
 		C4D89E637AE1DB67F4B25EF5 /* ShortcutOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */; };
@@ -60,6 +62,7 @@
 		085AE12F636F5CD805E819BA /* CrimsonPro-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-Light.ttf"; sourceTree = "<group>"; };
 		0A1B831753D816E4C2F6BBFA /* PasteNormalizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteNormalizerTests.swift; sourceTree = "<group>"; };
 		0A3FC6DE99BFCA46B60E63B7 /* ZenTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextView.swift; sourceTree = "<group>"; };
+		0AF57D5CFB9136B872802774 /* MarkdownText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownText.swift; sourceTree = "<group>"; };
 		0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingStoreTests.swift; sourceTree = "<group>"; };
 		13B146CB05F9ACC18393DF80 /* GrainBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrainBackground.swift; sourceTree = "<group>"; };
 		182BF5BC9BCBD77DA215D50B /* FileBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileBuffer.swift; sourceTree = "<group>"; };
@@ -90,6 +93,7 @@
 		AEA176D78D29F0669F15F559 /* WhitespaceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhitespaceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeStoreTests.swift; sourceTree = "<group>"; };
 		B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewKeyDownTests.swift; sourceTree = "<group>"; };
+		B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextEncodeTests.swift; sourceTree = "<group>"; };
 		C4BDC64A28B1377AC3663BCD /* ZenTextViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewRepresentable.swift; sourceTree = "<group>"; };
 		D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutOverlayView.swift; sourceTree = "<group>"; };
 		DCDB160E7B27250240BBC8C6 /* WhitespaceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceApp.swift; sourceTree = "<group>"; };
@@ -176,6 +180,7 @@
 		527C55337C1E7CCA39E26517 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				0AF57D5CFB9136B872802774 /* MarkdownText.swift */,
 				A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */,
 				4C6BEEB4E908B2D6CFD7B6A4 /* TypewriterScroll.swift */,
 				0A3FC6DE99BFCA46B60E63B7 /* ZenTextView.swift */,
@@ -201,6 +206,7 @@
 				4F4B6C6C449C31538D730619 /* FileStoreAutoSaveTests.swift */,
 				7682AC4A858FB9483A85B61F /* FileStoreTests.swift */,
 				0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */,
+				B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */,
 				0A1B831753D816E4C2F6BBFA /* PasteNormalizerTests.swift */,
 				934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */,
 				B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */,
@@ -360,6 +366,7 @@
 				CE55EF6F45B53C792CC8B5B5 /* FileStoreAutoSaveTests.swift in Sources */,
 				0EA35F8DA06CA1081663207C /* FileStoreTests.swift in Sources */,
 				F9178DF3C8307F56A738C60F /* KeybindingStoreTests.swift in Sources */,
+				AAA8D611B0F4CDBEA5030A12 /* MarkdownTextEncodeTests.swift in Sources */,
 				15BEC40FBC879A6179EBF017 /* PasteNormalizerTests.swift in Sources */,
 				4BB62E4C69F9C03EA4CBDAF4 /* PreferencesStoreTests.swift in Sources */,
 				CC5D5BDA008C4D1CC48AB2FC /* ThemeStoreTests.swift in Sources */,
@@ -384,6 +391,7 @@
 				D8DADF38B89DC67FCAAED4CA /* GrainBackground.swift in Sources */,
 				8D3A523F82BE76372FCA4D67 /* KeybindingAction.swift in Sources */,
 				9886773E6AAC3729C4A6B6B3 /* KeybindingStore.swift in Sources */,
+				98758B7BA74D73512A0D7E0D /* MarkdownText.swift in Sources */,
 				C0B27D73542FC020B12ACC35 /* PasteNormalizer.swift in Sources */,
 				24305DD06BEB53E4439665A8 /* PreferencesStore.swift in Sources */,
 				7430C26A34C58DE214EA9DAC /* PreferencesView.swift in Sources */,
