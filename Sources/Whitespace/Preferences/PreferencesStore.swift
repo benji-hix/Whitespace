@@ -14,6 +14,10 @@ enum ColumnWidth: String, CaseIterable, Codable {
 
 enum NewDocumentType: String, CaseIterable, Codable {
     case markdown, plainText
+
+    /// Shared with WhitespaceDocument, whose static writableContentTypes
+    /// must consult the preference outside any store instance.
+    static let defaultsKey = "whitespace.prefs.newDocumentType"
 }
 
 @Observable
@@ -93,7 +97,7 @@ final class PreferencesStore {
         static let lineHeight      = "whitespace.prefs.lineHeight"
         static let columnWidth     = "whitespace.prefs.columnWidth"
         static let scrollSpeed     = "whitespace.prefs.scrollSpeed"
-        static let newDocumentType = "whitespace.prefs.newDocumentType"
+        static let newDocumentType = NewDocumentType.defaultsKey
         static let shortcutsAutoDismissEnabled = "whitespace.prefs.shortcutsAutoDismissEnabled"
         static let shortcutsAutoDismissDelay   = "whitespace.prefs.shortcutsAutoDismissDelay"
     }

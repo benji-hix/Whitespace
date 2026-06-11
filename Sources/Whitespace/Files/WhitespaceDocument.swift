@@ -6,7 +6,16 @@ struct WhitespaceDocument: FileDocument {
     static let markdownType = UTType(importedAs: "net.daringfireball.markdown")
 
     static var readableContentTypes: [UTType] { [.plainText, .text, markdownType] }
-    static var writableContentTypes: [UTType] { [.plainText, markdownType] }
+
+    /// SwiftUI types untitled documents (and defaults the save panel's
+    /// format popup) from the FIRST entry here, ignoring the instance's
+    /// contentType — so the order must follow the new-files preference.
+    static var writableContentTypes: [UTType] {
+        let raw = UserDefaults.standard.string(forKey: NewDocumentType.defaultsKey)
+        return raw == NewDocumentType.plainText.rawValue
+            ? [.plainText, markdownType]
+            : [markdownType, .plainText]
+    }
 
     /// The document's content, styled. Plain-text documents always hold
     /// plain runs; only markdown documents round-trip bold/italic.

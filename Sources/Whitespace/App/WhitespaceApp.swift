@@ -81,11 +81,12 @@ struct WindowConfigurator: NSViewRepresentable {
     func updateNSView(_ nsView: NSView, context: Context) {}
 }
 
-/// DocumentGroup attaches the window well after view creation, so async
-/// styling from make/updateNSView races it. viewDidMoveToWindow fires at
-/// the exact attach moment — and the styling re-applies whenever the
-/// window becomes key, because DocumentGroup re-asserts its title-bar
-/// chrome after sheets and state restoration.
+/// DocumentGroup attaches the window well after view creation and keeps
+/// re-asserting its own chrome (toolbar, titlebar, tab bar) after sheets,
+/// saves, and tab operations. viewDidMoveToWindow applies the styling at
+/// attach; didUpdateNotification re-applies it whenever any of it drifts —
+/// the notification is hot, so the observer only acts when the cheap
+/// deviation check fails.
 private final class WindowStylingView: NSView {
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
@@ -94,16 +95,8 @@ private final class WindowStylingView: NSView {
         NotificationCenter.default.removeObserver(self)
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(windowDidBecomeKey(_:)),
-            name: NSWindow.didBecomeKeyNotification,
-            object: window
-        )
-        // Save/close sheets also make DocumentGroup re-assert its chrome,
-        // without a key-window transition.
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(windowDidBecomeKey(_:)),
-            name: NSWindow.didEndSheetNotification,
+            selector: #selector(windowDidUpdate(_:)),
+            name: NSWindow.didUpdateNotification,
             object: window
         )
     }
@@ -112,12 +105,22 @@ private final class WindowStylingView: NSView {
         NotificationCenter.default.removeObserver(self)
     }
 
-    @objc private func windowDidBecomeKey(_ note: Notification) {
-        guard let window else { return }
+    @objc private func windowDidUpdate(_ note: Notification) {
+        guard let window, stylingHasDrifted(in: window) else { return }
         applyStyling(to: window)
     }
 
+    private func stylingHasDrifted(in window: NSWindow) -> Bool {
+        window.toolbar != nil
+            || !window.titlebarAppearsTransparent
+            || window.titleVisibility != .hidden
+            || !window.styleMask.contains(.fullSizeContentView)
+            || window.standardWindowButton(.closeButton)?.isHidden == false
+    }
+
     private func applyStyling(to window: NSWindow) {
+        // Tabs are chrome; every document gets its own clean window.
+        window.tabbingMode = .disallowed
         window.toolbar = nil
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden

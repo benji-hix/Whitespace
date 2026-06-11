@@ -95,8 +95,26 @@ final class WhitespaceDocumentTests: XCTestCase {
         XCTAssertEqual(String(data: data, encoding: .utf8), "# Hi")
     }
 
-    func testWritableContentTypesPlainTextFirst() {
+    func testWritableContentTypesFollowNewFilesPreference() {
+        // SwiftUI types untitled documents from the first entry, so the
+        // order must track the preference. Standard defaults are saved and
+        // restored because the static accessor cannot take an injected suite.
+        let key = NewDocumentType.defaultsKey
+        let saved = UserDefaults.standard.string(forKey: key)
+        defer {
+            if let saved {
+                UserDefaults.standard.set(saved, forKey: key)
+            } else {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
+        }
+
+        UserDefaults.standard.removeObject(forKey: key)
+        XCTAssertEqual(WhitespaceDocument.writableContentTypes.first, WhitespaceDocument.markdownType)
+
+        UserDefaults.standard.set(NewDocumentType.plainText.rawValue, forKey: key)
         XCTAssertEqual(WhitespaceDocument.writableContentTypes.first, .plainText)
+
         XCTAssertTrue(WhitespaceDocument.writableContentTypes.contains(WhitespaceDocument.markdownType))
     }
 
