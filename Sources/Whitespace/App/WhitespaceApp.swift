@@ -92,6 +92,14 @@ private final class WindowStylingView: NSView {
             name: NSWindow.didBecomeKeyNotification,
             object: window
         )
+        // Save/close sheets also make DocumentGroup re-assert its chrome,
+        // without a key-window transition.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowDidBecomeKey(_:)),
+            name: NSWindow.didEndSheetNotification,
+            object: window
+        )
     }
 
     deinit {
