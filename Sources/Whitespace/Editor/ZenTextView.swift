@@ -516,6 +516,34 @@ final class ZenTextView: NSTextView {
         storage.endEditing()
     }
 
+    // MARK: - Styled-run extraction
+
+    /// Faithful snapshot of the storage as styled runs — text verbatim
+    /// (whitespace and newlines included), the app's font faces mapped back
+    /// to flags. This is the editor→document direction of the sync;
+    /// PasteNormalizer.attributedString(runs:baseAttributes:) is the
+    /// reverse.
+    func currentStyledRuns() -> [StyledRun] {
+        guard let storage = textStorage, storage.length > 0 else { return [] }
+        let nsString = storage.string as NSString
+        var runs: [StyledRun] = []
+        storage.enumerateAttributes(in: NSRange(location: 0, length: storage.length)) { attrs, range, _ in
+            let font = attrs[.font] as? NSFont
+            let bold = isBoldFont(font)
+            let italic = isItalicFont(font)
+            let underline = (attrs[.underlineStyle] as? Int ?? 0) != 0
+            let text = nsString.substring(with: range)
+            if var last = runs.last,
+               last.bold == bold, last.italic == italic, last.underline == underline {
+                last.text += text
+                runs[runs.count - 1] = last
+            } else {
+                runs.append(StyledRun(text: text, bold: bold, italic: italic, underline: underline))
+            }
+        }
+        return runs
+    }
+
     // MARK: - Bold / Italic
 
     private func isBoldFont(_ font: NSFont?) -> Bool {

@@ -40,6 +40,7 @@
 		C62300013927B7A86C72158A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61BDD010DB318CAC9C447F2A /* Assets.xcassets */; };
 		CC5D5BDA008C4D1CC48AB2FC /* ThemeStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */; };
 		D0843F665308E0BA5895EDE7 /* WhitespaceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDB160E7B27250240BBC8C6 /* WhitespaceApp.swift */; };
+		D1CA3B427CC8162AC358853B /* ZenTextViewStyledRunsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D412E3CFCEF0FB7D97898EE2 /* ZenTextViewStyledRunsTests.swift */; };
 		D8C98C31D1C4CE99E12C7CEF /* TypewriterScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6BEEB4E908B2D6CFD7B6A4 /* TypewriterScroll.swift */; };
 		D8DADF38B89DC67FCAAED4CA /* GrainBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B146CB05F9ACC18393DF80 /* GrainBackground.swift */; };
 		F9178DF3C8307F56A738C60F /* KeybindingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */; };
@@ -90,6 +91,7 @@
 		B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewKeyDownTests.swift; sourceTree = "<group>"; };
 		B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextEncodeTests.swift; sourceTree = "<group>"; };
 		C4BDC64A28B1377AC3663BCD /* ZenTextViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewRepresentable.swift; sourceTree = "<group>"; };
+		D412E3CFCEF0FB7D97898EE2 /* ZenTextViewStyledRunsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewStyledRunsTests.swift; sourceTree = "<group>"; };
 		D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextDecodeTests.swift; sourceTree = "<group>"; };
 		D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutOverlayView.swift; sourceTree = "<group>"; };
 		DCDB160E7B27250240BBC8C6 /* WhitespaceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceApp.swift; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 				A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */,
 				B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */,
 				8A21505C013FBCFB3D697DD6 /* ZenTextViewPasteTests.swift */,
+				D412E3CFCEF0FB7D97898EE2 /* ZenTextViewStyledRunsTests.swift */,
 				1FAD920D0BF825E5BDF4FDD8 /* ZenTextViewUndoTests.swift */,
 			);
 			path = WhitespaceTests;
@@ -367,6 +370,7 @@
 				839E84072B89984DEBC8089A /* WhitespaceTests.swift in Sources */,
 				87CCC792F82FA3CDC209EAD8 /* ZenTextViewKeyDownTests.swift in Sources */,
 				B5D55721331403463F04186F /* ZenTextViewPasteTests.swift in Sources */,
+				D1CA3B427CC8162AC358853B /* ZenTextViewStyledRunsTests.swift in Sources */,
 				48C97738E411B05362A9BDA5 /* ZenTextViewUndoTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

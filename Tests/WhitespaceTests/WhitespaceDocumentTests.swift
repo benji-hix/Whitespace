@@ -38,10 +38,54 @@ final class WhitespaceDocumentTests: XCTestCase {
     }
 
     func testWriteRoundtripPlainText() throws {
-        var doc = WhitespaceDocument()
-        doc.text = "round trip"
+        let doc = WhitespaceDocument(text: "round trip")
         let data = try doc.encodedData(for: .plainText)
         XCTAssertEqual(String(data: data, encoding: .utf8), "round trip")
+    }
+
+    // MARK: - Formatting (styled runs)
+
+    private var markdown: UTType { WhitespaceDocument.markdownType }
+
+    func testReadMarkdownDecodesFormattingIntoRuns() throws {
+        let data = "plain **bold** *lean*".data(using: .utf8)!
+        let doc = try WhitespaceDocument(data: data, type: markdown)
+        XCTAssertEqual(doc.runs, [
+            StyledRun(text: "plain ", bold: false, italic: false, underline: false),
+            StyledRun(text: "bold", bold: true, italic: false, underline: false),
+            StyledRun(text: " ", bold: false, italic: false, underline: false),
+            StyledRun(text: "lean", bold: false, italic: true, underline: false),
+        ])
+        XCTAssertEqual(doc.text, "plain bold lean")
+    }
+
+    func testWriteMarkdownEncodesRuns() throws {
+        let doc = WhitespaceDocument(
+            runs: [
+                StyledRun(text: "say ", bold: false, italic: false, underline: false),
+                StyledRun(text: "it", bold: true, italic: false, underline: false),
+            ],
+            contentType: markdown
+        )
+        let data = try doc.encodedData(for: markdown)
+        XCTAssertEqual(String(data: data, encoding: .utf8), "say **it**")
+    }
+
+    func testWritePlainTextFlattensFormatting() throws {
+        let doc = WhitespaceDocument(
+            runs: [StyledRun(text: "loud", bold: true, italic: false, underline: false)],
+            contentType: .plainText
+        )
+        let data = try doc.encodedData(for: .plainText)
+        XCTAssertEqual(String(data: data, encoding: .utf8), "loud")
+    }
+
+    func testReadPlainTextNeverCreatesFormatting() throws {
+        let data = "not **bold** here".data(using: .utf8)!
+        let doc = try WhitespaceDocument(data: data, type: .plainText)
+        XCTAssertEqual(doc.runs, [
+            StyledRun(text: "not **bold** here", bold: false, italic: false, underline: false)
+        ])
     }
 
     func testWriteRoundtripMarkdown() throws {

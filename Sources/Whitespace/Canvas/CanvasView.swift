@@ -26,7 +26,7 @@ struct CanvasView: View {
                 HStack {
                     Spacer(minLength: 0)
                     ZenTextViewRepresentable(
-                        text: $document.text,
+                        runs: $document.runs,
                         themeStore: themeStore,
                         preferences: prefs,
                         keybindingStore: keybindingStore,

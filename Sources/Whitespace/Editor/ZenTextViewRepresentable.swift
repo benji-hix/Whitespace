@@ -3,7 +3,7 @@ import AppKit
 import SwiftUI
 
 struct ZenTextViewRepresentable: NSViewRepresentable {
-    @Binding var text: String
+    @Binding var runs: [StyledRun]
     let themeStore: ThemeStore
     let preferences: PreferencesStore
     let keybindingStore: KeybindingStore
@@ -37,7 +37,9 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             lineHeightMultiple: preferences.lineHeightMultiple
         )
         textView.scrollSpeed = preferences.scrollSpeed
-        textView.string = text
+        textView.textStorage?.setAttributedString(
+            PasteNormalizer.attributedString(runs: runs, baseAttributes: textView.typingAttributes)
+        )
         wire(textView)
 
         // Sync coordinator tracking state to avoid redundant calls on first updateNSView
@@ -94,22 +96,19 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             textView.window?.makeFirstResponder(textView)
         }
 
-        // Only sync text if changed externally (e.g. file switch)
-        if textView.string != text {
+        // Only sync content if changed externally (e.g. document revert,
+        // restoration). Rebuilding from runs applies the current font,
+        // colors and paragraph style via the typing attributes.
+        if textView.currentStyledRuns() != runs {
             // The cached scroll target refers to the previous content's
-            // layout. After replacing the entire string, invalidate so the
-            // next recenter snaps unconditionally.
+            // layout. After replacing the content, invalidate so the next
+            // recenter snaps unconditionally.
             textView.invalidateScrollAnchor()
-            // The undo stack refers to the previous buffer's content; undo
-            // after a switch must not resurrect another buffer's text.
+            // The undo stack refers to the previous content; undo after a
+            // wholesale replacement must not resurrect it.
             textView.undoManager?.removeAllActions()
-            textView.string = text
-            // Setting .string resets all attributed string attributes, so reapply
-            textView.applyFont(size: CGFloat(preferences.fontSize), lineHeightMultiple: preferences.lineHeightMultiple)
-            textView.applyColors(
-                text: themeStore.displayedTextColor,
-                cursor: themeStore.displayedCursorColor,
-                selection: themeStore.displayedSelectionColor
+            textView.textStorage?.setAttributedString(
+                PasteNormalizer.attributedString(runs: runs, baseAttributes: textView.typingAttributes)
             )
         }
 
@@ -140,9 +139,10 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         }
 
         func textDidChange(_ notification: Notification) {
-            guard let textView = notification.object as? NSTextView else { return }
-            if parent.text != textView.string {
-                parent.text = textView.string
+            guard let textView = notification.object as? ZenTextView else { return }
+            let current = textView.currentStyledRuns()
+            if parent.runs != current {
+                parent.runs = current
             }
         }
     }
