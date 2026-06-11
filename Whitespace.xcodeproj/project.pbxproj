@@ -8,11 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		080EBDECDA7550C7FB5F3944 /* ZenTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3FC6DE99BFCA46B60E63B7 /* ZenTextView.swift */; };
-		099383C43D4AC24449046513 /* FileBufferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5416ECD2411E3CBFB9A1A6E4 /* FileBufferTests.swift */; };
 		09FD237F67F4F2A761DA99C0 /* CrimsonPro-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 32B39BF59EA2D2989005F57C /* CrimsonPro-MediumItalic.ttf */; };
 		0D8814A3993504A3BAE63ABB /* CrimsonPro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2C6B2B485641E84681143C37 /* CrimsonPro-Medium.ttf */; };
 		0E20783B45E9378A4DD7DAB6 /* ThemeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A30AB9FC437A9C192893FDA /* ThemeStore.swift */; };
-		0EA35F8DA06CA1081663207C /* FileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7682AC4A858FB9483A85B61F /* FileStoreTests.swift */; };
 		11B0DF8C78B10D6AA54E6BBD /* CrimsonPro-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 085AE12F636F5CD805E819BA /* CrimsonPro-Light.ttf */; };
 		15BEC40FBC879A6179EBF017 /* PasteNormalizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B831753D816E4C2F6BBFA /* PasteNormalizerTests.swift */; };
 		186AA5A248B450638EE1AF9C /* MarkdownTextDecodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */; };
@@ -23,14 +21,15 @@
 		48C97738E411B05362A9BDA5 /* ZenTextViewUndoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAD920D0BF825E5BDF4FDD8 /* ZenTextViewUndoTests.swift */; };
 		4BB62E4C69F9C03EA4CBDAF4 /* PreferencesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */; };
 		4E5D22B04D77F3F8278F2280 /* ZenTextViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4BDC64A28B1377AC3663BCD /* ZenTextViewRepresentable.swift */; };
+		52DC3FB927BC17E23880765E /* WhitespaceDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2E4C61C4DBA989CCB4A673 /* WhitespaceDocumentTests.swift */; };
 		5F0FF0FC644F2F54C0C63AD8 /* CrimsonPro-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8E0CB9D1D61C42DDE5907771 /* CrimsonPro-LightItalic.ttf */; };
-		6E82C0D1B6AAAB9706808D4D /* FileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E69693EC1764B42EFD53493 /* FileStore.swift */; };
 		7430C26A34C58DE214EA9DAC /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */; };
 		7C62784B113B52CDD1F99D44 /* CanvasUIState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEF2008F149F31FECC10343 /* CanvasUIState.swift */; };
 		7D4E0EFB8788922C148A4AA2 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1001F43E5CA7F698FDB60C /* CanvasView.swift */; };
 		839E84072B89984DEBC8089A /* WhitespaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */; };
 		87CCC792F82FA3CDC209EAD8 /* ZenTextViewKeyDownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */; };
 		8D3A523F82BE76372FCA4D67 /* KeybindingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D75062FED11C19CCFD2778A /* KeybindingAction.swift */; };
+		8DFC4012BA2D65AF8B933335 /* WhitespaceDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC30E0BA131A44D52081DE /* WhitespaceDocument.swift */; };
 		98758B7BA74D73512A0D7E0D /* MarkdownText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF57D5CFB9136B872802774 /* MarkdownText.swift */; };
 		9886773E6AAC3729C4A6B6B3 /* KeybindingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C54D6384B105A8E6BC83046 /* KeybindingStore.swift */; };
 		997E42F699BEE988CC7CF08E /* FontNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF973C33D75FACC3ED963840 /* FontNames.swift */; };
@@ -40,11 +39,9 @@
 		C4D89E637AE1DB67F4B25EF5 /* ShortcutOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */; };
 		C62300013927B7A86C72158A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61BDD010DB318CAC9C447F2A /* Assets.xcassets */; };
 		CC5D5BDA008C4D1CC48AB2FC /* ThemeStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */; };
-		CE55EF6F45B53C792CC8B5B5 /* FileStoreAutoSaveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4B6C6C449C31538D730619 /* FileStoreAutoSaveTests.swift */; };
 		D0843F665308E0BA5895EDE7 /* WhitespaceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDB160E7B27250240BBC8C6 /* WhitespaceApp.swift */; };
 		D8C98C31D1C4CE99E12C7CEF /* TypewriterScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6BEEB4E908B2D6CFD7B6A4 /* TypewriterScroll.swift */; };
 		D8DADF38B89DC67FCAAED4CA /* GrainBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B146CB05F9ACC18393DF80 /* GrainBackground.swift */; };
-		F2B7540DE970F753FA39B6CA /* FileBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182BF5BC9BCBD77DA215D50B /* FileBuffer.swift */; };
 		F9178DF3C8307F56A738C60F /* KeybindingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */; };
 		FCFAA0E90CD215D024535FC0 /* CommandPaletteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAFA904E83176E665C23DC1 /* CommandPaletteView.swift */; };
 /* End PBXBuildFile section */
@@ -62,24 +59,22 @@
 /* Begin PBXFileReference section */
 		085AE12F636F5CD805E819BA /* CrimsonPro-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-Light.ttf"; sourceTree = "<group>"; };
 		0A1B831753D816E4C2F6BBFA /* PasteNormalizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteNormalizerTests.swift; sourceTree = "<group>"; };
+		0A2E4C61C4DBA989CCB4A673 /* WhitespaceDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceDocumentTests.swift; sourceTree = "<group>"; };
 		0A3FC6DE99BFCA46B60E63B7 /* ZenTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextView.swift; sourceTree = "<group>"; };
 		0AF57D5CFB9136B872802774 /* MarkdownText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownText.swift; sourceTree = "<group>"; };
 		0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingStoreTests.swift; sourceTree = "<group>"; };
 		13B146CB05F9ACC18393DF80 /* GrainBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrainBackground.swift; sourceTree = "<group>"; };
-		182BF5BC9BCBD77DA215D50B /* FileBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileBuffer.swift; sourceTree = "<group>"; };
 		1A30AB9FC437A9C192893FDA /* ThemeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeStore.swift; sourceTree = "<group>"; };
 		1FAD920D0BF825E5BDF4FDD8 /* ZenTextViewUndoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewUndoTests.swift; sourceTree = "<group>"; };
 		2B1001F43E5CA7F698FDB60C /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
+		2BAC30E0BA131A44D52081DE /* WhitespaceDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceDocument.swift; sourceTree = "<group>"; };
 		2C6B2B485641E84681143C37 /* CrimsonPro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-Medium.ttf"; sourceTree = "<group>"; };
 		2D75062FED11C19CCFD2778A /* KeybindingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingAction.swift; sourceTree = "<group>"; };
 		32B39BF59EA2D2989005F57C /* CrimsonPro-MediumItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-MediumItalic.ttf"; sourceTree = "<group>"; };
 		4C6BEEB4E908B2D6CFD7B6A4 /* TypewriterScroll.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypewriterScroll.swift; sourceTree = "<group>"; };
-		4F4B6C6C449C31538D730619 /* FileStoreAutoSaveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStoreAutoSaveTests.swift; sourceTree = "<group>"; };
-		5416ECD2411E3CBFB9A1A6E4 /* FileBufferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileBufferTests.swift; sourceTree = "<group>"; };
 		61BDD010DB318CAC9C447F2A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6A0CE42F87EEFEEDEB2DE787 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		6C54D6384B105A8E6BC83046 /* KeybindingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingStore.swift; sourceTree = "<group>"; };
-		7682AC4A858FB9483A85B61F /* FileStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStoreTests.swift; sourceTree = "<group>"; };
 		7DC4B4A0538F1C47BD4D9A28 /* TypewriterScrollTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypewriterScrollTests.swift; sourceTree = "<group>"; };
 		7E4424A60587F3916AA424C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8A21505C013FBCFB3D697DD6 /* ZenTextViewPasteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewPasteTests.swift; sourceTree = "<group>"; };
@@ -87,7 +82,6 @@
 		8E0CB9D1D61C42DDE5907771 /* CrimsonPro-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CrimsonPro-LightItalic.ttf"; sourceTree = "<group>"; };
 		934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesStoreTests.swift; sourceTree = "<group>"; };
 		9AEF2008F149F31FECC10343 /* CanvasUIState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasUIState.swift; sourceTree = "<group>"; };
-		9E69693EC1764B42EFD53493 /* FileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStore.swift; sourceTree = "<group>"; };
 		A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceTests.swift; sourceTree = "<group>"; };
 		A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteNormalizer.swift; sourceTree = "<group>"; };
@@ -109,8 +103,7 @@
 		0980EDC238F80984F7619694 /* Files */ = {
 			isa = PBXGroup;
 			children = (
-				182BF5BC9BCBD77DA215D50B /* FileBuffer.swift */,
-				9E69693EC1764B42EFD53493 /* FileStore.swift */,
+				2BAC30E0BA131A44D52081DE /* WhitespaceDocument.swift */,
 			);
 			path = Files;
 			sourceTree = "<group>";
@@ -204,9 +197,6 @@
 		94DCBE9E50A26DD201E39C7A /* WhitespaceTests */ = {
 			isa = PBXGroup;
 			children = (
-				5416ECD2411E3CBFB9A1A6E4 /* FileBufferTests.swift */,
-				4F4B6C6C449C31538D730619 /* FileStoreAutoSaveTests.swift */,
-				7682AC4A858FB9483A85B61F /* FileStoreTests.swift */,
 				0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */,
 				D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */,
 				B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */,
@@ -214,6 +204,7 @@
 				934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */,
 				B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */,
 				7DC4B4A0538F1C47BD4D9A28 /* TypewriterScrollTests.swift */,
+				0A2E4C61C4DBA989CCB4A673 /* WhitespaceDocumentTests.swift */,
 				A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */,
 				B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */,
 				8A21505C013FBCFB3D697DD6 /* ZenTextViewPasteTests.swift */,
@@ -365,9 +356,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				099383C43D4AC24449046513 /* FileBufferTests.swift in Sources */,
-				CE55EF6F45B53C792CC8B5B5 /* FileStoreAutoSaveTests.swift in Sources */,
-				0EA35F8DA06CA1081663207C /* FileStoreTests.swift in Sources */,
 				F9178DF3C8307F56A738C60F /* KeybindingStoreTests.swift in Sources */,
 				186AA5A248B450638EE1AF9C /* MarkdownTextDecodeTests.swift in Sources */,
 				AAA8D611B0F4CDBEA5030A12 /* MarkdownTextEncodeTests.swift in Sources */,
@@ -375,6 +363,7 @@
 				4BB62E4C69F9C03EA4CBDAF4 /* PreferencesStoreTests.swift in Sources */,
 				CC5D5BDA008C4D1CC48AB2FC /* ThemeStoreTests.swift in Sources */,
 				1A10F1B09096FD8513AFA28A /* TypewriterScrollTests.swift in Sources */,
+				52DC3FB927BC17E23880765E /* WhitespaceDocumentTests.swift in Sources */,
 				839E84072B89984DEBC8089A /* WhitespaceTests.swift in Sources */,
 				87CCC792F82FA3CDC209EAD8 /* ZenTextViewKeyDownTests.swift in Sources */,
 				B5D55721331403463F04186F /* ZenTextViewPasteTests.swift in Sources */,
@@ -389,8 +378,6 @@
 				7C62784B113B52CDD1F99D44 /* CanvasUIState.swift in Sources */,
 				7D4E0EFB8788922C148A4AA2 /* CanvasView.swift in Sources */,
 				FCFAA0E90CD215D024535FC0 /* CommandPaletteView.swift in Sources */,
-				F2B7540DE970F753FA39B6CA /* FileBuffer.swift in Sources */,
-				6E82C0D1B6AAAB9706808D4D /* FileStore.swift in Sources */,
 				997E42F699BEE988CC7CF08E /* FontNames.swift in Sources */,
 				D8DADF38B89DC67FCAAED4CA /* GrainBackground.swift in Sources */,
 				8D3A523F82BE76372FCA4D67 /* KeybindingAction.swift in Sources */,
@@ -405,6 +392,7 @@
 				0E20783B45E9378A4DD7DAB6 /* ThemeStore.swift in Sources */,
 				D8C98C31D1C4CE99E12C7CEF /* TypewriterScroll.swift in Sources */,
 				D0843F665308E0BA5895EDE7 /* WhitespaceApp.swift in Sources */,
+				8DFC4012BA2D65AF8B933335 /* WhitespaceDocument.swift in Sources */,
 				080EBDECDA7550C7FB5F3944 /* ZenTextView.swift in Sources */,
 				4E5D22B04D77F3F8278F2280 /* ZenTextViewRepresentable.swift in Sources */,
 			);

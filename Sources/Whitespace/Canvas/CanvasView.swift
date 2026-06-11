@@ -2,21 +2,17 @@
 import SwiftUI
 
 struct CanvasView: View {
-    @Environment(FileStore.self) private var fileStore
+    @Binding var document: WhitespaceDocument
+
     @Environment(ThemeStore.self) private var themeStore
     @Environment(PreferencesStore.self) private var prefs
     @Environment(KeybindingStore.self) private var keybindingStore
-    @Environment(CanvasUIState.self) private var ui
 
+    // Per-window: each document window owns its overlay state; the menu
+    // bar reaches the key window's copy via the focused-value system.
+    @State private var ui = CanvasUIState()
     @State private var autoDismissTask: Task<Void, Never>?
     @State private var editorFocusRequest = 0
-
-    private var activeText: Binding<String> {
-        Binding(
-            get: { fileStore.activeBuffer?.text ?? "" },
-            set: { fileStore.updateActiveText($0) }
-        )
-    }
 
     var body: some View {
         @Bindable var ui = ui
@@ -30,7 +26,7 @@ struct CanvasView: View {
                 HStack {
                     Spacer(minLength: 0)
                     ZenTextViewRepresentable(
-                        text: activeText,
+                        text: $document.text,
                         themeStore: themeStore,
                         preferences: prefs,
                         keybindingStore: keybindingStore,
@@ -74,6 +70,7 @@ struct CanvasView: View {
                 .allowsHitTesting(ui.showShortcutOverlay)
             }
         }
+        .focusedSceneValue(\.canvasUI, ui)
         .animation(.easeInOut(duration: 0.15), value: ui.showCommandPalette)
         .animation(.timingCurve(0.6, 0.0, 0.4, 1.0, duration: 0.6), value: ui.showShortcutOverlay)
         .onChange(of: ui.showCommandPalette) { _, isOn in
@@ -91,9 +88,6 @@ struct CanvasView: View {
                 guard !Task.isCancelled else { return }
                 ui.showShortcutOverlay = false
             }
-        }
-        .onAppear {
-            if fileStore.buffers.isEmpty { fileStore.newBuffer() }
         }
     }
 }

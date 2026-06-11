@@ -1,8 +1,8 @@
 // Sources/Whitespace/CommandPalette/CommandPaletteView.swift
 import SwiftUI
+import AppKit
 
 struct CommandPaletteView: View {
-    @Environment(FileStore.self) private var fileStore
     @Binding var isPresented: Bool
 
     @State private var query = ""
@@ -10,20 +10,35 @@ struct CommandPaletteView: View {
     @State private var escapeMonitor: Any?
     @FocusState private var focused: Bool
 
-    private var filtered: [FileBuffer] {
-        guard !query.isEmpty else { return fileStore.buffers }
-        return fileStore.buffers.filter {
-            $0.displayName.localizedCaseInsensitiveContains(query)
-        }
+    private struct Action: Identifiable {
+        let id = UUID()
+        let label: String
+        let systemImage: String
+        let perform: () -> Void
+    }
+
+    private var actions: [Action] {
+        [
+            Action(label: "New Document", systemImage: "plus") {
+                NSApp.sendAction(#selector(NSDocumentController.newDocument(_:)), to: nil, from: nil)
+            },
+            Action(label: "Open File…", systemImage: "folder") {
+                NSApp.sendAction(#selector(NSDocumentController.openDocument(_:)), to: nil, from: nil)
+            },
+        ]
+    }
+
+    private var filtered: [Action] {
+        guard !query.isEmpty else { return actions }
+        return actions.filter { $0.label.localizedCaseInsensitiveContains(query) }
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Search field
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
-                TextField("Open file or switch…", text: $query)
+                TextField("Run a command…", text: $query)
                     .textFieldStyle(.plain)
                     .focused($focused)
                     .onSubmit { commitSelection() }
@@ -33,24 +48,13 @@ struct CommandPaletteView: View {
 
             Divider().opacity(0.3)
 
-            // File list
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(Array(filtered.enumerated()), id: \.element.id) { idx, buffer in
-                        row(label: buffer.displayName, systemImage: "doc.text", index: idx) {
-                            switchTo(buffer: buffer)
+                    ForEach(Array(filtered.enumerated()), id: \.element.id) { idx, action in
+                        row(label: action.label, systemImage: action.systemImage, index: idx) {
+                            dismiss()
+                            action.perform()
                         }
-                    }
-
-                    Divider().padding(.vertical, 4).opacity(0.3)
-
-                    row(label: "Open file…", systemImage: "folder", index: filtered.count) {
-                        dismiss()
-                        fileStore.openPanel()
-                    }
-                    row(label: "New file", systemImage: "plus", index: filtered.count + 1) {
-                        dismiss()
-                        fileStore.newBuffer()
                     }
                 }
                 .padding(.vertical, 4)
@@ -69,7 +73,7 @@ struct CommandPaletteView: View {
             Group {
                 Button("") { selectedIndex = max(0, selectedIndex - 1) }
                     .keyboardShortcut(.upArrow, modifiers: [])
-                Button("") { selectedIndex = min(totalRows - 1, selectedIndex + 1) }
+                Button("") { selectedIndex = min(max(0, filtered.count - 1), selectedIndex + 1) }
                     .keyboardShortcut(.downArrow, modifiers: [])
             }
             .opacity(0)
@@ -88,12 +92,7 @@ struct CommandPaletteView: View {
             escapeMonitor = nil
         }
         .onChange(of: query) { _, _ in selectedIndex = 0 }
-        .onChange(of: fileStore.buffers.count) { _, _ in
-            selectedIndex = min(selectedIndex, max(0, totalRows - 1))
-        }
     }
-
-    private var totalRows: Int { filtered.count + 2 }
 
     private func row(label: String, systemImage: String, index: Int, action: @escaping () -> Void) -> some View {
         Button(action: action) {
@@ -112,21 +111,11 @@ struct CommandPaletteView: View {
         .buttonStyle(.plain)
     }
 
-    private func switchTo(buffer: FileBuffer) {
-        if let idx = fileStore.buffers.firstIndex(where: { $0.id == buffer.id }) {
-            fileStore.activeIndex = idx
-        }
-        dismiss()
-    }
-
     private func commitSelection() {
-        if selectedIndex < filtered.count {
-            switchTo(buffer: filtered[selectedIndex])
-        } else if selectedIndex == filtered.count {
-            dismiss(); fileStore.openPanel()
-        } else {
-            dismiss(); fileStore.newBuffer()
-        }
+        guard filtered.indices.contains(selectedIndex) else { return }
+        let action = filtered[selectedIndex]
+        dismiss()
+        action.perform()
     }
 
     private func dismiss() {

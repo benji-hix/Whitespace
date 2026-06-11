@@ -141,26 +141,6 @@ private struct GeneralTabView: View {
                         }
                     }
                 }
-
-                PrefSection("Auto-Save") {
-                    PrefRow("Enabled") {
-                        Toggle("", isOn: $prefs.autoSaveEnabled)
-                            .labelsHidden()
-                            .toggleStyle(.switch)
-                    }
-
-                    if prefs.autoSaveEnabled {
-                        PrefRow("Delay") {
-                            Picker("", selection: $prefs.autoSaveDelay) {
-                                Text("1 second").tag(1)
-                                Text("2 seconds").tag(2)
-                                Text("5 seconds").tag(5)
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(width: 196)
-                        }
-                    }
-                }
             }
             .padding(.horizontal, 40)
             .padding(.vertical, 30)
