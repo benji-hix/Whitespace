@@ -14,7 +14,13 @@ struct WhitespaceApp: App {
     init() { registerFonts() }
 
     var body: some Scene {
-        DocumentGroup(newDocument: WhitespaceDocument()) { file in
+        // The autoclosure re-evaluates per new document, so the preference
+        // applies at creation time.
+        DocumentGroup(newDocument: WhitespaceDocument(
+            contentType: preferencesStore.newDocumentType == .markdown
+                ? WhitespaceDocument.markdownType
+                : .plainText
+        )) { file in
             CanvasView(document: file.$document)
                 .environment(keybindingStore)
                 .environment(themeStore)

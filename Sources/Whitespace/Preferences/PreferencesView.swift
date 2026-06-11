@@ -103,6 +103,17 @@ private struct GeneralTabView: View {
                     }
                 }
 
+                PrefSection("Documents") {
+                    PrefRow("New Files") {
+                        Picker("", selection: $prefs.newDocumentType) {
+                            Text("Markdown").tag(NewDocumentType.markdown)
+                            Text("Plain Text").tag(NewDocumentType.plainText)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 196)
+                    }
+                }
+
                 PrefSection("Editor") {
                     PrefRow("Scroll Speed") {
                         HStack(spacing: 10) {

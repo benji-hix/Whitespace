@@ -21,6 +21,16 @@ final class PreferencesStoreTests: XCTestCase {
         XCTAssertEqual(store.columnWidth, .medium)
     }
 
+    func testNewDocumentTypeDefaultsToMarkdown() {
+        XCTAssertEqual(store.newDocumentType, .markdown)
+    }
+
+    func testNewDocumentTypePersists() {
+        store.newDocumentType = .plainText
+        let store2 = PreferencesStore(defaults: UserDefaults(suiteName: "test-prefs")!)
+        XCTAssertEqual(store2.newDocumentType, .plainText)
+    }
+
     func testFontSizeClampedOnSave() {
         store.fontSize = 5
         XCTAssertEqual(store.fontSize, 12)

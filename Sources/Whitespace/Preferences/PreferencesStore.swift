@@ -12,12 +12,20 @@ enum ColumnWidth: String, CaseIterable, Codable {
     }
 }
 
+enum NewDocumentType: String, CaseIterable, Codable {
+    case markdown, plainText
+}
+
 @Observable
 @MainActor
 final class PreferencesStore {
     private let defaults: UserDefaults
     private var _fontSize: Int
     private var _shortcutsAutoDismissDelay: Int
+
+    var newDocumentType: NewDocumentType {
+        didSet { defaults.set(newDocumentType.rawValue, forKey: Keys.newDocumentType) }
+    }
 
     var fontSize: Int {
         get { _fontSize }
@@ -68,6 +76,12 @@ final class PreferencesStore {
         let rawSpeed = defaults.object(forKey: Keys.scrollSpeed) != nil
             ? defaults.double(forKey: Keys.scrollSpeed) : 1.0
         self.scrollSpeed = min(2.0, max(0.4, rawSpeed))
+        if let raw = defaults.string(forKey: Keys.newDocumentType),
+           let type = NewDocumentType(rawValue: raw) {
+            self.newDocumentType = type
+        } else {
+            self.newDocumentType = .markdown
+        }
         self.shortcutsAutoDismissEnabled = defaults.bool(forKey: Keys.shortcutsAutoDismissEnabled)
         let rawShortcutDelay = defaults.object(forKey: Keys.shortcutsAutoDismissDelay) != nil
             ? defaults.integer(forKey: Keys.shortcutsAutoDismissDelay) : 4
@@ -79,6 +93,7 @@ final class PreferencesStore {
         static let lineHeight      = "whitespace.prefs.lineHeight"
         static let columnWidth     = "whitespace.prefs.columnWidth"
         static let scrollSpeed     = "whitespace.prefs.scrollSpeed"
+        static let newDocumentType = "whitespace.prefs.newDocumentType"
         static let shortcutsAutoDismissEnabled = "whitespace.prefs.shortcutsAutoDismissEnabled"
         static let shortcutsAutoDismissDelay   = "whitespace.prefs.shortcutsAutoDismissDelay"
     }
