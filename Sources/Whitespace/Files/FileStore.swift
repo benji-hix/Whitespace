@@ -55,12 +55,6 @@ final class FileStore {
         buffers[idx].isDirty = false
     }
 
-    func closeActive() {
-        guard buffers.indices.contains(activeIndex) else { return }
-        buffers.remove(at: activeIndex)
-        activeIndex = max(0, min(activeIndex, buffers.count - 1))
-    }
-
     /// Reads the user's auto-save preference at edit time. Wired once at
     /// startup; defaults to off so headless tests opt in explicitly.
     var autoSavePolicy: () -> (enabled: Bool, delaySeconds: Int) = { (false, 0) }

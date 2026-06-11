@@ -40,9 +40,4 @@ final class FileStoreTests: XCTestCase {
         XCTAssertEqual(content, "updated")
     }
 
-    func testCloseActiveRemovesBuffer() async throws {
-        try await store.open(url: tmpURL)
-        store.closeActive()
-        XCTAssertTrue(store.buffers.isEmpty)
-    }
 }
