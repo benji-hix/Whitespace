@@ -15,7 +15,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "0C56AF64BE26DB444D566E60"
+               BlueprintIdentifier = "37DD06A163357B6EB9771468"
                BuildableName = "Whitespace.app"
                BlueprintName = "Whitespace"
                ReferencedContainer = "container:Whitespace.xcodeproj">
@@ -29,7 +29,7 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1CD6F615502B2F1F3198986F"
+               BlueprintIdentifier = "5BCD6BE5B6389C0D05BCA31C"
                BuildableName = "WhitespaceTests.xctest"
                BlueprintName = "WhitespaceTests"
                ReferencedContainer = "container:Whitespace.xcodeproj">
@@ -46,7 +46,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "0C56AF64BE26DB444D566E60"
+            BlueprintIdentifier = "37DD06A163357B6EB9771468"
             BuildableName = "Whitespace.app"
             BlueprintName = "Whitespace"
             ReferencedContainer = "container:Whitespace.xcodeproj">
@@ -58,7 +58,7 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1CD6F615502B2F1F3198986F"
+               BlueprintIdentifier = "5BCD6BE5B6389C0D05BCA31C"
                BuildableName = "WhitespaceTests.xctest"
                BlueprintName = "WhitespaceTests"
                ReferencedContainer = "container:Whitespace.xcodeproj">
@@ -82,7 +82,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "0C56AF64BE26DB444D566E60"
+            BlueprintIdentifier = "37DD06A163357B6EB9771468"
             BuildableName = "Whitespace.app"
             BlueprintName = "Whitespace"
             ReferencedContainer = "container:Whitespace.xcodeproj">
@@ -99,7 +99,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "0C56AF64BE26DB444D566E60"
+            BlueprintIdentifier = "37DD06A163357B6EB9771468"
             BuildableName = "Whitespace.app"
             BlueprintName = "Whitespace"
             ReferencedContainer = "container:Whitespace.xcodeproj">

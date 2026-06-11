@@ -3,22 +3,20 @@ import AppKit
 import SwiftUI
 
 struct ZenTextViewRepresentable: NSViewRepresentable {
-    @Binding var text: String
+    @Binding var runs: [StyledRun]
     let themeStore: ThemeStore
     let preferences: PreferencesStore
     let keybindingStore: KeybindingStore
 
     private var theme: Theme { themeStore.current }
 
-    var onToggleCommandPalette: () -> Void = {}
-    var onToggleShortcutOverlay: () -> Void = {}
-    var onToggleTheme: () -> Void = {}
-    var onSave: () -> Void = {}
-    var onSaveAs: () -> Void = {}
-    var onOpen: () -> Void = {}
-    var onNew: () -> Void = {}
-    var onIncreaseFontSize: () -> Void = {}
-    var onDecreaseFontSize: () -> Void = {}
+    /// Incremented by the owner to ask the editor to take first responder
+    /// back (e.g. after the command palette is dismissed).
+    var focusRequestID: Int = 0
+
+    /// False for plain-text documents: formatting chords go inert and
+    /// paste strips all styling.
+    var formattingEnabled: Bool = true
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
@@ -33,6 +31,8 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
         textView.delegate = context.coordinator
         textView.keybindingStore = keybindingStore
+        textView.formattingEnabled = formattingEnabled
+        textView.isRichText = formattingEnabled
         textView.applyColors(
             text: themeStore.displayedTextColor,
             cursor: themeStore.displayedCursorColor,
@@ -43,7 +43,9 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             lineHeightMultiple: preferences.lineHeightMultiple
         )
         textView.scrollSpeed = preferences.scrollSpeed
-        textView.string = text
+        textView.textStorage?.setAttributedString(
+            PasteNormalizer.attributedString(runs: runs, baseAttributes: textView.typingAttributes)
+        )
         wire(textView)
 
         // Sync coordinator tracking state to avoid redundant calls on first updateNSView
@@ -54,6 +56,11 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         context.coordinator.lastScrollSpeed = preferences.scrollSpeed
 
         scrollView.documentView = textView
+        // The window doesn't exist yet; claim first responder once it does
+        // so the user can type immediately on launch.
+        DispatchQueue.main.async {
+            textView.window?.makeFirstResponder(textView)
+        }
         return scrollView
     }
 
@@ -64,6 +71,8 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         context.coordinator.parent = self
 
         textView.keybindingStore = keybindingStore
+        textView.formattingEnabled = formattingEnabled
+        textView.isRichText = formattingEnabled
 
         // Issue 2: Only apply font/theme when values actually changed
         let newSize = CGFloat(preferences.fontSize)
@@ -90,20 +99,24 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             textView.scrollSpeed = preferences.scrollSpeed
             context.coordinator.lastScrollSpeed = preferences.scrollSpeed
         }
+        if context.coordinator.lastFocusRequestID != focusRequestID {
+            context.coordinator.lastFocusRequestID = focusRequestID
+            textView.window?.makeFirstResponder(textView)
+        }
 
-        // Only sync text if changed externally (e.g. file switch)
-        if textView.string != text {
+        // Only sync content if changed externally (e.g. document revert,
+        // restoration). Rebuilding from runs applies the current font,
+        // colors and paragraph style via the typing attributes.
+        if textView.currentStyledRuns() != runs {
             // The cached scroll target refers to the previous content's
-            // layout. After replacing the entire string, invalidate so the
-            // next recenter snaps unconditionally.
+            // layout. After replacing the content, invalidate so the next
+            // recenter snaps unconditionally.
             textView.invalidateScrollAnchor()
-            textView.string = text
-            // Setting .string resets all attributed string attributes, so reapply
-            textView.applyFont(size: CGFloat(preferences.fontSize), lineHeightMultiple: preferences.lineHeightMultiple)
-            textView.applyColors(
-                text: themeStore.displayedTextColor,
-                cursor: themeStore.displayedCursorColor,
-                selection: themeStore.displayedSelectionColor
+            // The undo stack refers to the previous content; undo after a
+            // wholesale replacement must not resurrect it.
+            textView.undoManager?.removeAllActions()
+            textView.textStorage?.setAttributedString(
+                PasteNormalizer.attributedString(runs: runs, baseAttributes: textView.typingAttributes)
             )
         }
 
@@ -113,15 +126,9 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     private func wire(_ textView: ZenTextView) {
-        textView.onToggleCommandPalette  = onToggleCommandPalette
-        textView.onToggleShortcutOverlay = onToggleShortcutOverlay
-        textView.onToggleTheme           = onToggleTheme
-        textView.onSave                  = onSave
-        textView.onSaveAs                = onSaveAs
-        textView.onOpen                  = onOpen
-        textView.onNew                   = onNew
-        textView.onIncreaseFontSize      = onIncreaseFontSize
-        textView.onDecreaseFontSize      = onDecreaseFontSize
+        let prefs = preferences
+        textView.onIncreaseFontSize = { prefs.setFontSize(prefs.fontSize + 1) }
+        textView.onDecreaseFontSize = { prefs.setFontSize(prefs.fontSize - 1) }
     }
 
     // MARK: - Coordinator
@@ -133,15 +140,17 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         var lastTheme: Theme? = nil
         var lastProgress: Double = .nan
         var lastScrollSpeed: Double = .nan
+        var lastFocusRequestID: Int = 0
 
         init(_ parent: ZenTextViewRepresentable) {
             self.parent = parent
         }
 
         func textDidChange(_ notification: Notification) {
-            guard let textView = notification.object as? NSTextView else { return }
-            if parent.text != textView.string {
-                parent.text = textView.string
+            guard let textView = notification.object as? ZenTextView else { return }
+            let current = textView.currentStyledRuns()
+            if parent.runs != current {
+                parent.runs = current
             }
         }
     }

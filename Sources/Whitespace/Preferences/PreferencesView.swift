@@ -103,6 +103,17 @@ private struct GeneralTabView: View {
                     }
                 }
 
+                PrefSection("Documents") {
+                    PrefRow("New Files") {
+                        Picker("", selection: $prefs.newDocumentType) {
+                            Text("Markdown").tag(NewDocumentType.markdown)
+                            Text("Plain Text").tag(NewDocumentType.plainText)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 196)
+                    }
+                }
+
                 PrefSection("Editor") {
                     PrefRow("Scroll Speed") {
                         HStack(spacing: 10) {
@@ -141,26 +152,6 @@ private struct GeneralTabView: View {
                         }
                     }
                 }
-
-                PrefSection("Auto-Save") {
-                    PrefRow("Enabled") {
-                        Toggle("", isOn: $prefs.autoSaveEnabled)
-                            .labelsHidden()
-                            .toggleStyle(.switch)
-                    }
-
-                    if prefs.autoSaveEnabled {
-                        PrefRow("Delay") {
-                            Picker("", selection: $prefs.autoSaveDelay) {
-                                Text("1 second").tag(1)
-                                Text("2 seconds").tag(2)
-                                Text("5 seconds").tag(5)
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(width: 196)
-                        }
-                    }
-                }
             }
             .padding(.horizontal, 40)
             .padding(.vertical, 30)
@@ -174,6 +165,7 @@ private struct KeybindingsTabView: View {
     @Environment(KeybindingStore.self) private var keybindingStore
     @State private var recordingAction: KeybindingAction? = nil
     @State private var conflictMessage: String? = nil
+    @State private var recordingMonitor: Any?
 
     var body: some View {
         ScrollView {
@@ -198,8 +190,11 @@ private struct KeybindingsTabView: View {
                                     )
                                     .frame(minWidth: 56, alignment: .trailing)
                                 Button(recordingAction == action ? "Cancel" : "Record") {
-                                    recordingAction = recordingAction == action ? nil : action
-                                    conflictMessage = nil
+                                    if recordingAction == action {
+                                        stopRecording()
+                                    } else {
+                                        startRecording(action)
+                                    }
                                 }
                                 .buttonStyle(.bordered)
                                 .controlSize(.small)
@@ -211,7 +206,7 @@ private struct KeybindingsTabView: View {
 
                 Button("Reset to Defaults") {
                     keybindingStore.resetToDefaults()
-                    recordingAction = nil
+                    stopRecording()
                 }
                 .buttonStyle(.plain)
                 .font(.system(size: 12))
@@ -221,6 +216,49 @@ private struct KeybindingsTabView: View {
             .padding(.horizontal, 40)
             .padding(.vertical, 30)
         }
+        .onDisappear { stopRecording() }
+    }
+
+    private func startRecording(_ action: KeybindingAction) {
+        stopRecording()
+        recordingAction = action
+        conflictMessage = nil
+        // Swallow every key while recording so the chord can't trigger the
+        // action it names (or any other shortcut).
+        recordingMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            handleRecordingEvent(event, for: action)
+            return nil
+        }
+    }
+
+    private func handleRecordingEvent(_ event: NSEvent, for action: KeybindingAction) {
+        if event.keyCode == 53 {  // Escape cancels
+            stopRecording()
+            return
+        }
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        let modifiers = UInt64(flags.rawValue) & ShortcutBinding.modifierMask
+        // Bare keys and shift-only chords would hijack normal typing in the
+        // editor, where these bindings are matched on every keystroke.
+        guard modifiers & ~CGEventFlags.maskShift.rawValue != 0 else {
+            conflictMessage = "Use at least one of ⌃, ⌥ or ⌘."
+            return
+        }
+        do {
+            try keybindingStore.setBinding(
+                ShortcutBinding(keyCode: event.keyCode, modifiers: modifiers),
+                for: action
+            )
+            stopRecording()
+        } catch {
+            conflictMessage = error.localizedDescription
+        }
+    }
+
+    private func stopRecording() {
+        if let recordingMonitor { NSEvent.removeMonitor(recordingMonitor) }
+        recordingMonitor = nil
+        recordingAction = nil
     }
 }
 

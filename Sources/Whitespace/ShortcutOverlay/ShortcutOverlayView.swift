@@ -18,19 +18,9 @@ struct ShortcutOverlayView: View {
         ("Decrease Font", "⌘–"),
     ]
 
-    private static let paperInk = NSColor(srgbRed: 0x1E/255, green: 0x0F/255, blue: 0x11/255, alpha: 1)
-    private static let darkInk  = NSColor(srgbRed: 0x7D/255, green: 0x6D/255, blue: 0x6C/255, alpha: 1)
-
-    private static func panelInk(for theme: Theme) -> NSColor {
-        switch theme {
-        case .paper: return paperInk
-        case .dark:  return darkInk
-        }
-    }
-
     private var ink: Color {
-        let from = Self.panelInk(for: themeStore.previous)
-        let to   = Self.panelInk(for: themeStore.current)
+        let from = themeStore.previous.panelInkColor
+        let to   = themeStore.current.panelInkColor
         return Color(nsColor: ThemeStore.interpolate(from, to, themeStore.transitionProgress))
     }
 

@@ -14,17 +14,19 @@ final class PasteNormalizerTests: XCTestCase {
     private var boldFont: NSFont   { font(traits: .bold) }
     private var italicFont: NSFont { font(traits: .italic) }
 
-    func testDetectsBoldItalicUnderline() {
+    func testDetectsBoldAndItalicStripsUnderline() {
         let s = NSMutableAttributedString()
         s.append(NSAttributedString(string: "b", attributes: [.font: boldFont]))
         s.append(NSAttributedString(string: "i", attributes: [.font: italicFont]))
         s.append(NSAttributedString(string: "u",
             attributes: [.underlineStyle: NSUnderlineStyle.single.rawValue]))
 
+        // Underline carries no meaning in the app (markdown cannot express
+        // it); underlined sources classify as plain.
         XCTAssertEqual(PasteNormalizer.styledRuns(from: s), [
-            StyledRun(text: "b", bold: true,  italic: false, underline: false),
-            StyledRun(text: "i", bold: false, italic: true,  underline: false),
-            StyledRun(text: "u", bold: false, italic: false, underline: true),
+            StyledRun(text: "b", bold: true,  italic: false),
+            StyledRun(text: "i", bold: false, italic: true),
+            StyledRun(text: "u", bold: false, italic: false),
         ])
     }
 
@@ -36,7 +38,7 @@ final class PasteNormalizerTests: XCTestCase {
             .font:               NSFont.systemFont(ofSize: 99),
         ])
         XCTAssertEqual(PasteNormalizer.styledRuns(from: s),
-                       [StyledRun(text: "x", bold: false, italic: false, underline: false)])
+                       [StyledRun(text: "x", bold: false, italic: false)])
     }
 
     func testStripsLeadingTabsAndSpacesPerLine() {
@@ -63,14 +65,14 @@ final class PasteNormalizerTests: XCTestCase {
         s.append(NSAttributedString(string: "fox",    attributes: [.font: italicFont]))
 
         XCTAssertEqual(PasteNormalizer.styledRuns(from: s), [
-            StyledRun(text: "The ",    bold: false, italic: false, underline: false),
-            StyledRun(text: "quick",   bold: true,  italic: false, underline: false),
-            StyledRun(text: " brown ", bold: false, italic: false, underline: false),
-            StyledRun(text: "fox",     bold: false, italic: true,  underline: false),
+            StyledRun(text: "The ",    bold: false, italic: false),
+            StyledRun(text: "quick",   bold: true,  italic: false),
+            StyledRun(text: " brown ", bold: false, italic: false),
+            StyledRun(text: "fox",     bold: false, italic: true),
         ])
     }
 
-    func testAttributedStringAppliesBaseStyleAndUnderline() {
+    func testAttributedStringAppliesBaseStyle() {
         let pStyle = NSMutableParagraphStyle()
         pStyle.firstLineHeadIndent = 36
         let base: [NSAttributedString.Key: Any] = [
@@ -79,8 +81,8 @@ final class PasteNormalizerTests: XCTestCase {
             .foregroundColor: NSColor.green,
         ]
         let runs = [
-            StyledRun(text: "a", bold: false, italic: false, underline: false),
-            StyledRun(text: "b", bold: false, italic: false, underline: true),
+            StyledRun(text: "a", bold: false, italic: false),
+            StyledRun(text: "b", bold: true, italic: false),
         ]
 
         let out = PasteNormalizer.attributedString(runs: runs, baseAttributes: base)
@@ -90,9 +92,8 @@ final class PasteNormalizerTests: XCTestCase {
         XCTAssertEqual(a0[.paragraphStyle] as? NSParagraphStyle, pStyle)
         XCTAssertEqual(a0[.foregroundColor] as? NSColor, NSColor.green)
         XCTAssertEqual((a0[.font] as? NSFont)?.pointSize, 20)   // size from base
-        XCTAssertNil(a0[.underlineStyle])                       // run 0 not underlined
 
         let a1 = out.attributes(at: 1, effectiveRange: nil)
-        XCTAssertEqual(a1[.underlineStyle] as? Int, NSUnderlineStyle.single.rawValue)
+        XCTAssertEqual((a1[.font] as? NSFont)?.fontName, WhitespaceFont.bold)
     }
 }

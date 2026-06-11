@@ -33,6 +33,15 @@ enum Theme: String, Codable, CaseIterable {
         }
     }
 
+    /// Ink for the shortcuts panel. Deliberately brighter than textColor in
+    /// dark mode so the panel reads against the page.
+    var panelInkColor: NSColor {
+        switch self {
+        case .paper: return NSColor(srgbRed: 0x1E/255, green: 0x0F/255, blue: 0x11/255, alpha: 1)
+        case .dark:  return NSColor(srgbRed: 0x7D/255, green: 0x6D/255, blue: 0x6C/255, alpha: 1)
+        }
+    }
+
     var grainIsLight: Bool { self == .dark }
 
     @ViewBuilder

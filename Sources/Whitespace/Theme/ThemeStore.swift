@@ -34,8 +34,10 @@ final class ThemeStore {
 
     func set(_ theme: Theme) {
         guard theme != current else { return }
-        // If we're mid-transition, the snapshot of "previous" should reflect
-        // what's currently on screen so the new fade starts from there.
+        // A mid-transition toggle snaps "previous" to the un-blended outgoing
+        // theme, so a rapid double-toggle visibly jumps before fading.
+        // Accepted: starting from the on-screen blend would need a snapshot
+        // of every derived color and gradient, not just a Theme value.
         previous = current
         current = theme
         defaults.set(theme.rawValue, forKey: key)

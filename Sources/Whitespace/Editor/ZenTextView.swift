@@ -2,20 +2,17 @@
 import AppKit
 
 final class ZenTextView: NSTextView {
-    var onTextChange: ((String) -> Void)?
     var keybindingStore: KeybindingStore?
+
+    /// Driven by the document's content type: markdown documents support
+    /// bold/italic; plain-text documents consume the formatting chords
+    /// silently and paste strips all styling.
+    var formattingEnabled = true
 
     /// Multiplier for scroll-animation pace. Higher = faster, lower = slower.
     /// 1.0 is the tuned default; the Settings slider exposes 0.4 ... 2.0.
     var scrollSpeed: Double = 1.0
 
-    var onToggleCommandPalette: (() -> Void)?
-    var onToggleShortcutOverlay: (() -> Void)?
-    var onToggleTheme: (() -> Void)?
-    var onSave: (() -> Void)?
-    var onSaveAs: (() -> Void)?
-    var onOpen: (() -> Void)?
-    var onNew: (() -> Void)?
     var onIncreaseFontSize: (() -> Void)?
     var onDecreaseFontSize: (() -> Void)?
 
@@ -72,6 +69,7 @@ final class ZenTextView: NSTextView {
     // MARK: - Configuration
 
     private func configure() {
+        allowsUndo                           = true
         isRichText                           = true
         importsGraphics                      = false
         isAutomaticSpellingCorrectionEnabled = false
@@ -285,20 +283,9 @@ final class ZenTextView: NSTextView {
         }
     }
 
-    /// Compute the desired clip-view bounds origin Y for the current caret.
-    ///
-    /// Two regimes:
-    /// 1. **Paragraph change.** When the caret enters a different paragraph
-    ///    (click, Enter, arrow across boundary), animate to put that
-    ///    paragraph's midpoint at ~45% of the viewport. If the paragraph is
-    ///    taller than the viewport's middle 70%, clamp so the caret stays
-    ///    visible.
-    /// 2. **Within the same paragraph.** Hold position unless the caret
-    ///    leaves the central deadzone (middle 60% of viewport). When it
-    ///    does, scroll just enough to bring it to the deadzone edge it
-    ///    crossed — typewriter "page flip" feel without per-keystroke drift.
-    ///
-    /// Returns nil to mean "don't scroll" — used in the deadzone case.
+    /// Gather caret/paragraph geometry from TK2 and delegate the scroll
+    /// decision to `TypewriterScroll.target(for:)`, which holds the (tested)
+    /// placement and deadzone math. Returns nil to mean "don't scroll".
     private func caretCenterTargetY() -> CGFloat? {
         guard let tlm = textLayoutManager,
               let scrollView = enclosingScrollView,
@@ -342,43 +329,17 @@ final class ZenTextView: NSTextView {
             to: elementRange.location
         )
 
-        let paragraphChanged = (centeredParagraphOffset != paragraphOffset)
+        let input = TypewriterScroll.Input(
+            caretMinY: caretMinY,
+            caretMaxY: caretMaxY,
+            paragraphMidY: paragraphMidY,
+            paragraphOffset: paragraphOffset,
+            anchoredParagraphOffset: centeredParagraphOffset,
+            viewportY: currentY,
+            viewportHeight: visibleHeight
+        )
         centeredParagraphOffset = paragraphOffset
-
-        if paragraphChanged {
-            // Place paragraph midpoint at 45% of the viewport.
-            var target = paragraphMidY - visibleHeight * 0.45
-            // Caret-visibility safety net: paragraph taller than the safe
-            // zone falls back to caret-line clamping so the cursor stays
-            // inside the middle 70% of the viewport.
-            let safeMin = visibleHeight * 0.15
-            let safeMax = visibleHeight * 0.85
-            let caretMinAtTarget = caretMinY - target
-            let caretMaxAtTarget = caretMaxY - target
-            if caretMinAtTarget < safeMin {
-                target = caretMinY - safeMin
-            } else if caretMaxAtTarget > safeMax {
-                target = caretMaxY - safeMax
-            }
-            return max(0, target.rounded())
-        }
-
-        // Same paragraph: hold position unless the caret leaves the deadzone.
-        let deadzoneTop    = currentY + visibleHeight * 0.30
-        let deadzoneBottom = currentY + visibleHeight * 0.70
-        if caretMinY >= deadzoneTop && caretMaxY <= deadzoneBottom {
-            return nil
-        }
-        let target: CGFloat
-        if caretMaxY > deadzoneBottom {
-            // Caret fell below — scroll so the caret returns to the top of
-            // the deadzone, giving room to keep writing downward.
-            target = caretMinY - visibleHeight * 0.30
-        } else {
-            // Caret rose above — symmetric: caret to the deadzone bottom.
-            target = caretMaxY - visibleHeight * 0.70
-        }
-        return max(0, target.rounded())
+        return TypewriterScroll.target(for: input)
     }
 
     // MARK: - Cursor
@@ -484,9 +445,8 @@ final class ZenTextView: NSTextView {
             cursorView.isHidden = true
             return
         }
-        // The theme's cursor color is 0.5 alpha for a soft system-cursor
-        // look, but with our thinner 1pt bar that reads as faint. Bump
-        // alpha so the cursor reads as confidently present.
+        // 0.85 alpha softens the 1pt bar against the page; the exact value
+        // is tuned by eye, not derived from the theme.
         cursorView.color = insertionPointColor.withAlphaComponent(0.85)
         cursorView.frame = bar
         cursorView.isHidden = false
@@ -561,6 +521,32 @@ final class ZenTextView: NSTextView {
         storage.endEditing()
     }
 
+    // MARK: - Styled-run extraction
+
+    /// Faithful snapshot of the storage as styled runs — text verbatim
+    /// (whitespace and newlines included), the app's font faces mapped back
+    /// to flags. This is the editor→document direction of the sync;
+    /// PasteNormalizer.attributedString(runs:baseAttributes:) is the
+    /// reverse.
+    func currentStyledRuns() -> [StyledRun] {
+        guard let storage = textStorage, storage.length > 0 else { return [] }
+        let nsString = storage.string as NSString
+        var runs: [StyledRun] = []
+        storage.enumerateAttributes(in: NSRange(location: 0, length: storage.length)) { attrs, range, _ in
+            let font = attrs[.font] as? NSFont
+            let bold = isBoldFont(font)
+            let italic = isItalicFont(font)
+            let text = nsString.substring(with: range)
+            if var last = runs.last, last.bold == bold, last.italic == italic {
+                last.text += text
+                runs[runs.count - 1] = last
+            } else {
+                runs.append(StyledRun(text: text, bold: bold, italic: italic))
+            }
+        }
+        return runs
+    }
+
     // MARK: - Bold / Italic
 
     private func isBoldFont(_ font: NSFont?) -> Bool {
@@ -630,7 +616,10 @@ final class ZenTextView: NSTextView {
             return super.readSelection(from: pboard)
         }
 
-        let runs = PasteNormalizer.styledRuns(from: source)
+        var runs = PasteNormalizer.styledRuns(from: source)
+        if !formattingEnabled {
+            runs = runs.map { StyledRun(text: $0.text, bold: false, italic: false) }
+        }
         let normalized = PasteNormalizer.attributedString(runs: runs, baseAttributes: typingAttributes)
 
         let range = selectedRange()
@@ -649,20 +638,16 @@ final class ZenTextView: NSTextView {
         let shift  = flags.contains(.shift)
         let ctrl   = flags.contains(.control)
 
-        // App-level shortcuts (keyCode constants: P=35, /=44, D=2, S=1, O=31, N=45, +=24, -=27)
-        if cmd && !shift && !ctrl && event.keyCode == 6  { undoManager?.undo();       return }  // ⌘Z
-        if cmd && shift  && !ctrl && event.keyCode == 6  { undoManager?.redo();       return }  // ⌘⇧Z
-        if cmd && !shift && !ctrl && event.keyCode == 11 { toggleBold();              return }  // ⌘B
-        if cmd && !shift && !ctrl && event.keyCode == 34 { toggleItalic();            return }  // ⌘I
-        if cmd && !shift && !ctrl && event.keyCode == 35 { onToggleCommandPalette?(); return }  // ⌘P
-        if cmd && !shift && !ctrl && event.keyCode == 44 { onToggleShortcutOverlay?(); return } // ⌘/
-        if cmd && shift  && !ctrl && event.keyCode == 2  { onToggleTheme?();          return }  // ⌘⇧D
-        if cmd && !shift && !ctrl && event.keyCode == 1  { onSave?();                 return }  // ⌘S
-        if cmd && shift  && !ctrl && event.keyCode == 1  { onSaveAs?();               return }  // ⌘⇧S
-        if cmd && !shift && !ctrl && event.keyCode == 31 { onOpen?();                 return }  // ⌘O
-        if cmd && !shift && !ctrl && event.keyCode == 45 { onNew?();                  return }  // ⌘N
-        if cmd && !shift && !ctrl && event.keyCode == 24 { onIncreaseFontSize?();     return }  // ⌘+
-        if cmd && !shift && !ctrl && event.keyCode == 27 { onDecreaseFontSize?();     return }  // ⌘-
+        // Only chords with no menu equivalent live here — AppKit dispatches
+        // menu key equivalents before keyDown, so menu-backed shortcuts
+        // (⌘S, ⌘N, ⌘Z, ⌘P, …) never reach this method.
+        // keyCode constants: B=11, I=34, +=24, -=27
+        // In plain-text documents the formatting chords are consumed with no
+        // reaction at all — no beep, no fallthrough.
+        if cmd && !shift && !ctrl && event.keyCode == 11 { if formattingEnabled { toggleBold() };   return }  // ⌘B
+        if cmd && !shift && !ctrl && event.keyCode == 34 { if formattingEnabled { toggleItalic() }; return }  // ⌘I
+        if cmd && !shift && !ctrl && event.keyCode == 24 { onIncreaseFontSize?(); return }  // ⌘+
+        if cmd && !shift && !ctrl && event.keyCode == 27 { onDecreaseFontSize?(); return }  // ⌘-
 
         let pressed = ShortcutBinding(
             keyCode: event.keyCode,
@@ -706,7 +691,6 @@ final class ZenTextView: NSTextView {
 
     override func didChangeText() {
         super.didChangeText()
-        onTextChange?(string)
         resetCursorBlink()
     }
 }
