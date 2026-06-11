@@ -45,7 +45,7 @@ final class ZenTextViewPasteTests: XCTestCase {
         let ok = tv.readSelection(from: pasteboard(with: src))
         XCTAssertTrue(ok)
 
-        // Leading tab stripped; bold/underline kept as marks, not characters.
+        // Leading tab stripped; bold kept as a mark, not characters.
         XCTAssertEqual(tv.string, "Hello bold under")
 
         let storage = tv.textStorage!
@@ -58,15 +58,26 @@ final class ZenTextViewPasteTests: XCTestCase {
         // App paragraph style applied (firstLineHeadIndent = size * 2 = 36).
         XCTAssertEqual((head[.paragraphStyle] as? NSParagraphStyle)?.firstLineHeadIndent, 36)
 
-        // Underline only on the underlined run.
+        // Underline does not survive paste — it has no meaning in the app.
         let underAttrs = storage.attributes(at: ns.range(of: "under").location, effectiveRange: nil)
-        XCTAssertEqual(underAttrs[.underlineStyle] as? Int, NSUnderlineStyle.single.rawValue)
+        XCTAssertNil(underAttrs[.underlineStyle])
         XCTAssertNil(head[.underlineStyle])
 
         // Source 40pt size did not survive — everything is the app's 18pt.
         XCTAssertEqual((head[.font] as? NSFont)?.pointSize, 18)
         let boldAttrs = storage.attributes(at: ns.range(of: "bold").location, effectiveRange: nil)
         XCTAssertEqual((boldAttrs[.font] as? NSFont)?.pointSize, 18)
+    }
+
+    func testPasteStripsAllFormattingInPlainTextMode() {
+        let tv = makeView()
+        tv.formattingEnabled = false
+
+        let src = NSAttributedString(string: "loud", attributes: [.font: boldFont(20)])
+        let ok = tv.readSelection(from: pasteboard(with: src))
+        XCTAssertTrue(ok)
+
+        XCTAssertEqual(tv.currentStyledRuns(), [StyledRun(text: "loud", bold: false, italic: false)])
     }
 
     func testPasteReplacesSelectionAndFiresChangeNotification() {

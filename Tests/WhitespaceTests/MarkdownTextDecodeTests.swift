@@ -5,7 +5,7 @@ import XCTest
 final class MarkdownTextDecodeTests: XCTestCase {
 
     private func run(_ text: String, bold: Bool = false, italic: Bool = false) -> StyledRun {
-        StyledRun(text: text, bold: bold, italic: italic, underline: false)
+        StyledRun(text: text, bold: bold, italic: italic)
     }
 
     // MARK: - Decoding
@@ -105,8 +105,4 @@ final class MarkdownTextDecodeTests: XCTestCase {
         )
     }
 
-    func testRoundTripDropsUnderlineByDesign() {
-        let original = [StyledRun(text: "u", bold: true, italic: false, underline: true)]
-        XCTAssertEqual(roundTrip(original), [run("u", bold: true)])
-    }
 }

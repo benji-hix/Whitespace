@@ -5,7 +5,6 @@ struct StyledRun: Equatable {
     var text: String
     var bold: Bool
     var italic: Bool
-    var underline: Bool
 }
 
 enum PasteNormalizer {
@@ -21,21 +20,18 @@ enum PasteNormalizer {
     }
 
     /// Stage 1: classify the source into flag-only runs. Keeps only
-    /// bold/italic/underline, drops every other attribute by construction,
-    /// strips leading tabs/spaces at each line start, and normalizes CR/CRLF
-    /// to LF.
+    /// bold/italic, drops every other attribute by construction, strips
+    /// leading tabs/spaces at each line start, and normalizes CR/CRLF to LF.
     static func styledRuns(from source: NSAttributedString) -> [StyledRun] {
         var runs: [StyledRun] = []
         var atLineStart = true
 
-        func append(_ ch: Character, bold: Bool, italic: Bool, underline: Bool) {
-            if var last = runs.last,
-               last.bold == bold, last.italic == italic, last.underline == underline {
+        func append(_ ch: Character, bold: Bool, italic: Bool) {
+            if var last = runs.last, last.bold == bold, last.italic == italic {
                 last.text.append(ch)
                 runs[runs.count - 1] = last
             } else {
-                runs.append(StyledRun(text: String(ch),
-                                      bold: bold, italic: italic, underline: underline))
+                runs.append(StyledRun(text: String(ch), bold: bold, italic: italic))
             }
         }
 
@@ -46,21 +42,20 @@ enum PasteNormalizer {
             let traits = (attrs[.font] as? NSFont)?.fontDescriptor.symbolicTraits ?? []
             let bold = traits.contains(.bold)
             let italic = traits.contains(.italic)
-            let underline = (attrs[.underlineStyle] as? Int ?? 0) != 0
 
             for ch in nsString.substring(with: range) {
                 switch ch {
                 case "\n", "\r", "\r\n":
-                    append("\n", bold: false, italic: false, underline: false)
+                    append("\n", bold: false, italic: false)
                     atLineStart = true
                 case "\u{2028}", "\u{2029}":
-                    append(ch, bold: false, italic: false, underline: false)
+                    append(ch, bold: false, italic: false)
                     atLineStart = true
                 default:
                     if atLineStart, ch == " " || ch == "\t" {
                         continue  // drop leading whitespace
                     }
-                    append(ch, bold: bold, italic: italic, underline: underline)
+                    append(ch, bold: bold, italic: italic)
                     atLineStart = false
                 }
             }
@@ -70,7 +65,7 @@ enum PasteNormalizer {
 
     /// Stage 2: rebuild an attributed string from flag-only runs, using the
     /// editor's current typing attributes as the base. Overrides only `.font`
-    /// (the matching WhitespaceFont face at the base size) and `.underlineStyle`.
+    /// (the matching WhitespaceFont face at the base size).
     static func attributedString(runs: [StyledRun],
                                  baseAttributes: [NSAttributedString.Key: Any]) -> NSAttributedString {
         let size = (baseAttributes[.font] as? NSFont)?.pointSize ?? 18
@@ -84,11 +79,6 @@ enum PasteNormalizer {
 
             var attrs = baseAttributes
             attrs[.font] = font
-            if run.underline {
-                attrs[.underlineStyle] = NSUnderlineStyle.single.rawValue
-            } else {
-                attrs[.underlineStyle] = nil
-            }
             result.append(NSAttributedString(string: run.text, attributes: attrs))
         }
         return result

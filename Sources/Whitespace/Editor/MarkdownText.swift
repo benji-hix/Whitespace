@@ -73,7 +73,7 @@ enum MarkdownText {
             interpretedSyntax: .inlineOnlyPreservingWhitespace
         )
         guard let attributed = try? AttributedString(markdown: normalized, options: options) else {
-            return [StyledRun(text: normalized, bold: false, italic: false, underline: false)]
+            return [StyledRun(text: normalized, bold: false, italic: false)]
         }
 
         var runs: [StyledRun] = []
@@ -87,7 +87,7 @@ enum MarkdownText {
                 last.text += text
                 runs[runs.count - 1] = last
             } else {
-                runs.append(StyledRun(text: text, bold: bold, italic: italic, underline: false))
+                runs.append(StyledRun(text: text, bold: bold, italic: italic))
             }
         }
         return runs

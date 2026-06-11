@@ -30,7 +30,8 @@ struct CanvasView: View {
                         themeStore: themeStore,
                         preferences: prefs,
                         keybindingStore: keybindingStore,
-                        focusRequestID: editorFocusRequest
+                        focusRequestID: editorFocusRequest,
+                        formattingEnabled: document.contentType.conforms(to: WhitespaceDocument.markdownType)
                     )
                     .frame(maxWidth: prefs.columnWidth.maxPoints, maxHeight: .infinity)
                     .mask {

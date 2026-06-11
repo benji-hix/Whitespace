@@ -4,6 +4,11 @@ import AppKit
 final class ZenTextView: NSTextView {
     var keybindingStore: KeybindingStore?
 
+    /// Driven by the document's content type: markdown documents support
+    /// bold/italic; plain-text documents consume the formatting chords
+    /// silently and paste strips all styling.
+    var formattingEnabled = true
+
     /// Multiplier for scroll-animation pace. Higher = faster, lower = slower.
     /// 1.0 is the tuned default; the Settings slider exposes 0.4 ... 2.0.
     var scrollSpeed: Double = 1.0
@@ -531,14 +536,12 @@ final class ZenTextView: NSTextView {
             let font = attrs[.font] as? NSFont
             let bold = isBoldFont(font)
             let italic = isItalicFont(font)
-            let underline = (attrs[.underlineStyle] as? Int ?? 0) != 0
             let text = nsString.substring(with: range)
-            if var last = runs.last,
-               last.bold == bold, last.italic == italic, last.underline == underline {
+            if var last = runs.last, last.bold == bold, last.italic == italic {
                 last.text += text
                 runs[runs.count - 1] = last
             } else {
-                runs.append(StyledRun(text: text, bold: bold, italic: italic, underline: underline))
+                runs.append(StyledRun(text: text, bold: bold, italic: italic))
             }
         }
         return runs
@@ -613,7 +616,10 @@ final class ZenTextView: NSTextView {
             return super.readSelection(from: pboard)
         }
 
-        let runs = PasteNormalizer.styledRuns(from: source)
+        var runs = PasteNormalizer.styledRuns(from: source)
+        if !formattingEnabled {
+            runs = runs.map { StyledRun(text: $0.text, bold: false, italic: false) }
+        }
         let normalized = PasteNormalizer.attributedString(runs: runs, baseAttributes: typingAttributes)
 
         let range = selectedRange()
@@ -636,8 +642,10 @@ final class ZenTextView: NSTextView {
         // menu key equivalents before keyDown, so menu-backed shortcuts
         // (⌘S, ⌘N, ⌘Z, ⌘P, …) never reach this method.
         // keyCode constants: B=11, I=34, +=24, -=27
-        if cmd && !shift && !ctrl && event.keyCode == 11 { toggleBold();          return }  // ⌘B
-        if cmd && !shift && !ctrl && event.keyCode == 34 { toggleItalic();        return }  // ⌘I
+        // In plain-text documents the formatting chords are consumed with no
+        // reaction at all — no beep, no fallthrough.
+        if cmd && !shift && !ctrl && event.keyCode == 11 { if formattingEnabled { toggleBold() };   return }  // ⌘B
+        if cmd && !shift && !ctrl && event.keyCode == 34 { if formattingEnabled { toggleItalic() }; return }  // ⌘I
         if cmd && !shift && !ctrl && event.keyCode == 24 { onIncreaseFontSize?(); return }  // ⌘+
         if cmd && !shift && !ctrl && event.keyCode == 27 { onDecreaseFontSize?(); return }  // ⌘-
 

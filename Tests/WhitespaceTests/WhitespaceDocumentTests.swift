@@ -51,10 +51,10 @@ final class WhitespaceDocumentTests: XCTestCase {
         let data = "plain **bold** *lean*".data(using: .utf8)!
         let doc = try WhitespaceDocument(data: data, type: markdown)
         XCTAssertEqual(doc.runs, [
-            StyledRun(text: "plain ", bold: false, italic: false, underline: false),
-            StyledRun(text: "bold", bold: true, italic: false, underline: false),
-            StyledRun(text: " ", bold: false, italic: false, underline: false),
-            StyledRun(text: "lean", bold: false, italic: true, underline: false),
+            StyledRun(text: "plain ", bold: false, italic: false),
+            StyledRun(text: "bold", bold: true, italic: false),
+            StyledRun(text: " ", bold: false, italic: false),
+            StyledRun(text: "lean", bold: false, italic: true),
         ])
         XCTAssertEqual(doc.text, "plain bold lean")
     }
@@ -62,8 +62,8 @@ final class WhitespaceDocumentTests: XCTestCase {
     func testWriteMarkdownEncodesRuns() throws {
         let doc = WhitespaceDocument(
             runs: [
-                StyledRun(text: "say ", bold: false, italic: false, underline: false),
-                StyledRun(text: "it", bold: true, italic: false, underline: false),
+                StyledRun(text: "say ", bold: false, italic: false),
+                StyledRun(text: "it", bold: true, italic: false),
             ],
             contentType: markdown
         )
@@ -73,7 +73,7 @@ final class WhitespaceDocumentTests: XCTestCase {
 
     func testWritePlainTextFlattensFormatting() throws {
         let doc = WhitespaceDocument(
-            runs: [StyledRun(text: "loud", bold: true, italic: false, underline: false)],
+            runs: [StyledRun(text: "loud", bold: true, italic: false)],
             contentType: .plainText
         )
         let data = try doc.encodedData(for: .plainText)
@@ -84,7 +84,7 @@ final class WhitespaceDocumentTests: XCTestCase {
         let data = "not **bold** here".data(using: .utf8)!
         let doc = try WhitespaceDocument(data: data, type: .plainText)
         XCTAssertEqual(doc.runs, [
-            StyledRun(text: "not **bold** here", bold: false, italic: false, underline: false)
+            StyledRun(text: "not **bold** here", bold: false, italic: false)
         ])
     }
 

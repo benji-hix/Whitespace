@@ -18,7 +18,7 @@ struct WhitespaceDocument: FileDocument {
     init(text: String = "", contentType: UTType = .plainText) {
         self.runs = text.isEmpty
             ? []
-            : [StyledRun(text: text, bold: false, italic: false, underline: false)]
+            : [StyledRun(text: text, bold: false, italic: false)]
         self.contentType = contentType
     }
 

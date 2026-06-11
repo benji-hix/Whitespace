@@ -4,9 +4,8 @@ import XCTest
 
 final class MarkdownTextEncodeTests: XCTestCase {
 
-    private func run(_ text: String, bold: Bool = false, italic: Bool = false,
-                     underline: Bool = false) -> StyledRun {
-        StyledRun(text: text, bold: bold, italic: italic, underline: underline)
+    private func run(_ text: String, bold: Bool = false, italic: Bool = false) -> StyledRun {
+        StyledRun(text: text, bold: bold, italic: italic)
     }
 
     // MARK: - Markers
@@ -36,14 +35,6 @@ final class MarkdownTextEncodeTests: XCTestCase {
             run("fox", italic: true), run("."),
         ]
         XCTAssertEqual(MarkdownText.encode(runs: runs), "The **quick** brown *fox*.")
-    }
-
-    func testUnderlineIsIgnoredByDesign() {
-        XCTAssertEqual(MarkdownText.encode(runs: [run("plain", underline: true)]), "plain")
-        XCTAssertEqual(
-            MarkdownText.encode(runs: [run("bold", bold: true, underline: true)]),
-            "**bold**"
-        )
     }
 
     func testEmptyRunEmitsNothing() {

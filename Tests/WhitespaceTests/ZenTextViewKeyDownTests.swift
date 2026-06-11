@@ -57,6 +57,19 @@ final class ZenTextViewKeyDownTests: XCTestCase {
         XCTAssertEqual(font?.fontName, WhitespaceFont.italic)
     }
 
+    func testFormattingChordsAreSilentlyInertInPlainTextMode() {
+        let tv = makeView()
+        tv.formattingEnabled = false
+        let before = (tv.typingAttributes[.font] as? NSFont)?.fontName
+
+        tv.keyDown(with: chord("b", keyCode: 11))
+        tv.keyDown(with: chord("i", keyCode: 34))
+
+        let after = (tv.typingAttributes[.font] as? NSFont)?.fontName
+        XCTAssertEqual(after, before)
+        XCTAssertEqual(after, WhitespaceFont.regular)
+    }
+
     func testCustomKeybindingActionDispatches() {
         let suite = UserDefaults(suiteName: "test-keydown")!
         suite.removePersistentDomain(forName: "test-keydown")

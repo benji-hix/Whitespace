@@ -16,9 +16,8 @@ final class ZenTextViewStyledRunsTests: XCTestCase {
         return tv
     }
 
-    private func run(_ text: String, bold: Bool = false, italic: Bool = false,
-                     underline: Bool = false) -> StyledRun {
-        StyledRun(text: text, bold: bold, italic: italic, underline: underline)
+    private func run(_ text: String, bold: Bool = false, italic: Bool = false) -> StyledRun {
+        StyledRun(text: text, bold: bold, italic: italic)
     }
 
     func testEmptyStorageExtractsNoRuns() {
@@ -32,7 +31,6 @@ final class ZenTextViewStyledRunsTests: XCTestCase {
             run("bold", bold: true),
             run("\nnew line "),
             run("both", bold: true, italic: true),
-            run("under", underline: true),
         ]
         tv.textStorage?.setAttributedString(
             PasteNormalizer.attributedString(runs: original, baseAttributes: tv.typingAttributes)

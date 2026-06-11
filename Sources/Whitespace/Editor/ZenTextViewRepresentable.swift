@@ -14,6 +14,10 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
     /// back (e.g. after the command palette is dismissed).
     var focusRequestID: Int = 0
 
+    /// False for plain-text documents: formatting chords go inert and
+    /// paste strips all styling.
+    var formattingEnabled: Bool = true
+
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
         scrollView.hasVerticalScroller = false
@@ -27,6 +31,8 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
         textView.delegate = context.coordinator
         textView.keybindingStore = keybindingStore
+        textView.formattingEnabled = formattingEnabled
+        textView.isRichText = formattingEnabled
         textView.applyColors(
             text: themeStore.displayedTextColor,
             cursor: themeStore.displayedCursorColor,
@@ -65,6 +71,8 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         context.coordinator.parent = self
 
         textView.keybindingStore = keybindingStore
+        textView.formattingEnabled = formattingEnabled
+        textView.isRichText = formattingEnabled
 
         // Issue 2: Only apply font/theme when values actually changed
         let newSize = CGFloat(preferences.fontSize)
