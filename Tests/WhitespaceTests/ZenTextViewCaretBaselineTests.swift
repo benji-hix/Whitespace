@@ -112,6 +112,42 @@ final class ZenTextViewCaretBaselineTests: XCTestCase {
         _ = textView.currentCursorBarRect()
     }
 
+    /// The caret spans the font's typographic extent — ascender above the
+    /// baseline, descender below. Measured against AppKit's own
+    /// `NSTextInsertionIndicator` on a stock `NSTextView`, which fills the line
+    /// box exactly: at CrimsonPro-Light 72pt it ran 65.0 above the baseline
+    /// (ascender 64.547) and 15.0 below (descender 15.469).
+    ///
+    /// Unlike the staleness tests above, this one discriminates: the previous
+    /// fixed 2pt below-baseline extension gives `ascender + 2`, which is short
+    /// by `|descender| - 2` — 1.87pt at 18pt Crimson — and fails here.
+    func testCaretSpansAscenderToDescender() throws {
+        textView.applyFont(size: 18, lineHeightMultiple: 1.6)
+        textView.insertText("typography", replacementRange: NSRange(location: 0, length: 0))
+
+        let font = try XCTUnwrap(textView.typingAttributes[.font] as? NSFont)
+        let rect = try XCTUnwrap(textView.currentCursorBarRect())
+
+        // Both ends are independently rounded, so allow a point of slack.
+        XCTAssertEqual(rect.height, font.ascender + abs(font.descender), accuracy: 1.0,
+                       "caret should span ascender..descender, not stop short of the descender")
+    }
+
+    /// Line spacing must not change the caret: `lineHeightMultiple` inflates the
+    /// line fragment (1.6 turns a 20pt line box into ~32pt), and a caret that
+    /// tracked it would read as a selection block rather than an insertion point.
+    func testCaretHeightIgnoresLineHeightMultiple() throws {
+        textView.insertText("typography", replacementRange: NSRange(location: 0, length: 0))
+
+        textView.applyFont(size: 18, lineHeightMultiple: 1.0)
+        let tight = try XCTUnwrap(textView.currentCursorBarRect()).height
+        textView.applyFont(size: 18, lineHeightMultiple: 1.6)
+        let loose = try XCTUnwrap(textView.currentCursorBarRect()).height
+
+        XCTAssertEqual(tight, loose, accuracy: 1.0,
+                       "caret height tracked line spacing instead of the font")
+    }
+
     /// Explicitly invalidating layout before the read was the strongest attempt
     /// at reproducing the defect headlessly. It does not reproduce it either —
     /// TK2 re-runs layout on demand inside the queries — so this is kept as

@@ -388,11 +388,21 @@ final class ZenTextView: NSTextView {
         let baselineY = preciseBaselineY(at: caret, caretFrame: caretFrame, tlm: tlm)
             ?? (caretFrame.maxY + textContainerOrigin.y - abs(font.descender))
 
-        // Extend 2pt below the baseline so the cursor reads as anchored
-        // to the text rather than floating above it. Cap-tall bars that
-        // end exactly at baseline visually appear a hair too high.
-        let belowBaselineExtension: CGFloat = 2
-        let cursorBottomY = (baselineY + belowBaselineExtension).rounded()
+        // Span the font's full typographic extent: ascender above the
+        // baseline, descender below. Measured against AppKit's own
+        // NSTextInsertionIndicator, which fills the line box exactly —
+        // ascender above, descender below — so this matches the system caret
+        // and every editor that inherits it.
+        //
+        // Not the line-fragment height, which is what the system indicator
+        // literally uses: lineHeightMultiple (1.6 by default here) inflates a
+        // 20pt line box to ~32pt, and a caret that tall reads as a selection
+        // block. The font's own extent is the part that tracks the glyphs.
+        //
+        // The previous fixed 2pt below baseline stopped 1.87pt short of the
+        // descender at 18pt, so the caret visibly failed to reach the bottom
+        // of p / y / j.
+        let cursorBottomY = (baselineY + abs(font.descender)).rounded()
         let cursorTopY = (baselineY - font.ascender).rounded()
         let cursorX = (caretFrame.minX + textContainerOrigin.x + 1).rounded()
 
