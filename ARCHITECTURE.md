@@ -112,7 +112,9 @@ Rules that must not regress:
 
 ## 5. Deliberate debt and open items
 
-**Open bug — typewriter recentering doesn't follow sustained typing.** Pre-existing (verified identical at the pre-engagement baseline): the viewport can stay pinned while the caret walks below the deadzone. The decision math is tested and exonerated; suspect TK2 stale caret geometry in the deferred recenter or the `currentScrollTarget` cache. Top candidate for the next fix; behavior change needs owner approval.
+**Fixed 2026-07-26 — typewriter recentering didn't follow sustained typing.** Cause: `caretCenterTargetY` required `textLayoutFragment(for:)`, which TK2 returns as nil at end-of-text — exactly where the caret sits while drafting. No fragment meant no scroll target, so the viewport stayed pinned and the caret walked off the bottom. The decision math was never at fault, and neither was the `currentScrollTarget` cache; both suspects are cleared. The end-of-text fallback now lives in one place, `layoutFragment(atOrBefore:)`, shared by all three caret-geometry paths. Covered by `TypewriterRecenterTests` (reverting the fallback puts the caret at 126% of the viewport).
+
+**Scroll animation duration — a known limit, deliberately unchanged.** `kineticDuration` floors at 0.68s at every distance, so a one-line move still animates for 0.68s and each keystroke restarts it. Measured: harmless at any realistic rate (lines every 0.35s and 1.4s, continuous prose at 20 insertions/sec all hold the caret near 50%), but at ~50 lines/sec the deficit compounds until the caret leaves the viewport. Lowering the floor would change the tuned feel of every scroll, so it waits on owner judgement.
 
 **Pending live verification** (unit-tested; the modal flow needs a manual pass): P3.7 — the conversion-warning matrix (warns once, Cancel aborts the save, Save Anyway writes flattened, suppression checkbox persists). P3.6's save-sheet default was owner-verified.
 

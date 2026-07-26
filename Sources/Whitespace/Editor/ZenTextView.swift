@@ -266,6 +266,15 @@ final class ZenTextView: NSTextView {
     /// as "0.62x" before the slider was zeroed to that value).
     private func kineticDuration(forDistance distance: CGFloat) -> TimeInterval {
         let scaled = TimeInterval(distance / 680)
+        // The 0.68 floor applies at every distance, so a one-line move (~36pt)
+        // still animates for 0.68s and each keystroke restarts it from wherever
+        // it had reached. Measured in TypewriterRecenterTests: at 50 lines/sec
+        // that compounds until the caret leaves the viewport entirely, but at
+        // any realistic rate (0.35s and 1.4s per line, and continuous prose at
+        // 20 insertions/sec) the caret holds ~50% and nothing drifts. Lowering
+        // the floor fixes the synthetic case and changes the tuned feel of every
+        // scroll, so it is left alone pending owner judgement — see
+        // ARCHITECTURE.md §5.
         let base = min(1.13, max(0.68, scaled))
         return base / max(0.05, scrollSpeed)
     }
@@ -313,7 +322,7 @@ final class ZenTextView: NSTextView {
             return false
         }
         guard !caretFrame.isNull,
-              let fragment = tlm.textLayoutFragment(for: caret),
+              let fragment = layoutFragment(atOrBefore: caret, tlm: tlm),
               let elementRange = fragment.textElement?.elementRange else {
             return nil
         }
@@ -423,16 +432,27 @@ final class ZenTextView: NSTextView {
     /// (every blink tick on an idle caret) this is a cheap no-op.
     private func ensureParagraphLayout(containing caret: NSTextLocation, tlm: NSTextLayoutManager) {
         tlm.ensureLayout(for: NSTextRange(location: caret))
-        // textLayoutFragment(for:) is nil at end-of-text; step back one
-        // location to find the last real paragraph's fragment, mirroring
-        // preciseBaselineY's fallback.
-        var fragment = tlm.textLayoutFragment(for: caret)
-        if fragment == nil, let prev = tlm.location(caret, offsetBy: -1) {
-            fragment = tlm.textLayoutFragment(for: prev)
-        }
-        if let elementRange = fragment?.textElement?.elementRange {
+        if let elementRange = layoutFragment(atOrBefore: caret, tlm: tlm)?.textElement?.elementRange {
             tlm.ensureLayout(for: elementRange)
         }
+    }
+
+    /// TK2 returns no layout fragment for a location at end-of-text — which is
+    /// exactly where the caret sits while you type. Step back one location to
+    /// get the last real paragraph's fragment.
+    ///
+    /// Every caret-geometry path needs this. `caretCenterTargetY` was the one
+    /// that didn't have it, and bailed instead: no fragment meant no scroll
+    /// target, so the viewport stayed pinned while the caret walked off the
+    /// bottom of the screen during sustained typing. Shared here so a fourth
+    /// caller cannot reintroduce it.
+    private func layoutFragment(
+        atOrBefore location: NSTextLocation,
+        tlm: NSTextLayoutManager
+    ) -> NSTextLayoutFragment? {
+        if let fragment = tlm.textLayoutFragment(for: location) { return fragment }
+        return tlm.location(location, offsetBy: -1)
+            .flatMap { tlm.textLayoutFragment(for: $0) }
     }
 
     /// Try to read the baseline Y from TK2's layout fragments. Returns nil
@@ -443,15 +463,7 @@ final class ZenTextView: NSTextView {
         caretFrame: CGRect,
         tlm: NSTextLayoutManager
     ) -> CGFloat? {
-        // textLayoutFragment(for:) can return nil for end-of-text. If so,
-        // step back one location and try again — that catches the fragment
-        // for the last real character.
-        var fragment = tlm.textLayoutFragment(for: caret)
-        if fragment == nil,
-           let prev = tlm.location(caret, offsetBy: -1) {
-            fragment = tlm.textLayoutFragment(for: prev)
-        }
-        guard let layoutFragment = fragment else { return nil }
+        guard let layoutFragment = layoutFragment(atOrBefore: caret, tlm: tlm) else { return nil }
 
         let fragmentFrame = layoutFragment.layoutFragmentFrame
         let caretYInFragment = caretFrame.midY - fragmentFrame.origin.y

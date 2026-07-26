@@ -38,6 +38,7 @@
 		9B44345EE599910EAC0DCCFB /* ZenTextViewCaretBaselineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B560ADBDEB0884E8A7704F6 /* ZenTextViewCaretBaselineTests.swift */; };
 		AAA8D611B0F4CDBEA5030A12 /* MarkdownTextEncodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */; };
 		B5D55721331403463F04186F /* ZenTextViewPasteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21505C013FBCFB3D697DD6 /* ZenTextViewPasteTests.swift */; };
+		B6C0BB6FEA62E641672C240C /* TypewriterRecenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB277AB588476D7B507160DC /* TypewriterRecenterTests.swift */; };
 		C0B27D73542FC020B12ACC35 /* PasteNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */; };
 		C4D89E637AE1DB67F4B25EF5 /* ShortcutOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */; };
 		C62300013927B7A86C72158A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61BDD010DB318CAC9C447F2A /* Assets.xcassets */; };
@@ -91,6 +92,7 @@
 		A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceTests.swift; sourceTree = "<group>"; };
 		A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteNormalizer.swift; sourceTree = "<group>"; };
+		AB277AB588476D7B507160DC /* TypewriterRecenterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypewriterRecenterTests.swift; sourceTree = "<group>"; };
 		AEA176D78D29F0669F15F559 /* WhitespaceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhitespaceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeStoreTests.swift; sourceTree = "<group>"; };
 		B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewKeyDownTests.swift; sourceTree = "<group>"; };
@@ -213,6 +215,7 @@
 				DFFC7E8D4A48F89E04DEAB85 /* PlainTextConversionGateTests.swift */,
 				934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */,
 				B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */,
+				AB277AB588476D7B507160DC /* TypewriterRecenterTests.swift */,
 				7DC4B4A0538F1C47BD4D9A28 /* TypewriterScrollTests.swift */,
 				0A2E4C61C4DBA989CCB4A673 /* WhitespaceDocumentTests.swift */,
 				A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */,
@@ -375,6 +378,7 @@
 				3B5EECD891E77EED4CC18A53 /* PlainTextConversionGateTests.swift in Sources */,
 				4BB62E4C69F9C03EA4CBDAF4 /* PreferencesStoreTests.swift in Sources */,
 				CC5D5BDA008C4D1CC48AB2FC /* ThemeStoreTests.swift in Sources */,
+				B6C0BB6FEA62E641672C240C /* TypewriterRecenterTests.swift in Sources */,
 				1A10F1B09096FD8513AFA28A /* TypewriterScrollTests.swift in Sources */,
 				52DC3FB927BC17E23880765E /* WhitespaceDocumentTests.swift in Sources */,
 				839E84072B89984DEBC8089A /* WhitespaceTests.swift in Sources */,

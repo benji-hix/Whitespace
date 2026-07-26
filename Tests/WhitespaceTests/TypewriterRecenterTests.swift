@@ -1,0 +1,115 @@
+// Tests/WhitespaceTests/TypewriterRecenterTests.swift
+import XCTest
+import AppKit
+@testable import Whitespace
+
+/// End-to-end typewriter behaviour. `TypewriterScrollTests` covers the decision
+/// math in isolation; this covers whether the view ever *asks* it.
+///
+/// Scope note, measured rather than assumed: the open "recentering doesn't
+/// follow sustained typing" bug does **not** reproduce here at any realistic
+/// typing rate. Lines every 1.4s, lines every 0.35s, and continuous prose at 20
+/// insertions/sec all hold the caret near 50% of the viewport. It only breaks at
+/// ~50 lines/sec, where the 0.68s animation floor cannot keep up — a synthetic
+/// rate, so that is a finding, not a reproduction. What this file does pin is
+/// the one defect that was proved: no scroll target on an empty final line.
+@MainActor
+final class TypewriterRecenterTests: XCTestCase {
+    private var window: NSWindow!
+    private var scrollView: NSScrollView!
+    private var textView: ZenTextView!
+
+    private let viewportHeight: CGFloat = 600
+
+    override func setUp() {
+        super.setUp()
+        let frame = NSRect(x: 0, y: 0, width: 500, height: viewportHeight)
+        textView = ZenTextView(frame: frame)
+        // Mirror ZenTextViewRepresentable.makeNSView. Without the unbounded
+        // maxSize the view cannot grow past its initial frame, the scroll view
+        // has nothing to scroll into, and the harness measures its own
+        // inertness rather than the recenter decision.
+        textView.minSize = NSSize(width: 0, height: 0)
+        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude,
+                                  height: CGFloat.greatestFiniteMagnitude)
+        scrollView = NSScrollView(frame: frame)
+        scrollView.documentView = textView
+        scrollView.hasVerticalScroller = false
+        window = NSWindow(contentRect: frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = scrollView
+        window.makeFirstResponder(textView)
+        textView.applyFont(size: 18, lineHeightMultiple: 1.6)
+        pump()
+    }
+
+    override func tearDown() {
+        window = nil; scrollView = nil; textView = nil
+        super.tearDown()
+    }
+
+    /// `handleSelectionChange` defers the recenter by one runloop turn, so the
+    /// main queue has to drain before the viewport reflects the edit.
+    private func pump(_ seconds: TimeInterval = 0.35) {
+        RunLoop.main.run(until: Date().addingTimeInterval(seconds))
+    }
+
+    private func typeLine(_ s: String, cadence: TimeInterval = 0.35) {
+        textView.insertText(s, replacementRange: NSRange(location: textView.string.utf16.count, length: 0))
+        // An offscreen window never draws, so TK2's viewport layout controller
+        // never runs and the text view never resizes itself. Drive it by hand.
+        if let tlm = textView.textLayoutManager {
+            tlm.ensureLayout(for: tlm.documentRange)
+        }
+        textView.sizeToFit()
+        pump(cadence)
+    }
+
+    private func caretPercentOfViewport() -> CGFloat? {
+        guard let caret = textView.currentCursorBarRect() else { return nil }
+        return (caret.midY - scrollView.contentView.bounds.origin.y) / viewportHeight * 100
+    }
+
+    /// TK2 returns no layout fragment for a location at end-of-text, which is
+    /// where the caret sits on the empty line Return just created.
+    /// `caretCenterTargetY` used to bail there — no fragment, no target, no
+    /// scroll — so the viewport froze for exactly that keystroke and only caught
+    /// up once the next character was typed.
+    ///
+    /// This discriminates: without the `layoutFragment(atOrBefore:)` fallback
+    /// the caret keeps descending past the deadzone with every Return.
+    func testViewportFollowsReturnAtEndOfDocument() throws {
+        for i in 1...12 {
+            typeLine("line \(i)\n", cadence: 0.2)
+        }
+        let afterReturns = try XCTUnwrap(caretPercentOfViewport())
+        XCTAssertLessThanOrEqual(
+            afterReturns, 70,
+            "caret sank to \(afterReturns)% of the viewport — pressing Return at end-of-document produced no scroll target"
+        )
+        XCTAssertGreaterThanOrEqual(afterReturns, 30, "caret rose above the deadzone")
+    }
+
+    /// The typewriter promise at a realistic writing pace.
+    func testCaretHoldsCentreDuringSustainedTyping() throws {
+        var worst: CGFloat = 0
+        for i in 1...16 {
+            typeLine("line \(i)\n", cadence: 0.35)
+            let pct = try XCTUnwrap(caretPercentOfViewport())
+            worst = max(worst, abs(pct - 50))
+        }
+        XCTAssertLessThanOrEqual(worst, 20, "caret drifted \(worst)% from centre at a realistic typing rate")
+    }
+
+    /// Continuous prose inside one paragraph, which takes TypewriterScroll's
+    /// same-paragraph deadzone branch rather than the paragraph-change branch.
+    func testCaretHoldsCentreDuringContinuousProse() throws {
+        for _ in 1...120 {
+            textView.insertText("writing ", replacementRange: NSRange(location: textView.string.utf16.count, length: 0))
+            if let tlm = textView.textLayoutManager { tlm.ensureLayout(for: tlm.documentRange) }
+            textView.sizeToFit()
+            pump(0.05)
+        }
+        let pct = try XCTUnwrap(caretPercentOfViewport())
+        XCTAssertLessThanOrEqual(abs(pct - 50), 25, "caret sat at \(pct)% of the viewport after continuous prose")
+    }
+}
