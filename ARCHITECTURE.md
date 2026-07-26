@@ -14,6 +14,8 @@ Whitespace is a single-target macOS writing app: a SwiftUI document-based shell 
 
 NSDocument/DocumentGroup machinery provides — natively, do not hand-roll any of these — untitled documents, save/Save As panels with the format picker, close/quit review sheets, autosave, unsaved-state restoration across relaunch, window-per-document, and the system File menu.
 
+**Launch** is the one place that machinery needed correcting. With nothing to restore, AppKit opens the app-centric `NSOpenPanel` instead of an untitled document; a leftover autosaved document masks it, so the panel looks intermittent. `LaunchDelegate` (`WhitespaceApp.swift`, installed via `NSApplicationDelegateAdaptor`) reads that outcome in `applicationDidFinishLaunching` and swaps a panel for a new document. **The untitled-file delegate hooks cannot be used**: SwiftUI keeps `SwiftUI.AppDelegate` as `NSApp.delegate`, and an adaptor object receives only the delegate methods AppKit posts as notifications — `applicationShouldOpenUntitledFile` / `applicationOpenUntitledFile` compile, run, and are never called. Restoration publishes its documents *after* that notification, so an absent panel means a session is still arriving and must not be covered with a blank page.
+
 ### Stores (state layer)
 
 Three `@Observable @MainActor final class`es created in `WhitespaceApp`, injected via `.environment()`:
@@ -115,7 +117,6 @@ Rules that must not regress:
 **Pending live verification** (unit-tested; the modal flow needs a manual pass): P3.7 — the conversion-warning matrix (warns once, Cancel aborts the save, Save Anyway writes flattened, suppression checkbox persists). P3.6's save-sheet default was owner-verified.
 
 **Kept as-is, on purpose:**
-- Launch shows the standard open panel instead of an untitled window — NSDocument default; owner UX call pending.
 - Open Recent never populates under DocumentGroup on this macOS — and the historical NSDocumentController "pinning" was proven inert (SwiftUI's controller exists first) and removed. Revisit on OS updates.
 - First render of loaded content can flash dimmed momentarily; document proxy-icon ghost faintly visible top-left — cosmetic.
 - Re-saving formatted content as `.txt` without suppression warns on every save — matches "warn per destructive save"; revisit if it annoys.

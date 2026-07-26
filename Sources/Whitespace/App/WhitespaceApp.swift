@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 
 @main
 struct WhitespaceApp: App {
+    @NSApplicationDelegateAdaptor(LaunchDelegate.self) private var launchDelegate
     @State private var keybindingStore  = KeybindingStore()
     @State private var themeStore       = ThemeStore()
     @State private var preferencesStore = PreferencesStore()
@@ -135,8 +136,37 @@ private final class WindowStylingView: NSView {
     }
 }
 
-// NOTE: SwiftUI installs its own NSDocumentController subclass
-// (SwiftUI.PlatformDocumentController) before applicationWillFinishLaunching,
-// so neither pinning the shared controller nor subclassing it can influence
-// document behavior — untitled typing is steered through the content-type
-// list order on WhitespaceDocument instead.
+/// Launch must land on a blank page, never a file dialog.
+///
+/// With nothing to restore, AppKit answers its own untitled-file question with
+/// the app-centric Open panel, so a cold launch opens a window titled `Open`.
+/// The failure hides easily: any leftover autosaved untitled document satisfies
+/// the launch instead, so the panel only surfaces once the autosave store is
+/// empty — which is why it reads as intermittent.
+///
+/// `applicationShouldOpenUntitledFile` / `applicationOpenUntitledFile` are the
+/// obvious levers and they do not work here. SwiftUI keeps itself as
+/// `NSApp.delegate` (`SwiftUI.AppDelegate`) and an `NSApplicationDelegateAdaptor`
+/// object only receives the delegate methods that AppKit posts as
+/// notifications — the will/did-finish-launching pair. Every other delegate
+/// method is messaged straight to SwiftUI's object, so implementing those two
+/// compiles, runs, and is never called. Measured, not assumed.
+///
+/// What is reachable is the outcome. By `applicationDidFinishLaunching` the
+/// panel is already a visible `NSOpenPanel` in `NSApp.windows`, so the decision
+/// reads AppKit's answer instead of trying to pre-empt it. Restoration is the
+/// other branch: it publishes its documents *after* this notification (and after
+/// the first runloop idle), leaving `NSApp.windows` empty here — so an absent
+/// panel means a session is still on its way and must not be covered with a
+/// blank page.
+final class LaunchDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        guard let panel = NSApp.windows.first(where: { $0 is NSOpenPanel && $0.isVisible }) else { return }
+        // Order matters: give the app a document before dismissing the panel,
+        // so cancelling never lands on a running app with nothing open.
+        // newDocument is the path ⌘N takes, so the New Files preference still
+        // chooses the type.
+        NSDocumentController.shared.newDocument(nil)
+        (panel as? NSOpenPanel)?.cancel(nil)
+    }
+}
