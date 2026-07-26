@@ -119,6 +119,8 @@ Rules that must not regress:
 **Pending live verification** (unit-tested; the modal flow needs a manual pass): P3.7 — the conversion-warning matrix (warns once, Cancel aborts the save, Save Anyway writes flattened, suppression checkbox persists). P3.6's save-sheet default was owner-verified.
 
 **Kept as-is, on purpose:**
+- Shortcut-overlay right padding is still `geo.size.width / 18` — 50pt at 900 wide, 140pt at 2560. Checked against a real fullscreen capture and it reads correctly, so it was left proportional rather than re-tuned blind.
+- Column width tops out at 820pt (`medium` is 680), so fullscreen at 2560 leaves ~900pt of margin per side. Verified centered and correct; whether that reads as generous or lost is an owner call.
 - Open Recent never populates under DocumentGroup on this macOS — and the historical NSDocumentController "pinning" was proven inert (SwiftUI's controller exists first) and removed. Revisit on OS updates.
 - First render of loaded content can flash dimmed momentarily; document proxy-icon ghost faintly visible top-left — cosmetic.
 - Re-saving formatted content as `.txt` without suppression warns on every save — matches "warn per destructive save"; revisit if it annoys.

@@ -122,7 +122,13 @@ private final class WindowStylingView: NSView {
     }
 
     private func stylingHasDrifted(in window: NSWindow) -> Bool {
-        window.toolbar != nil
+        // In fullscreen AppKit owns the titlebar: it auto-shows on hover and
+        // un-hides the traffic lights as part of that. Re-asserting here would
+        // fight it on every windowDidUpdate — which is a hot notification — and
+        // the symptom is flicker along the top edge. Fullscreen already hides
+        // the chrome, so there is nothing to enforce.
+        if window.styleMask.contains(.fullScreen) { return false }
+        return window.toolbar != nil
             || !window.titlebarAppearsTransparent
             || window.titleVisibility != .hidden
             || !window.styleMask.contains(.fullSizeContentView)

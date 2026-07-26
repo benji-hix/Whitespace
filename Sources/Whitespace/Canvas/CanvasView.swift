@@ -14,6 +14,23 @@ struct CanvasView: View {
     @State private var autoDismissTask: Task<Void, Never>?
     @State private var editorFocusRequest = 0
 
+    /// Fade the column's top and bottom edges. `EdgeFade` holds the geometry.
+    private func edgeFade(forHeight height: CGFloat) -> LinearGradient {
+        let stops = EdgeFade.stops(forHeight: height)
+        return LinearGradient(
+            stops: [
+                .init(color: .clear, location: 0),
+                .init(color: .clear, location: stops.clear),
+                .init(color: .black, location: stops.opaque),
+                .init(color: .black, location: 1 - stops.opaque),
+                .init(color: .clear, location: 1 - stops.clear),
+                .init(color: .clear, location: 1)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
     var body: some View {
         @Bindable var ui = ui
 
@@ -34,20 +51,7 @@ struct CanvasView: View {
                         formattingEnabled: document.contentType.conforms(to: WhitespaceDocument.markdownType)
                     )
                     .frame(maxWidth: prefs.columnWidth.maxPoints, maxHeight: .infinity)
-                    .mask {
-                        LinearGradient(
-                            stops: [
-                                .init(color: .clear, location: 0.0),
-                                .init(color: .clear, location: 0.1),
-                                .init(color: .black, location: 0.3),
-                                .init(color: .black, location: 0.7),
-                                .init(color: .clear, location: 0.9),
-                                .init(color: .clear, location: 1.0)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    }
+                    .mask { edgeFade(forHeight: geo.size.height) }
                     Spacer(minLength: 0)
                 }
 

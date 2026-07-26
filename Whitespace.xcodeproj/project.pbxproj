@@ -24,6 +24,7 @@
 		4BB62E4C69F9C03EA4CBDAF4 /* PreferencesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */; };
 		4E5D22B04D77F3F8278F2280 /* ZenTextViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4BDC64A28B1377AC3663BCD /* ZenTextViewRepresentable.swift */; };
 		52DC3FB927BC17E23880765E /* WhitespaceDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2E4C61C4DBA989CCB4A673 /* WhitespaceDocumentTests.swift */; };
+		533756DDD23776C22E7A5AEC /* EdgeFadeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EC093D697A88E2F71ABE77 /* EdgeFadeTests.swift */; };
 		5F0FF0FC644F2F54C0C63AD8 /* CrimsonPro-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8E0CB9D1D61C42DDE5907771 /* CrimsonPro-LightItalic.ttf */; };
 		7430C26A34C58DE214EA9DAC /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */; };
 		7C62784B113B52CDD1F99D44 /* CanvasUIState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEF2008F149F31FECC10343 /* CanvasUIState.swift */; };
@@ -39,6 +40,7 @@
 		AAA8D611B0F4CDBEA5030A12 /* MarkdownTextEncodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */; };
 		B5D55721331403463F04186F /* ZenTextViewPasteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21505C013FBCFB3D697DD6 /* ZenTextViewPasteTests.swift */; };
 		B6C0BB6FEA62E641672C240C /* TypewriterRecenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB277AB588476D7B507160DC /* TypewriterRecenterTests.swift */; };
+		B9EF5A7B8912408BCEF9040F /* EdgeFade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16248A2324BD249F93626676 /* EdgeFade.swift */; };
 		C0B27D73542FC020B12ACC35 /* PasteNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */; };
 		C4D89E637AE1DB67F4B25EF5 /* ShortcutOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */; };
 		C62300013927B7A86C72158A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61BDD010DB318CAC9C447F2A /* Assets.xcassets */; };
@@ -69,6 +71,8 @@
 		0AF57D5CFB9136B872802774 /* MarkdownText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownText.swift; sourceTree = "<group>"; };
 		0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybindingStoreTests.swift; sourceTree = "<group>"; };
 		13B146CB05F9ACC18393DF80 /* GrainBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrainBackground.swift; sourceTree = "<group>"; };
+		14EC093D697A88E2F71ABE77 /* EdgeFadeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EdgeFadeTests.swift; sourceTree = "<group>"; };
+		16248A2324BD249F93626676 /* EdgeFade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EdgeFade.swift; sourceTree = "<group>"; };
 		1A30AB9FC437A9C192893FDA /* ThemeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeStore.swift; sourceTree = "<group>"; };
 		1FAD920D0BF825E5BDF4FDD8 /* ZenTextViewUndoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewUndoTests.swift; sourceTree = "<group>"; };
 		27DC686870094AA198CF697B /* PlainTextConversionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlainTextConversionGate.swift; sourceTree = "<group>"; };
@@ -200,6 +204,7 @@
 			children = (
 				9AEF2008F149F31FECC10343 /* CanvasUIState.swift */,
 				2B1001F43E5CA7F698FDB60C /* CanvasView.swift */,
+				16248A2324BD249F93626676 /* EdgeFade.swift */,
 				13B146CB05F9ACC18393DF80 /* GrainBackground.swift */,
 			);
 			path = Canvas;
@@ -208,6 +213,7 @@
 		94DCBE9E50A26DD201E39C7A /* WhitespaceTests */ = {
 			isa = PBXGroup;
 			children = (
+				14EC093D697A88E2F71ABE77 /* EdgeFadeTests.swift */,
 				0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */,
 				D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */,
 				B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */,
@@ -371,6 +377,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				533756DDD23776C22E7A5AEC /* EdgeFadeTests.swift in Sources */,
 				F9178DF3C8307F56A738C60F /* KeybindingStoreTests.swift in Sources */,
 				186AA5A248B450638EE1AF9C /* MarkdownTextDecodeTests.swift in Sources */,
 				AAA8D611B0F4CDBEA5030A12 /* MarkdownTextEncodeTests.swift in Sources */,
@@ -397,6 +404,7 @@
 				7C62784B113B52CDD1F99D44 /* CanvasUIState.swift in Sources */,
 				7D4E0EFB8788922C148A4AA2 /* CanvasView.swift in Sources */,
 				FCFAA0E90CD215D024535FC0 /* CommandPaletteView.swift in Sources */,
+				B9EF5A7B8912408BCEF9040F /* EdgeFade.swift in Sources */,
 				997E42F699BEE988CC7CF08E /* FontNames.swift in Sources */,
 				D8DADF38B89DC67FCAAED4CA /* GrainBackground.swift in Sources */,
 				8D3A523F82BE76372FCA4D67 /* KeybindingAction.swift in Sources */,
