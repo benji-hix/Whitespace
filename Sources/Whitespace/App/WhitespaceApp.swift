@@ -76,6 +76,13 @@ struct ViewMenuCommands: Commands {
             Divider()
             Button("Maximize Window") { NSApp.mainWindow?.zoom(nil) }
                 .keyboardShortcut("m", modifiers: [.command, .shift])
+            // AppKit's own Enter Full Screen item below this one is bound to the
+            // Globe key on macOS 26, and Globe does not exist on most external
+            // keyboards. An NSMenuItem holds exactly one key equivalent, so a
+            // second chord needs a second item — this one. Both stay: Globe is
+            // the shorter chord when the keyboard has it.
+            Button("Toggle Full Screen") { NSApp.mainWindow?.toggleFullScreen(nil) }
+                .keyboardShortcut("f", modifiers: [.control, .command])
         }
     }
 }

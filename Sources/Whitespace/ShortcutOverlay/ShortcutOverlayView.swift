@@ -9,6 +9,12 @@ struct ShortcutOverlayView: View {
         ("Open Command Palette", "⌘P"),
         ("Toggle Shortcut Overlay", "⌘/"),
         ("Toggle Dark Mode", "⌘⇧D"),
+        ("Maximize Window", "⌘⇧M"),
+        // The traffic lights are hidden, so this panel is the only place
+        // fullscreen is discoverable. Both chords are listed because macOS 26
+        // binds the system item to the Globe key ("fn" on the keycap), which
+        // most external keyboards do not have; ⌃⌘F is the app's own item.
+        ("Toggle Full Screen", "⌃⌘F · fn F"),
         ("New File", "⌘N"),
         ("Open File", "⌘O"),
         ("Save", "⌘S"),
