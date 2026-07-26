@@ -1,0 +1,42 @@
+Salvaged from worktree .claude/worktrees/distracted-ritchie-1ce181 on 2026-07-26.
+
+Provenance
+  Worktree base commit : 3303ceb500a7eb9157d44d051106f4a2220d875a
+                         ("fix: restore caret visibility broken by custom backing layer")
+  Base blob of file    : 9ad950e1209b9d07b615179f7b59fe30bf36612e
+  main blob of file    : 4a96e00522b15d7fabd71e4a4d7bb251ca3f23d9  (at d1185a5)
+
+Dark-theme text color: #6B5B5E -> #988888 (a lift in lightness).
+This is a candidate value, not a decision. Phase 5 of
+docs/whitespace-implementation-plan-2026-07-26.md owns it: read real prose
+fullscreen in both themes, commit ONE value, delete the alternative.
+
+DO NOT APPLY IN PHASE 0.
+
+diff --git a/Sources/Whitespace/Theme/Theme.swift b/Sources/Whitespace/Theme/Theme.swift
+index 9ad950e..9464665 100644
+--- a/Sources/Whitespace/Theme/Theme.swift
++++ b/Sources/Whitespace/Theme/Theme.swift
+@@ -8,21 +8,21 @@ enum Theme: String, Codable, CaseIterable {
+     var backgroundColor: NSColor {
+         switch self {
+         case .paper: return NSColor(red: 0.843, green: 0.808, blue: 0.804, alpha: 1)  // #D7CECD
+         case .dark:  return NSColor(red: 0.090, green: 0.063, blue: 0.071, alpha: 1)  // #171012
+         }
+     }
+ 
+     var textColor: NSColor {
+         switch self {
+         case .paper: return NSColor(red: 0.118, green: 0.059, blue: 0.067, alpha: 1)  // #1E0F11
+-        case .dark:  return NSColor(red: 0.420, green: 0.357, blue: 0.369, alpha: 1)  // #6B5B5E
++        case .dark:  return NSColor(red: 0.596, green: 0.533, blue: 0.533, alpha: 1)  // #988888
+         }
+     }
+ 
+     var cursorColor: NSColor {
+         switch self {
+         case .paper: return NSColor(red: 0.118, green: 0.059, blue: 0.067, alpha: 1)  // #1E0F11
+         case .dark:  return NSColor(red: 0.420, green: 0.357, blue: 0.369, alpha: 1)  // #6B5B5E
+         }
+     }
+ 
