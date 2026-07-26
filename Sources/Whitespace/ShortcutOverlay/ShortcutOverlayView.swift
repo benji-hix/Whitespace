@@ -9,6 +9,11 @@ struct ShortcutOverlayView: View {
         ("Open Command Palette", "⌘P"),
         ("Toggle Shortcut Overlay", "⌘/"),
         ("Toggle Dark Mode", "⌘⇧D"),
+        ("Maximize Window", "⌘⇧M"),
+        // The traffic lights are hidden, so this panel is the only place
+        // fullscreen is discoverable. macOS 26 binds it to the Globe key, not
+        // the older ⌃⌘F; "fn" is how that key is labelled on the keyboard.
+        ("Enter Full Screen", "fn F"),
         ("New File", "⌘N"),
         ("Open File", "⌘O"),
         ("Save", "⌘S"),
