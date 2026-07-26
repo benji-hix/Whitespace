@@ -355,13 +355,23 @@ final class ZenTextView: NSTextView {
     ///    derive the baseline from the segment frame minus `|descender|`.
     ///    This is a few pixels off in worst cases but keeps the cursor
     ///    visible — much better than returning nil and hiding it.
-    private func currentCursorBarRect() -> NSRect? {
+    /// Internal rather than private so the baseline regression test can read
+    /// the caret geometry directly; sampling `cursorView.frame` instead would
+    /// race the blink timer.
+    func currentCursorBarRect() -> NSRect? {
         guard selectedRange().length == 0,
               let tlm = textLayoutManager else { return nil }
         let caret = tlm.textSelections.first?.textRanges.first?.location
             ?? tlm.documentRange.location
         let caretRange = NSTextRange(location: caret)
-        tlm.ensureLayout(for: caretRange)
+        // TK2 layout is lazy. Ensuring only the zero-length caret *location*
+        // is not enough right after an edit: the enclosing line's fragment
+        // geometry stays stale for one runloop, which renders the caret a
+        // fraction of a line too high until the next blink recomputes (first
+        // glyph typed on a fresh line, or after ⌘Z). Force layout of the
+        // caret's whole paragraph so the baseline read below reflects the
+        // post-edit geometry on the first paint.
+        ensureParagraphLayout(containing: caret, tlm: tlm)
 
         var caretFrame: CGRect = .null
         tlm.enumerateTextSegments(
@@ -392,6 +402,27 @@ final class ZenTextView: NSTextView {
             width: 1.0,
             height: max(1, cursorBottomY - cursorTopY)
         )
+    }
+
+    /// Force TK2 to lay out the *paragraph* containing `caret`, not just the
+    /// zero-length caret location. After a content edit TK2 invalidates the
+    /// affected line's layout, but `ensureLayout` over a zero-length range
+    /// doesn't intersect that invalidated content, so the cached fragment
+    /// geometry is read back stale. Ensuring the enclosing element range
+    /// recomputes the line synchronously. When the paragraph is already valid
+    /// (every blink tick on an idle caret) this is a cheap no-op.
+    private func ensureParagraphLayout(containing caret: NSTextLocation, tlm: NSTextLayoutManager) {
+        tlm.ensureLayout(for: NSTextRange(location: caret))
+        // textLayoutFragment(for:) is nil at end-of-text; step back one
+        // location to find the last real paragraph's fragment, mirroring
+        // preciseBaselineY's fallback.
+        var fragment = tlm.textLayoutFragment(for: caret)
+        if fragment == nil, let prev = tlm.location(caret, offsetBy: -1) {
+            fragment = tlm.textLayoutFragment(for: prev)
+        }
+        if let elementRange = fragment?.textElement?.elementRange {
+            tlm.ensureLayout(for: elementRange)
+        }
     }
 
     /// Try to read the baseline Y from TK2's layout fragments. Returns nil
@@ -480,6 +511,18 @@ final class ZenTextView: NSTextView {
         cursorOn = true
         updateCursorView()
         startCursorBlink()
+        // The synchronous paint above can read a stale line-fragment origin:
+        // right after an edit TK2 has invalidated the caret line's layout but
+        // hasn't run the viewport-layout pass that assigns the fragment's final
+        // vertical position, so the caret renders a fraction of a line too high
+        // until the next blink recomputes it (first glyph on a fresh line, ⌘Z).
+        // ensureLayout doesn't force that pass; only getting off this callstack
+        // does. Re-paint one runloop later — the same deferral handleSelection
+        // change already uses for recenter — so the caret snaps to the correct
+        // position within a frame instead of waiting half a second for a blink.
+        DispatchQueue.main.async { [weak self] in
+            self?.updateCursorView()
+        }
     }
 
     // MARK: - Apply Theme/Prefs
