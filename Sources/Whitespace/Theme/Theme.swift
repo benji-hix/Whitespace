@@ -15,14 +15,16 @@ enum Theme: String, Codable, CaseIterable {
     var textColor: NSColor {
         switch self {
         case .paper: return NSColor(red: 0.118, green: 0.059, blue: 0.067, alpha: 1)  // #1E0F11
-        case .dark:  return NSColor(red: 0.420, green: 0.357, blue: 0.369, alpha: 1)  // #6B5B5E
+        case .dark:  return NSColor(red: 0.596, green: 0.533, blue: 0.533, alpha: 1)  // #988888
         }
     }
 
+    /// Tracks `textColor` in both themes — the caret marks where the next glyph
+    /// lands, so it must not be dimmer than the glyphs around it.
     var cursorColor: NSColor {
         switch self {
         case .paper: return NSColor(red: 0.118, green: 0.059, blue: 0.067, alpha: 1)  // #1E0F11
-        case .dark:  return NSColor(red: 0.420, green: 0.357, blue: 0.369, alpha: 1)  // #6B5B5E
+        case .dark:  return NSColor(red: 0.596, green: 0.533, blue: 0.533, alpha: 1)  // #988888
         }
     }
 

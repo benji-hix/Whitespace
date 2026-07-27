@@ -119,6 +119,7 @@ Rules that must not regress:
 **Pending live verification** (unit-tested; the modal flow needs a manual pass): P3.7 — the conversion-warning matrix (warns once, Cancel aborts the save, Save Anyway writes flattened, suppression checkbox persists). P3.6's save-sheet default was owner-verified.
 
 **Kept as-is, on purpose:**
+- **Panel ink is now dimmer than body text in dark mode.** `panelInkColor` (`#7D6D6C`, 3.82:1) was chosen to sit *brighter* than the old `textColor` (`#6B5B5E`, 2.93:1) so the shortcuts panel read against the page; its doc comment still says so. Raising text to `#988888` (5.55:1) inverted that relationship. The panel is a transient overlay so it is not urgent, but either the colour or the comment is now wrong — owner call, since it is a taste value.
 - Shortcut-overlay right padding is still `geo.size.width / 18` — 50pt at 900 wide, 140pt at 2560. Checked against a real fullscreen capture and it reads correctly, so it was left proportional rather than re-tuned blind.
 - Column width tops out at 820pt (`medium` is 680), so fullscreen at 2560 leaves ~900pt of margin per side. Verified centered and correct; whether that reads as generous or lost is an owner call.
 - Open Recent never populates under DocumentGroup on this macOS — and the historical NSDocumentController "pinning" was proven inert (SwiftUI's controller exists first) and removed. Revisit on OS updates.
