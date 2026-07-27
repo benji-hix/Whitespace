@@ -31,6 +31,53 @@ final class PreferencesStoreTests: XCTestCase {
         XCTAssertEqual(store2.newDocumentType, .plainText)
     }
 
+    // MARK: - Flatten warning
+    //
+    // Stored inverted against the gate's *suppress* key, so an off-by-one in
+    // the negation would silently disable the warning for everyone.
+
+    func testFlattenWarningIsOnByDefault() {
+        XCTAssertTrue(store.warnBeforeFlatteningFormatting)
+        XCTAssertFalse(UserDefaults(suiteName: "test-prefs")!
+            .bool(forKey: PlainTextConversionGate.suppressKey))
+    }
+
+    func testTurningTheWarningOffSuppressesTheGate() {
+        store.warnBeforeFlatteningFormatting = false
+        XCTAssertTrue(UserDefaults(suiteName: "test-prefs")!
+            .bool(forKey: PlainTextConversionGate.suppressKey))
+
+        let reopened = PreferencesStore(defaults: UserDefaults(suiteName: "test-prefs")!)
+        XCTAssertFalse(reopened.warnBeforeFlatteningFormatting)
+    }
+
+    func testTurningTheWarningBackOnClearsSuppression() {
+        store.warnBeforeFlatteningFormatting = false
+        store.warnBeforeFlatteningFormatting = true
+        XCTAssertFalse(UserDefaults(suiteName: "test-prefs")!
+            .bool(forKey: PlainTextConversionGate.suppressKey))
+    }
+
+    /// The alert's suppression checkbox writes the key behind the store's back.
+    /// Settings has to re-read it or it shows the previous session's answer.
+    func testReloadPicksUpSuppressionWrittenByTheAlert() {
+        XCTAssertTrue(store.warnBeforeFlatteningFormatting)
+
+        UserDefaults(suiteName: "test-prefs")!
+            .set(true, forKey: PlainTextConversionGate.suppressKey)
+        XCTAssertTrue(store.warnBeforeFlatteningFormatting, "stale until reloaded — the bug this guards")
+
+        store.reloadFlattenWarning()
+        XCTAssertFalse(store.warnBeforeFlatteningFormatting)
+    }
+
+    func testReloadIsANoOpWhenNothingChanged() {
+        store.reloadFlattenWarning()
+        XCTAssertTrue(store.warnBeforeFlatteningFormatting)
+        XCTAssertFalse(UserDefaults(suiteName: "test-prefs")!
+            .bool(forKey: PlainTextConversionGate.suppressKey))
+    }
+
     func testFontSizeClampedOnSave() {
         store.fontSize = 5
         XCTAssertEqual(store.fontSize, 12)

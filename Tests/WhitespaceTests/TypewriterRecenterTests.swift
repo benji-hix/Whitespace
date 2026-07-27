@@ -39,6 +39,11 @@ final class TypewriterRecenterTests: XCTestCase {
         window.contentView = scrollView
         window.makeFirstResponder(textView)
         textView.applyFont(size: 18, lineHeightMultiple: 1.6)
+        // kineticDuration divides by scrollSpeed, so this collapses the ~0.7s
+        // scroll animation to a few milliseconds and keeps the suite quick.
+        // Correctness does not depend on it — the assertions read the recenter
+        // target, not the animated position.
+        textView.scrollSpeed = 100
         pump()
     }
 
@@ -64,9 +69,26 @@ final class TypewriterRecenterTests: XCTestCase {
         pump(cadence)
     }
 
-    private func caretPercentOfViewport() -> CGFloat? {
-        guard let caret = textView.currentCursorBarRect() else { return nil }
-        return (caret.midY - scrollView.contentView.bounds.origin.y) / viewportHeight * 100
+    /// Where the caret sits relative to the viewport the recenter **decided
+    /// on**, as a percentage of viewport height.
+    ///
+    /// Deliberately measured against `currentScrollTarget` rather than the clip
+    /// view's actual origin. `recenter` applies the target through
+    /// `animator().setBoundsOrigin`, and Core Animation does not step while the
+    /// display is asleep — so the real origin stays at 0 overnight and these
+    /// tests reported a phantom regression with numbers identical to the real
+    /// one. The decision is ours and is what the fix restored; committing the
+    /// animation is AppKit's.
+    private func caretPercentOfTargetViewport(
+        file: StaticString = #filePath, line: UInt = #line
+    ) throws -> CGFloat {
+        let caret = try XCTUnwrap(textView.currentCursorBarRect(), file: file, line: line)
+        let target = textView.currentScrollTarget
+        // Once anything has been typed a target must exist. NaN means recenter
+        // never produced one, which is the defect itself — fail, never skip.
+        try XCTUnwrap(target.isNaN ? nil : target,
+                      "recenter produced no scroll target at all", file: file, line: line)
+        return (caret.midY - target) / viewportHeight * 100
     }
 
     /// TK2 returns no layout fragment for a location at end-of-text, which is
@@ -75,17 +97,16 @@ final class TypewriterRecenterTests: XCTestCase {
     /// scroll — so the viewport froze for exactly that keystroke and only caught
     /// up once the next character was typed.
     ///
-    /// This discriminates: without the `layoutFragment(atOrBefore:)` fallback
-    /// the caret keeps descending past the deadzone with every Return.
+    /// This discriminates: without the `layoutFragment(atOrBefore:)` fallback no
+    /// target is produced at all and `currentScrollTarget` stays NaN.
     func testViewportFollowsReturnAtEndOfDocument() throws {
         for i in 1...12 {
             typeLine("line \(i)\n", cadence: 0.2)
         }
-        let afterReturns = try XCTUnwrap(caretPercentOfViewport())
-        XCTAssertLessThanOrEqual(
-            afterReturns, 70,
-            "caret sank to \(afterReturns)% of the viewport — pressing Return at end-of-document produced no scroll target"
-        )
+        XCTAssertFalse(textView.currentScrollTarget.isNaN,
+                       "Return at end-of-document produced no scroll target at all")
+        let afterReturns = try caretPercentOfTargetViewport()
+        XCTAssertLessThanOrEqual(afterReturns, 70, "caret sank to \(afterReturns)% of the viewport")
         XCTAssertGreaterThanOrEqual(afterReturns, 30, "caret rose above the deadzone")
     }
 
@@ -93,9 +114,8 @@ final class TypewriterRecenterTests: XCTestCase {
     func testCaretHoldsCentreDuringSustainedTyping() throws {
         var worst: CGFloat = 0
         for i in 1...16 {
-            typeLine("line \(i)\n", cadence: 0.35)
-            let pct = try XCTUnwrap(caretPercentOfViewport())
-            worst = max(worst, abs(pct - 50))
+            typeLine("line \(i)\n", cadence: 0.2)
+            worst = max(worst, abs(try caretPercentOfTargetViewport() - 50))
         }
         XCTAssertLessThanOrEqual(worst, 20, "caret drifted \(worst)% from centre at a realistic typing rate")
     }
@@ -109,7 +129,7 @@ final class TypewriterRecenterTests: XCTestCase {
             textView.sizeToFit()
             pump(0.05)
         }
-        let pct = try XCTUnwrap(caretPercentOfViewport())
+        let pct = try caretPercentOfTargetViewport()
         XCTAssertLessThanOrEqual(abs(pct - 50), 25, "caret sat at \(pct)% of the viewport after continuous prose")
     }
 }

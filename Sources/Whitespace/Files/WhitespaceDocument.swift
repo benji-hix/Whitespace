@@ -84,13 +84,25 @@ struct WhitespaceDocument: FileDocument {
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        if !configuration.contentType.conforms(to: Self.markdownType),
-           PlainTextConversionGate.shouldWarnSync(runs: runs) {
-            Task { @MainActor in PlainTextConversionGate.presentWarning() }
+        let data = try approvedData(for: configuration.contentType)
+        return FileWrapper(regularFileWithContents: data)
+    }
+
+    /// The write, minus SwiftUI's `WriteConfiguration` — which has no public
+    /// initializer, so this is the deepest point a test can drive.
+    ///
+    /// Throws `userCancelled` when the user declines to flatten, which is the
+    /// code NSDocument treats as "abandon quietly, show no error".
+    func approvedData(
+        for type: UTType,
+        defaults: UserDefaults = .standard,
+        ask: @escaping @MainActor (UserDefaults) -> Bool = { PlainTextConversionGate.presentWarning(defaults: $0) }
+    ) throws -> Data {
+        if !type.conforms(to: Self.markdownType),
+           !PlainTextConversionGate.approveFlattening(runs: runs, defaults: defaults, ask: ask) {
             throw CocoaError(.userCancelled)
         }
-        let data = try encodedData(for: configuration.contentType)
-        return FileWrapper(regularFileWithContents: data)
+        return try encodedData(for: type)
     }
 
     func encodedData(for type: UTType) throws -> Data {

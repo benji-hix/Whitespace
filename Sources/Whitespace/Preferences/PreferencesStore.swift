@@ -31,6 +31,24 @@ final class PreferencesStore {
         didSet { defaults.set(newDocumentType.rawValue, forKey: Keys.newDocumentType) }
     }
 
+    /// Stored inverted: the gate reads a *suppress* flag, because that is what
+    /// NSAlert's suppression button writes. Settings shows the positive sense.
+    var warnBeforeFlatteningFormatting: Bool {
+        didSet { defaults.set(!warnBeforeFlatteningFormatting, forKey: PlainTextConversionGate.suppressKey) }
+    }
+
+    /// The alert's suppression checkbox writes the same key straight to
+    /// UserDefaults, with no route back into this store — so after a user ticks
+    /// it, this cached value is stale for the rest of the session and Settings
+    /// would show the warning as enabled while it is actually off. Settings
+    /// calls this when it appears.
+    func reloadFlattenWarning() {
+        let live = !defaults.bool(forKey: PlainTextConversionGate.suppressKey)
+        if live != warnBeforeFlatteningFormatting {
+            warnBeforeFlatteningFormatting = live
+        }
+    }
+
     var fontSize: Int {
         get { _fontSize }
         set {
@@ -86,6 +104,7 @@ final class PreferencesStore {
         } else {
             self.newDocumentType = .markdown
         }
+        self.warnBeforeFlatteningFormatting = !defaults.bool(forKey: PlainTextConversionGate.suppressKey)
         self.shortcutsAutoDismissEnabled = defaults.bool(forKey: Keys.shortcutsAutoDismissEnabled)
         let rawShortcutDelay = defaults.object(forKey: Keys.shortcutsAutoDismissDelay) != nil
             ? defaults.integer(forKey: Keys.shortcutsAutoDismissDelay) : 4

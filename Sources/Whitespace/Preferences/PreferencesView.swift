@@ -112,6 +112,16 @@ private struct GeneralTabView: View {
                         .pickerStyle(.segmented)
                         .frame(width: 196)
                     }
+                    // Without this the warning's "Don't show this again" is a
+                    // one-way door — the only way back was editing defaults by
+                    // hand, which makes a suppressed warning indistinguishable
+                    // from a broken one.
+                    PrefRow("Flatten Warning") {
+                        Toggle("", isOn: $prefs.warnBeforeFlatteningFormatting)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .frame(width: 196, alignment: .leading)
+                    }
                 }
 
                 PrefSection("Editor") {
@@ -156,6 +166,9 @@ private struct GeneralTabView: View {
             .padding(.horizontal, 40)
             .padding(.vertical, 30)
         }
+        // The warning's suppression checkbox writes UserDefaults directly, so
+        // re-read it here rather than showing this session's stale copy.
+        .onAppear { prefs.reloadFlattenWarning() }
     }
 }
 

@@ -19,7 +19,13 @@ final class ZenTextView: NSTextView {
     // Last committed scroll target. Used only to short-circuit redundant
     // retargets (sub-pixel rounding, repeated selection notifications). NaN
     // means "uninitialized — next recenter must run."
-    private var currentScrollTarget: CGFloat = .nan
+    //
+    // Internal rather than private so tests can assert the recenter *decision*
+    // without depending on the animation that applies it: `animator()` does not
+    // commit when Core Animation is not stepping, which is the case whenever the
+    // display is asleep. NaN there would mean no target was ever computed —
+    // exactly the defect fixed on 2026-07-26.
+    private(set) var currentScrollTarget: CGFloat = .nan
 
     // Document-character offset of the start of the paragraph currently
     // being held centered. nil means "no paragraph anchored — next recenter
