@@ -13,18 +13,21 @@ import AppKit
 enum EdgeFade {
     /// Lines fully hidden at the very edge. Kept to one: this band is invisible
     /// by definition, so it is not what the effect is judged by — the ramp is.
-    static let clearLines: CGFloat = 1.0
+    static let clearLines: CGFloat = 4.5
     /// Lines over which text ramps from invisible to fully readable. This is
     /// the number you actually see dissolving at each edge.
-    static let fadeLines: CGFloat = 7.5
+    static let fadeLines: CGFloat = 8.5
 
-    /// Ceiling on how much of a *short* window the effect may eat. Without it
-    /// the line-based bands would consume a small window entirely — 7.5 lines
-    /// at each edge is 480pt, more than a 450pt window has. At and above about
-    /// 900pt the line bands apply in full; below that the fade degrades to
-    /// these proportions, which are the ones the original small window was
-    /// tuned to.
-    private static let maxClearFraction: CGFloat = 0.10
+    /// Ceiling on how much of a window the effect may eat, so the line-based
+    /// bands can never swallow a short window or a large type size. Below the
+    /// height where the bands fit, the fade degrades to these proportions —
+    /// the ones the original small window was tuned to — and at least 40% of
+    /// any window stays fully readable.
+    ///
+    /// The two `Lines` values above are taste, tuned by eye against a real
+    /// screen. `EdgeFadeTests` deliberately asserts no particular depth; it
+    /// derives its heights from whatever they are set to, so tuning them does
+    /// not break the suite.
     private static let maxOpaqueFraction: CGFloat = 0.30
 
     /// Height of one laid-out line for the given type settings, matching what
@@ -37,13 +40,20 @@ enum EdgeFade {
     }
 
     /// Fractions measured from the top edge; the bottom mirrors them.
-    /// Clamped so a short window degrades to a thinner fade rather than
-    /// inverting the gradient stops.
     static func stops(forHeight height: CGFloat, lineHeight: CGFloat) -> (clear: CGFloat, opaque: CGFloat) {
         let h = max(height, 1)
         let line = max(lineHeight, 1)
-        let clear  = min(clearLines * line / h, maxClearFraction)
-        let opaque = min((clearLines + fadeLines) * line / h, maxOpaqueFraction)
-        return (clear, opaque)
+        let clearPoints  = clearLines * line
+        let opaquePoints = (clearLines + fadeLines) * line
+
+        // When the band will not fit, scale it as a unit rather than clamping
+        // each stop on its own. Independent clamps kept the clear/ramp split
+        // from holding: the outer stop came off its limit at a different height
+        // than the inner one, so ramp depth briefly *dipped* as the window grew
+        // (8.63 lines down to 8.51 between about 1387pt and 1440pt at the
+        // current settings). Scaling keeps the split constant and makes depth
+        // rise monotonically to the configured value.
+        let scale = min(1, maxOpaqueFraction * h / max(opaquePoints, 1))
+        return (clear: clearPoints * scale / h, opaque: opaquePoints * scale / h)
     }
 }
