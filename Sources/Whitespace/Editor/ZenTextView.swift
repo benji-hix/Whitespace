@@ -117,12 +117,30 @@ final class ZenTextView: NSTextView {
             stopCursorBlink()
             return
         }
+        // The typewriter inset is half the *viewport*, so it has to track the
+        // scroll view's size — not the window's. NSWindow.didResizeNotification
+        // arrives before AppKit has re-laid-out the scroll view: measured
+        // entering fullscreen, the window already reported 1440 while
+        // contentSize was still 486, so the inset was set from the old value and
+        // the first line sat at 17% of the screen, inside the top fade, instead
+        // of centred. The scroll view's own frame change is the honest signal.
+        NotificationCenter.default.removeObserver(self, name: NSWindow.didResizeNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSView.frameDidChangeNotification, object: nil)
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(windowDidResize(_:)),
+            selector: #selector(viewportDidResize(_:)),
             name: NSWindow.didResizeNotification,
             object: window
         )
+        if let scrollView = enclosingScrollView {
+            scrollView.postsFrameChangedNotifications = true
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(viewportDidResize(_:)),
+                name: NSView.frameDidChangeNotification,
+                object: scrollView
+            )
+        }
         // TK2 NSTextView renders its caret via an NSTextInsertionIndicator
         // subview, not via drawInsertionPoint. Hide any that are already
         // present so our custom draw can take over.
@@ -187,7 +205,12 @@ final class ZenTextView: NSTextView {
         suppressInsertionIndicators(in: root)
     }
 
-    @objc private func windowDidResize(_ note: Notification) {
+    /// Fires for both the window resize and the scroll view's own frame
+    /// change. The window notification is the earlier of the two and carries a
+    /// stale viewport size; the scroll view's arrives once layout has settled
+    /// and is the one that lands the correct inset. Doing the work twice is
+    /// harmless — updateTypewriterInsets ignores sub-point changes.
+    @objc private func viewportDidResize(_ note: Notification) {
         // Resize changes the inset and viewport dimensions — re-anchor the
         // paragraph as if it were a fresh selection so the caret lands at a
         // known position rather than wherever the deadzone math drifts to.
@@ -195,6 +218,8 @@ final class ZenTextView: NSTextView {
         updateTypewriterInsets()
         recenter(animated: false)
     }
+
+
 
     private func updateTypewriterInsets() {
         guard let scrollView = enclosingScrollView else { return }

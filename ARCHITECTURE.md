@@ -37,6 +37,9 @@ Three `@Observable @MainActor final class`es created in `WhitespaceApp`, injecte
 `ZenTextView` (NSTextView subclass, TextKit 2) owns: typewriter scrolling (single scroll authority — `scrollRangeToVisible` routes through `recenter`), custom caret (`CursorBarView` + blink + system-indicator suppression), `keyDown` dispatch for non-menu chords, bold/italic in markdown mode (`formattingEnabled`), paste normalization, and the faithful runs extractor `currentStyledRuns()`. Pure logic lives beside it:
 
 - `TypewriterScroll.target(for:)` — scroll placement/deadzone decision
+
+Typewriter centring depends on `textContainerInset.height` being **half the current viewport**, which is what puts the first line of an empty document in the middle of the screen. It must be driven by the scroll view's own `frameDidChangeNotification`, never by `NSWindow.didResizeNotification` alone: the window notification arrives before AppKit re-lays-out the scroll view. Measured entering fullscreen — the window already reported 1440 while `contentSize` was still 486, so the inset was computed from the old value and the first line sat at 17% of the screen, inside the top fade.
+
 - `PasteNormalizer` — staged paste/drag normalization
 - `MarkdownText` — markdown encode/decode (the document's serialization)
 

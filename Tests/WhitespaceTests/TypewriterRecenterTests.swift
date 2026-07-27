@@ -132,4 +132,43 @@ final class TypewriterRecenterTests: XCTestCase {
         let pct = try caretPercentOfTargetViewport()
         XCTAssertLessThanOrEqual(abs(pct - 50), 25, "caret sat at \(pct)% of the viewport after continuous prose")
     }
+
+    /// The typewriter inset is half the viewport, so it has to follow the
+    /// scroll view's size. It used to be driven by NSWindow.didResizeNotification
+    /// alone, which arrives before AppKit re-lays-out the scroll view: entering
+    /// fullscreen, the window reported 1440 while contentSize was still 486, so
+    /// the inset stayed at 243 and the first line of an empty document sat at
+    /// 17% of the screen — inside the top fade — instead of centred.
+    ///
+    /// This resizes only the scroll view, so it fails outright without the
+    /// frame-change observer: nothing would notice the viewport had changed.
+    func testTypewriterInsetFollowsTheViewportNotTheWindow() throws {
+        XCTAssertEqual(textView.textContainerInset.height, viewportHeight / 2, accuracy: 1,
+                       "inset should start at half the viewport")
+
+        let taller: CGFloat = 1440
+        scrollView.setFrameSize(NSSize(width: 500, height: taller))
+        pump(0.3)
+
+        XCTAssertEqual(textView.textContainerInset.height, scrollView.contentSize.height / 2, accuracy: 1,
+                       "inset must track the viewport it is centring within")
+        XCTAssertEqual(textView.textContainerInset.height, taller / 2, accuracy: 1)
+    }
+
+    /// The point of the inset: one line of text on an otherwise empty page sits
+    /// in the middle of the viewport, not up in the fade.
+    func testFirstLineOfAnEmptyPageIsCentred() throws {
+        scrollView.setFrameSize(NSSize(width: 500, height: 1440))
+        pump(0.3)
+        textView.insertText("Testing 123", replacementRange: NSRange(location: 0, length: 0))
+        textView.textLayoutManager.map { $0.ensureLayout(for: $0.documentRange) }
+        textView.sizeToFit()
+        pump(0.3)
+
+        let caret = try XCTUnwrap(textView.currentCursorBarRect())
+        let viewportTop = textView.currentScrollTarget.isNaN ? 0 : textView.currentScrollTarget
+        let pct = (caret.midY - viewportTop) / 1440 * 100
+        XCTAssertEqual(pct, 50, accuracy: 10,
+                       "first line sat at \(pct)% of the viewport instead of centred")
+    }
 }
