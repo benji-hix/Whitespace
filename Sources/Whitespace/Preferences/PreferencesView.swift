@@ -2,6 +2,10 @@
 import SwiftUI
 
 struct PreferencesView: View {
+    /// The pane's designed size. Also applied to the window itself, because a
+    /// restored frame otherwise wins — see `PrefsWindowAccessor`.
+    static let paneSize = CGSize(width: 500, height: 580)
+
     @State private var selectedTab: PrefTab = .general
 
     enum PrefTab { case general, keybindings }
@@ -29,7 +33,12 @@ struct PreferencesView: View {
                 }
             }
         }
-        .frame(width: 500, height: 450)
+        // 450 clipped the Documents section, so the Flatten Warning toggle sat
+        // below the fold of a fixed-size, scroll-indicator-less pane — a control
+        // added specifically so suppression would not be a one-way door was
+        // itself unfindable. Tall enough now that every Documents row is visible
+        // without scrolling.
+        .frame(width: PreferencesView.paneSize.width, height: PreferencesView.paneSize.height)
         .background(.ultraThinMaterial)
         .background(PrefsWindowAccessor())
     }
@@ -336,6 +345,14 @@ private struct PrefsWindowAccessor: NSViewRepresentable {
             window.styleMask.insert(.fullSizeContentView)
             window.isOpaque = false
             window.backgroundColor = .clear
+            // SwiftUI restores this window's saved frame, which pins it to
+            // whatever height it had the first time it was opened — so simply
+            // growing the content frame above does nothing for anyone who has
+            // opened Settings before. The pane is not user-resizable, so there
+            // is no user intent to preserve: assert the designed size.
+            if window.contentView?.frame.size != PreferencesView.paneSize {
+                window.setContentSize(PreferencesView.paneSize)
+            }
         }
         return view
     }
