@@ -26,6 +26,18 @@ struct WhitespaceDocument: FileDocument {
             : [markdownType, .plainText]
     }
 
+    /// A new untitled document of the type Settings ▸ Documents ▸ New Files
+    /// asks for.
+    ///
+    /// Reads UserDefaults rather than `PreferencesStore` because
+    /// `DocumentGroup`'s autoclosure is Sendable and cannot reference
+    /// main-actor state — and because the content-type lists above already
+    /// derive from the same key, so this keeps one source of truth rather than
+    /// two that can disagree.
+    static func newUntitled() -> WhitespaceDocument {
+        WhitespaceDocument(contentType: prefersPlainText ? .plainText : markdownType)
+    }
+
     /// The document's content, styled. Plain-text documents always hold
     /// plain runs; only markdown documents round-trip bold/italic.
     var runs: [StyledRun]

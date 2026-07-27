@@ -15,12 +15,10 @@ struct WhitespaceApp: App {
 
     var body: some Scene {
         // The autoclosure re-evaluates per new document, so the preference
-        // applies at creation time.
-        DocumentGroup(newDocument: WhitespaceDocument(
-            contentType: preferencesStore.newDocumentType == .markdown
-                ? WhitespaceDocument.markdownType
-                : .plainText
-        )) { file in
+        // applies at creation time. It is Sendable, so it must not touch
+        // preferencesStore — newUntitled reads the same UserDefaults key the
+        // content-type lists do.
+        DocumentGroup(newDocument: WhitespaceDocument.newUntitled()) { file in
             CanvasView(document: file.$document)
                 .environment(keybindingStore)
                 .environment(themeStore)
