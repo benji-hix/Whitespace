@@ -16,7 +16,11 @@ struct CanvasView: View {
 
     /// Fade the column's top and bottom edges. `EdgeFade` holds the geometry.
     private func edgeFade(forHeight height: CGFloat) -> LinearGradient {
-        let stops = EdgeFade.stops(forHeight: height)
+        let line = EdgeFade.lineHeight(
+            fontSize: CGFloat(prefs.fontSize),
+            lineHeightMultiple: prefs.lineHeightMultiple
+        )
+        let stops = EdgeFade.stops(forHeight: height, lineHeight: line)
         return LinearGradient(
             stops: [
                 .init(color: .clear, location: 0),
