@@ -41,6 +41,7 @@
 		B5D55721331403463F04186F /* ZenTextViewPasteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21505C013FBCFB3D697DD6 /* ZenTextViewPasteTests.swift */; };
 		B6C0BB6FEA62E641672C240C /* TypewriterRecenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB277AB588476D7B507160DC /* TypewriterRecenterTests.swift */; };
 		B9EF5A7B8912408BCEF9040F /* EdgeFade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16248A2324BD249F93626676 /* EdgeFade.swift */; };
+		BA23A4EA5E4AE2AB0EAA90BF /* ZenTextViewFormattingPropagationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98BEBCB83F04BDB7F5729A0 /* ZenTextViewFormattingPropagationTests.swift */; };
 		C0B27D73542FC020B12ACC35 /* PasteNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */; };
 		C4D89E637AE1DB67F4B25EF5 /* ShortcutOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */; };
 		C62300013927B7A86C72158A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61BDD010DB318CAC9C447F2A /* Assets.xcassets */; };
@@ -95,6 +96,7 @@
 		9AEF2008F149F31FECC10343 /* CanvasUIState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasUIState.swift; sourceTree = "<group>"; };
 		A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceTests.swift; sourceTree = "<group>"; };
 		A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
+		A98BEBCB83F04BDB7F5729A0 /* ZenTextViewFormattingPropagationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewFormattingPropagationTests.swift; sourceTree = "<group>"; };
 		A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteNormalizer.swift; sourceTree = "<group>"; };
 		AB277AB588476D7B507160DC /* TypewriterRecenterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypewriterRecenterTests.swift; sourceTree = "<group>"; };
 		AEA176D78D29F0669F15F559 /* WhitespaceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhitespaceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -226,6 +228,7 @@
 				0A2E4C61C4DBA989CCB4A673 /* WhitespaceDocumentTests.swift */,
 				A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */,
 				2B560ADBDEB0884E8A7704F6 /* ZenTextViewCaretBaselineTests.swift */,
+				A98BEBCB83F04BDB7F5729A0 /* ZenTextViewFormattingPropagationTests.swift */,
 				B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */,
 				8A21505C013FBCFB3D697DD6 /* ZenTextViewPasteTests.swift */,
 				D412E3CFCEF0FB7D97898EE2 /* ZenTextViewStyledRunsTests.swift */,
@@ -390,6 +393,7 @@
 				52DC3FB927BC17E23880765E /* WhitespaceDocumentTests.swift in Sources */,
 				839E84072B89984DEBC8089A /* WhitespaceTests.swift in Sources */,
 				9B44345EE599910EAC0DCCFB /* ZenTextViewCaretBaselineTests.swift in Sources */,
+				BA23A4EA5E4AE2AB0EAA90BF /* ZenTextViewFormattingPropagationTests.swift in Sources */,
 				87CCC792F82FA3CDC209EAD8 /* ZenTextViewKeyDownTests.swift in Sources */,
 				B5D55721331403463F04186F /* ZenTextViewPasteTests.swift in Sources */,
 				D1CA3B427CC8162AC358853B /* ZenTextViewStyledRunsTests.swift in Sources */,

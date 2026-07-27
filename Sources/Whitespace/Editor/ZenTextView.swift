@@ -683,7 +683,21 @@ final class ZenTextView: NSTextView {
         guard let newFont = NSFont(name: name, size: size) else { return }
         let range = selectedRange()
         if range.length > 0 {
+            // An attribute-only edit still has to go through NSTextView's change
+            // contract. `shouldChangeText` registers the undo grouping — a nil
+            // replacement string is how AppKit is told "attributes only" — and
+            // `didChangeText` fires the delegate that pushes currentStyledRuns()
+            // into the document.
+            //
+            // Without them ⌘B on a selection changed the text storage and
+            // nothing else: the bold rendered on screen, the document's runs
+            // never heard about it, so it was absent from the save, absent from
+            // the flatten warning's formatting check, and not undoable. Typing
+            // after ⌘B looked fine only because insertText fires didChangeText
+            // for its own reasons.
+            guard shouldChangeText(in: range, replacementString: nil) else { return }
             textStorage?.addAttribute(.font, value: newFont, range: range)
+            didChangeText()
         }
         var attrs = typingAttributes
         attrs[.font] = newFont
