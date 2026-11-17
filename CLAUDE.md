@@ -1,71 +1,124 @@
-# Whitespace — Claude Code Guidelines
+# Whitespace
 
-## Project
+A minimalist macOS writing app: one colour, centred text, no visible chrome. It is a personal
+tool whose whole value is feel, so polish and data safety outrank features.
 
-macOS writing app (SwiftUI + AppKit). Single target, no iOS/tvOS/watchOS.
-Project file: `Whitespace.xcodeproj` · Sources: `Sources/Whitespace/` · Tests: `Tests/WhitespaceTests/`
+SwiftUI shell (`DocumentGroup` + `Settings`) around an AppKit `NSTextView` on TextKit 2.
+macOS 26.0+, Swift 6 language mode, no third-party dependencies, one app target plus a hosted
+XCTest bundle. `ARCHITECTURE.md` is the design record and `DESIGN.md` the product philosophy;
+read both before structural or UI work, and update `ARCHITECTURE.md` in the same change when
+the code stops matching it.
 
----
+## What matters here
 
-## MCP Tool Selection
+- **Nothing but the words is visible while writing.** Every feature is keyboard-reachable and
+  stays hidden until summoned. A feature whose value is "lets the user fiddle with
+  presentation" is the wrong feature.
+- **Never risk the user's text.** Any change to load, save, autosave or file handling comes
+  with a test showing content survives the round trip.
+- **Done means observed.** A change is finished when the build is clean, the full suite passes,
+  and anything visible has been seen working in the running app. Offscreen tests cannot
+  reproduce TextKit 2 layout timing, so a green suite alone does not prove an editor change.
+- **Smallest change that solves the problem.** No new dependencies, and no abstraction with a
+  single implementation, without saying why.
 
-Two MCP servers are configured. They overlap on builds and tests; the tables below give the tiebreaker. **When Xcode is open, prefer mcpbridge** — it sees the live workspace state, produces richer diagnostics, and shares a build cache with the IDE. Fall back to XcodeBuildMCP when Xcode is closed or in headless/CI contexts.
+## Workflow
 
-### Apple Xcode MCP (`xcrun mcpbridge`) — preferred when Xcode is running
+This repo follows the standard team flow even though it has one owner, so the habits transfer.
 
-Verify Xcode is running with `XcodeListWindows` before any other call. If it returns empty, switch to XcodeBuildMCP.
+- `main` always builds and passes. Nothing is committed to it directly.
+- Each change gets a short-lived branch off the latest `main`: `feat/`, `fix/`, `chore/`,
+  `docs/` or `refactor/` plus a few words, e.g. `fix/dark-launch-colour`.
+- Commits are one concern each with a conventional prefix (`feat:`, `fix:`, `chore:`, `docs:`,
+  `test:`, `refactor:`). The message says why, since the diff already says what.
+- Open a pull request with `gh pr create`. The description covers what changed, why, and how
+  it was verified, with a screenshot for anything visible. The PR is where review happens, so
+  keep it small enough to read in one sitting; split unrelated work into separate PRs.
+- The owner reviews and squash-merges, then the branch is deleted. Merging is the owner's
+  call, never the agent's.
+- When explaining a step of this flow, say what a team would use it for; the owner is
+  learning it.
 
-| Use it for | Tool |
-|---|---|
-| Building the project (uses Xcode's build system) | `BuildProject` |
-| Running tests | `RunAllTests`, `RunSomeTests`, `GetTestList` |
-| Reading build output and runtime logs | `GetBuildLog`, `GetConsoleOutput` |
-| Inspecting target build settings | `GetTargetBuildSettings` |
-| Live Xcode analyzer diagnostics (retain cycles, warnings) | `XcodeRefreshCodeIssuesInFile`, `XcodeListNavigatorIssues` |
-| Searching Apple docs and WWDC transcripts | `DocumentationSearch` |
-| Rendering a SwiftUI preview to verify UI | `RenderPreview` |
-| Running a Swift snippet quickly without a full build | `ExecuteSnippet` |
-| Reading/searching/editing project files | `XcodeRead`, `XcodeGrep`, `XcodeGlob`, `XcodeLS`, `XcodeWrite`, `XcodeUpdate`, `XcodeInsertFile`, `XcodeGetCurrentFile` |
-| File/directory operations within the project | `XcodeMV`, `XcodeRM`, `XcodeMakeDir` |
+## Build, test, run
 
-### XcodeBuildMCP (`mcp__xcodebuild__*`) — fallback / headless
+Plain `xcodebuild` is the baseline and needs nothing else running. Verified 2026-11-17 on
+Xcode 27.2: 131 tests, 0 failures, about 15 s of test time (`TypewriterRecenterTests` is
+nearly all of it).
 
-Use the `macos` workflow tools (`mcp__xcodebuild__*_macos`). The `simulator` workflow does NOT apply — this is not an iOS project.
+```bash
+DD=/tmp/whitespace-dd   # explicit DerivedData keeps dev builds away from the default folder
 
-| Use it for | Notes |
-|---|---|
-| Building / running / testing the macOS app | `build_macos`, `build_run_macos`, `test_macos`, `launch_macos`, `stop_macos` |
-| Code coverage reports | `get_coverage_report`, `get_file_coverage` |
-| Bundle paths and metadata | `get_macos_app_path`, `get_macos_bundle_id`, `show_build_settings` |
-| Any headless / CI context | No Xcode process required |
+xcodebuild -project Whitespace.xcodeproj -scheme Whitespace -configuration Debug \
+  -destination 'platform=macOS' -derivedDataPath $DD build
 
-**Workflow config (one-time setup, important):** by default XcodeBuildMCP only enables the `simulator` workflow, so none of the `*_macos` tools above will be loaded. Enable the `macos` workflow (and optionally `xcode-ide` for live-Xcode integration) in your XcodeBuildMCP config: see https://github.com/getsentry/XcodeBuildMCP/blob/main/docs/CONFIGURATION.md. Until that's done, XcodeBuildMCP cannot build or test this project — `mcpbridge` is the only path.
+xcodebuild -project Whitespace.xcodeproj -scheme Whitespace \
+  -destination 'platform=macOS' -derivedDataPath $DD test
+# one class: append  -only-testing:WhitespaceTests/WhitespaceDocumentTests
 
-### Tools NOT available from either MCP
+open -n $DD/Build/Products/Debug/Whitespace.app
+```
 
-- **LLDB debugging on the macOS app.** XcodeBuildMCP's `debugging` workflow is iOS-simulator-only ("Attach LLDB to sim app"). For native macOS LLDB, attach via `lldb` from the Bash tool, or step through inside Xcode itself.
-- **macOS UI automation.** XcodeBuildMCP's `ui-automation` workflow is simulator-only (simulator gestures, sim hardware buttons). For driving the running macOS app, use the `computer-use` MCP, AppleScript via `osascript`, or XCTest UI tests run through `RunSomeTests`/`test_macos`.
+Installing to `/Applications` is a Release build plus `ditto`; see `docs/build-and-install.md`.
 
----
+`CoreSimulator is out of date`, `appintentsmetadataprocessor` and `com.apple.linkd.autoShortcut`
+lines in the output are noise for this macOS-only app.
 
-## Build & Verify Loop
+### Xcode's own agent tools
 
-1. Edit source files (prefer `XcodeWrite`/`XcodeUpdate` if Xcode is open so the project model stays in sync; otherwise use the local Edit/Write tools).
-2. Build:
-   - **Xcode open:** `BuildProject`, then `GetBuildLog` for full output and `XcodeListNavigatorIssues` for the structured warnings/errors view.
-   - **Xcode closed:** `mcp__xcodebuild__build_macos` (requires `macos` workflow enabled).
-3. If the build succeeds, run the relevant tests: `RunSomeTests` (scoped) or `RunAllTests`. Read failures with `GetConsoleOutput`.
-4. For UI changes: render the SwiftUI preview with `RenderPreview` before declaring done.
-5. For runtime issues: `GetConsoleOutput` after launching captures stdout/stderr and os_log output from the running app.
+Xcode ships an MCP bridge, `xcrun mcpbridge`, registered for this repo in `.mcp.json` as the
+`xcode` server. It talks to the running Xcode, so it needs Xcode open with this project
+(`XcodeListWorkspaces` to check, `XcodeOpenWorkspace` to open it).
 
-Do not claim a task is complete without a clean build AND a passing test run.
+- Use it for what `xcodebuild` cannot do: `DocumentationSearch` for current Apple APIs,
+  `RenderPreview` for SwiftUI views, `XcodeRefreshCodeIssuesInFile` for live diagnostics,
+  `RunProject` with `GetConsoleOutput` for runtime logs, `InvokeDebuggerCommand` for LLDB.
+  Building and testing work through either route.
+- Leave its project-mutating tools alone (`UpdateTargetBuildSetting`, `AddInfoPlist`,
+  `AddEntitlement`, `XcodeNewTarget`): they edit the generated project, and the next
+  `xcodegen generate` discards the edit. Make those changes in `project.yml`.
+- If its tools are absent or Xcode is closed, carry on with `xcodebuild`.
+- Opening Xcode or launching the app can take focus from whatever the owner is doing. Open in
+  the background (`open -g`) and say so first when something must come to the front.
+- `xcrun mcpbridge run-agent` (alias `xcrun agent`) launches Xcode and waits on it, even with
+  `--dry-run`. Do not run it from a non-interactive shell.
 
----
+For Apple API questions, check current documentation before relying on memory: SwiftUI's
+document, window and scene APIs change every release, and this project targets the newest OS.
 
-## Coding Conventions
+## Project file
 
-- No comments unless the WHY is non-obvious
-- No error handling for impossible cases — trust Swift's type system and framework guarantees
-- Validate only at system boundaries (user input, file I/O)
-- Prefer editing existing files over creating new ones
-- No backwards-compat shims for removed code
+`project.yml` (XcodeGen) is the source of truth. `Whitespace.xcodeproj` and
+`Sources/Whitespace/App/Info.plist` are generated and committed.
+
+- After adding or removing a file, or changing a setting: `xcodegen generate`, then commit the
+  regenerated project with the change.
+- Do not hand-edit `project.pbxproj` or accept Xcode's "Update to recommended settings"; the
+  next generate discards both. Settings and Info.plist keys go in `project.yml`.
+
+## Things that will bite
+
+- **Shared preferences.** Debug builds, the hosted test bundle and the installed
+  `/Applications` copy share bundle id `com.benji.Whitespace`, so they share the owner's real
+  UserDefaults. Tests use `UserDefaults(suiteName:)` and wipe it in tearDown, never `.standard`.
+  Quit the installed app before launching a Debug build, or you may be looking at the wrong copy.
+- **SwiftUI owns the document controller and the app delegate.** Several obvious AppKit hooks
+  compile and are never called. `ARCHITECTURE.md` §1–2 records which ones and what works
+  instead; read it before touching launch, window chrome, document types or the save path.
+- **Save path testing.** `fileWrapper(configuration:)` cannot be called from tests because
+  `WriteConfiguration` has no public initializer. Drive `WhitespaceDocument.approvedData(for:)`
+  and `encodedData(for:)` instead.
+- **Concurrency.** Swift 6 strict checking with nonisolated default isolation; mark UI types
+  and UI tests `@MainActor` explicitly.
+- **Driving the app.** Synthetic keystrokes are unreliable on this Mac (keyboard remappers);
+  prefer menu clicks through accessibility. Capture only the app's own window, never the full
+  screen, which would include the owner's other windows.
+- **Known gaps** are listed in `ARCHITECTURE.md` §5. Add to it or strike from it as they change.
+
+## Code style
+
+- Comments only where the reason is not obvious from the code.
+- No handling for cases the type system or framework already rules out; validate at the
+  boundaries (file I/O, user input).
+- Decision-shaped editor logic (geometry, normalisation, serialisation) lives in a pure type
+  with value inputs and unit tests; AppKit and TextKit calls stay in the view.
+- XCTest only. There is no linter and no CI, so the two commands above are the gate.
