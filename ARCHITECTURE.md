@@ -38,6 +38,8 @@ Three `@Observable @MainActor final class`es created in `WhitespaceApp`, injecte
 
 - `TypewriterScroll.target(for:)` — scroll placement/deadzone decision
 
+A fresh editor is configured through one entry point, `ZenTextView.setUp(...)`: **font, then colour, then content**. The content is built from `typingAttributes`, so they must already carry both the font and the theme's text colour. `applyFont` merges into `typingAttributes` rather than replacing them, because ⌘+/⌘− run it on a live editor. Pinned by `ZenTextViewSetUpTests`.
+
 Typewriter centring depends on `textContainerInset.height` being **half the current viewport**, which is what puts the first line of an empty document in the middle of the screen. It must be driven by the scroll view's own `frameDidChangeNotification`, never by `NSWindow.didResizeNotification` alone: the window notification arrives before AppKit re-lays-out the scroll view. Measured entering fullscreen — the window already reported 1440 while `contentSize` was still 486, so the inset was computed from the old value and the first line sat at 17% of the screen, inside the top fade.
 
 - `PasteNormalizer` — staged paste/drag normalization
@@ -118,6 +120,8 @@ Rules that must not regress:
 **Open gap — the Settings window exposes no accessibility elements.** `entire contents` of `Whitespace Settings` returns zero elements over the accessibility API, so VoiceOver and any assistive tooling cannot reach a single control; document windows expose their text areas normally. Suspect the custom window styling in `PrefsWindowAccessor` (transparent titlebar, `fullSizeContentView`, clear background) combined with `.ultraThinMaterial`. Not investigated further — noted because it is an accessibility defect, not a cosmetic one.
 
 **Open gap — ⌘B is not independently undoable.** AppKit records no attribute-restoring action for `shouldChangeText(in:replacementString: nil)` under TextKit 2, so ⌘Z after a formatting change unwinds the typing rather than the formatting. Pre-existing and separate from the propagation fix below; pinned by `testFormattingIsNotYetIndependentlyUndoable` so the day it changes, that test fails and gets updated. Fixing it means registering the old attributed substring with the undo manager by hand.
+
+**Fixed 2026-11-17 — documents opened in the dark theme drew in black.** `makeNSView` applied colours, then `applyFont` replaced `typingAttributes` wholesale, dropping the foreground colour, and the initial content was built from those colourless attributes. ⌘+/⌘− had the same effect on text typed afterwards. Fixed by the single `setUp` entry point (font → colour → content) and a merging `applyFont`; see §1 Editor.
 
 **Fixed 2026-07-27 — ⌘B/⌘I on a selection never reached the document.** `applyFontVariant` mutated the text storage directly, skipping `shouldChangeText`/`didChangeText`, so the delegate never fired, `currentStyledRuns()` never ran, and the document's runs stayed plain. The bold rendered on screen and existed nowhere else: absent from the save, absent from the flatten warning's formatting check, and the document not even marked dirty. Present since P3.4. It hid because the only coverage pressed ⌘B with *no selection* and then typed — `insertText` fires `didChangeText` for its own reasons, so that path always worked. **Any attribute-only edit must go through the change contract.**
 

@@ -580,6 +580,20 @@ final class ZenTextView: NSTextView {
 
     // MARK: - Apply Theme/Prefs
 
+    /// The one setup path for a fresh editor: font, then colour, then content.
+    /// The content is built from `typingAttributes`, so by then they must hold
+    /// both the font and the theme's text colour — built any earlier, a
+    /// document opened in the dark theme draws in the default black.
+    func setUp(fontSize: CGFloat, lineHeightMultiple: CGFloat,
+               text: NSColor, cursor: NSColor, selection: NSColor,
+               runs: [StyledRun]) {
+        applyFont(size: fontSize, lineHeightMultiple: lineHeightMultiple)
+        applyColors(text: text, cursor: cursor, selection: selection)
+        textStorage?.setAttributedString(
+            PasteNormalizer.attributedString(runs: runs, baseAttributes: typingAttributes)
+        )
+    }
+
     func applyTheme(_ theme: Theme) {
         applyColors(text: theme.textColor, cursor: theme.cursorColor, selection: theme.selectionColor)
     }
@@ -606,7 +620,12 @@ final class ZenTextView: NSTextView {
         pStyle.paragraphSpacing = 4
         pStyle.firstLineHeadIndent = size * 2
         let regularFont = NSFont(name: WhitespaceFont.regular, size: size) ?? NSFont.systemFont(ofSize: size)
-        typingAttributes = [.font: regularFont, .paragraphStyle: pStyle]
+        // Merge rather than replace: the typing attributes also carry the
+        // theme's foreground colour, and ⌘+/⌘− run this on a live editor.
+        var attrs = typingAttributes
+        attrs[.font] = regularFont
+        attrs[.paragraphStyle] = pStyle
+        typingAttributes = attrs
         guard let storage = textStorage, storage.length > 0 else { return }
         storage.beginEditing()
         storage.enumerateAttribute(.font, in: NSRange(location: 0, length: storage.length)) { value, range, _ in

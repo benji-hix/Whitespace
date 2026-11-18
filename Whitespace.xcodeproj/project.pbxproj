@@ -25,6 +25,7 @@
 		4E5D22B04D77F3F8278F2280 /* ZenTextViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4BDC64A28B1377AC3663BCD /* ZenTextViewRepresentable.swift */; };
 		52DC3FB927BC17E23880765E /* WhitespaceDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2E4C61C4DBA989CCB4A673 /* WhitespaceDocumentTests.swift */; };
 		533756DDD23776C22E7A5AEC /* EdgeFadeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EC093D697A88E2F71ABE77 /* EdgeFadeTests.swift */; };
+		5913D495E74B025FC10D00EE /* ZenTextViewSetUpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D86DEA9F3431E642C1F8CB32 /* ZenTextViewSetUpTests.swift */; };
 		5F0FF0FC644F2F54C0C63AD8 /* CrimsonPro-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8E0CB9D1D61C42DDE5907771 /* CrimsonPro-LightItalic.ttf */; };
 		7430C26A34C58DE214EA9DAC /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */; };
 		7C62784B113B52CDD1F99D44 /* CanvasUIState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEF2008F149F31FECC10343 /* CanvasUIState.swift */; };
@@ -106,6 +107,7 @@
 		C4BDC64A28B1377AC3663BCD /* ZenTextViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewRepresentable.swift; sourceTree = "<group>"; };
 		D412E3CFCEF0FB7D97898EE2 /* ZenTextViewStyledRunsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewStyledRunsTests.swift; sourceTree = "<group>"; };
 		D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextDecodeTests.swift; sourceTree = "<group>"; };
+		D86DEA9F3431E642C1F8CB32 /* ZenTextViewSetUpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewSetUpTests.swift; sourceTree = "<group>"; };
 		D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutOverlayView.swift; sourceTree = "<group>"; };
 		DCDB160E7B27250240BBC8C6 /* WhitespaceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceApp.swift; sourceTree = "<group>"; };
 		DFFC7E8D4A48F89E04DEAB85 /* PlainTextConversionGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlainTextConversionGateTests.swift; sourceTree = "<group>"; };
@@ -231,6 +233,7 @@
 				A98BEBCB83F04BDB7F5729A0 /* ZenTextViewFormattingPropagationTests.swift */,
 				B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */,
 				8A21505C013FBCFB3D697DD6 /* ZenTextViewPasteTests.swift */,
+				D86DEA9F3431E642C1F8CB32 /* ZenTextViewSetUpTests.swift */,
 				D412E3CFCEF0FB7D97898EE2 /* ZenTextViewStyledRunsTests.swift */,
 				1FAD920D0BF825E5BDF4FDD8 /* ZenTextViewUndoTests.swift */,
 			);
@@ -396,6 +399,7 @@
 				BA23A4EA5E4AE2AB0EAA90BF /* ZenTextViewFormattingPropagationTests.swift in Sources */,
 				87CCC792F82FA3CDC209EAD8 /* ZenTextViewKeyDownTests.swift in Sources */,
 				B5D55721331403463F04186F /* ZenTextViewPasteTests.swift in Sources */,
+				5913D495E74B025FC10D00EE /* ZenTextViewSetUpTests.swift in Sources */,
 				D1CA3B427CC8162AC358853B /* ZenTextViewStyledRunsTests.swift in Sources */,
 				48C97738E411B05362A9BDA5 /* ZenTextViewUndoTests.swift in Sources */,
 			);

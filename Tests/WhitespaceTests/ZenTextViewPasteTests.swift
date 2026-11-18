@@ -14,14 +14,12 @@ final class ZenTextViewPasteTests: XCTestCase {
         return NSFont(descriptor: d, size: size)!
     }
 
-    /// Builds a view configured the way `ZenTextViewRepresentable` does in
-    /// production: colors first, then font (so `typingAttributes` carries the
-    /// app's paragraph style and size).
+    /// Builds a view through the production setup path, so `typingAttributes`
+    /// carries the app's paragraph style and size.
     private func makeView() -> ZenTextView {
         let tv = ZenTextView(frame: NSRect(x: 0, y: 0, width: 400, height: 400))
-        tv.applyColors(text: .black, cursor: .black, selection: .gray)
-        tv.applyFont(size: 18, lineHeightMultiple: 1.2)
-        tv.string = ""
+        tv.setUp(fontSize: 18, lineHeightMultiple: 1.2,
+                 text: .black, cursor: .black, selection: .gray, runs: [])
         return tv
     }
 

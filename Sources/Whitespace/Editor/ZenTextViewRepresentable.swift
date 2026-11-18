@@ -33,19 +33,15 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         textView.keybindingStore = keybindingStore
         textView.formattingEnabled = formattingEnabled
         textView.isRichText = formattingEnabled
-        textView.applyColors(
+        textView.setUp(
+            fontSize: CGFloat(preferences.fontSize),
+            lineHeightMultiple: preferences.lineHeightMultiple,
             text: themeStore.displayedTextColor,
             cursor: themeStore.displayedCursorColor,
-            selection: themeStore.displayedSelectionColor
-        )
-        textView.applyFont(
-            size: CGFloat(preferences.fontSize),
-            lineHeightMultiple: preferences.lineHeightMultiple
+            selection: themeStore.displayedSelectionColor,
+            runs: runs
         )
         textView.scrollSpeed = preferences.scrollSpeed
-        textView.textStorage?.setAttributedString(
-            PasteNormalizer.attributedString(runs: runs, baseAttributes: textView.typingAttributes)
-        )
         wire(textView)
 
         // Sync coordinator tracking state to avoid redundant calls on first updateNSView
