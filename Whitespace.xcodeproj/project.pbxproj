@@ -51,6 +51,7 @@
 		C0B27D73542FC020B12ACC35 /* PasteNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */; };
 		C4D89E637AE1DB67F4B25EF5 /* ShortcutOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9387CBFD575147F43603BE0 /* ShortcutOverlayView.swift */; };
 		C62300013927B7A86C72158A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61BDD010DB318CAC9C447F2A /* Assets.xcassets */; };
+		CAA32220BBF32EAA68CF2D2E /* TestHostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8174AD9CF0AE0E059B9EBA4 /* TestHostTests.swift */; };
 		CC5D5BDA008C4D1CC48AB2FC /* ThemeStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */; };
 		D1CA3B427CC8162AC358853B /* ZenTextViewStyledRunsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D412E3CFCEF0FB7D97898EE2 /* ZenTextViewStyledRunsTests.swift */; };
 		D60D1601A634A7888D8FBA5C /* WhitespaceDocumentShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B96D363510B76A69836A2C /* WhitespaceDocumentShellTests.swift */; };
@@ -129,6 +130,7 @@
 		EDD0C5E01898C8DF154BF663 /* ShortcutBinding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutBinding.swift; sourceTree = "<group>"; };
 		EF973C33D75FACC3ED963840 /* FontNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontNames.swift; sourceTree = "<group>"; };
 		F10A908D4DCBCA45DD80015B /* PreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesStore.swift; sourceTree = "<group>"; };
+		F8174AD9CF0AE0E059B9EBA4 /* TestHostTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHostTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -243,6 +245,7 @@
 				0A1B831753D816E4C2F6BBFA /* PasteNormalizerTests.swift */,
 				DFFC7E8D4A48F89E04DEAB85 /* PlainTextConversionGateTests.swift */,
 				934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */,
+				F8174AD9CF0AE0E059B9EBA4 /* TestHostTests.swift */,
 				12402E37D157E82DE1D3551A /* TestSupport.swift */,
 				B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */,
 				AB277AB588476D7B507160DC /* TypewriterRecenterTests.swift */,
@@ -412,6 +415,7 @@
 				15BEC40FBC879A6179EBF017 /* PasteNormalizerTests.swift in Sources */,
 				3B5EECD891E77EED4CC18A53 /* PlainTextConversionGateTests.swift in Sources */,
 				4BB62E4C69F9C03EA4CBDAF4 /* PreferencesStoreTests.swift in Sources */,
+				CAA32220BBF32EAA68CF2D2E /* TestHostTests.swift in Sources */,
 				E539C8AF8E2FC78A94224FA9 /* TestSupport.swift in Sources */,
 				CC5D5BDA008C4D1CC48AB2FC /* ThemeStoreTests.swift in Sources */,
 				B6C0BB6FEA62E641672C240C /* TypewriterRecenterTests.swift in Sources */,

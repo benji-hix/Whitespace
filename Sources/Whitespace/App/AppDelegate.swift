@@ -13,8 +13,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var settingsWindowController: SettingsWindowController?
 
-    /// The hosted test bundle launches the real app. Under XCTest it must not
-    /// open an untitled window or restore (or save) the owner's windows.
+    /// The hosted test bundle launches the real app with the owner's bundle
+    /// id. Under XCTest it opens no untitled window and marks its windows
+    /// unrestorable; restoring the owner's session is switched off by the
+    /// scheme's `-ApplePersistenceIgnoreState YES` (see `TestHostTests`).
     static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
@@ -50,14 +52,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool { true }
-
-    func application(_ app: NSApplication, shouldSaveSecureApplicationState coder: NSCoder) -> Bool {
-        !Self.isRunningTests
-    }
-
-    func application(_ app: NSApplication, shouldRestoreSecureApplicationState coder: NSCoder) -> Bool {
-        !Self.isRunningTests
-    }
 
     static func registerFonts() {
         let names = [WhitespaceFont.regular, WhitespaceFont.italic, WhitespaceFont.bold, WhitespaceFont.boldItalic]

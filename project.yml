@@ -84,3 +84,8 @@ schemes:
     test:
       targets:
         - WhitespaceTests
+      # The test host is the real app under the owner's bundle id; it must not
+      # reopen the owner's last session. xcodebuild passes this today; it is
+      # declared so it does not depend on that.
+      commandLineArguments:
+        "-ApplePersistenceIgnoreState YES": true
