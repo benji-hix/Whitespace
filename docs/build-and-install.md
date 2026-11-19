@@ -1,18 +1,50 @@
 # Building and installing Whitespace
 
-One command rebuilds the app and replaces the copy in `/Applications`:
+Quit Whitespace first, the normal way, so every window is saved or you choose
+what happens to it. Then, from the repo on an up-to-date `main`:
 
 ```bash
 cd /Users/benji/Code/Whitespace && \
-xcodebuild build -project Whitespace.xcodeproj -scheme Whitespace -configuration Release -destination 'platform=macOS' && \
-pkill -x Whitespace; \
-ditto ~/Library/Developer/Xcode/DerivedData/Whitespace-*/Build/Products/Release/Whitespace.app /Applications/Whitespace.app && \
-open /Applications/Whitespace.app
+if pgrep -x Whitespace >/dev/null; then echo "Whitespace is running: quit it first"; false; else \
+  B=/tmp/whitespace-release && \
+  xcodebuild build -project Whitespace.xcodeproj -scheme Whitespace -configuration Release \
+    -destination 'platform=macOS' -derivedDataPath "$B" && \
+  rm -rf /Applications/Whitespace.app.new && \
+  ditto "$B/Build/Products/Release/Whitespace.app" /Applications/Whitespace.app.new && \
+  { [ ! -e /Applications/Whitespace.app ] || trash /Applications/Whitespace.app; } && \
+  mv /Applications/Whitespace.app.new /Applications/Whitespace.app && \
+  /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+    -u "$B/Build/Products/Release/Whitespace.app" && \
+  rm -rf "$B" && \
+  open /Applications/Whitespace.app
+fi
 ```
 
-`ditto` replaces the bundle wholesale rather than merging into it, so stale files
-from an older build cannot survive. `pkill` first because macOS will not cleanly
-replace a running bundle.
+Why each step:
+
+- **It refuses to run while Whitespace is open** rather than killing it. A
+  forced quit skips the save and Keep/Delete prompts, and an open window may
+  hold writing that has not reached disk.
+- **The build goes to its own folder**, not Xcode's DerivedData. Every
+  worktree and checkout gets its own `DerivedData/Whitespace-*` folder, so a
+  wildcard there can match an old build and install it.
+- **The new bundle is copied beside the old one, then swapped in.** `ditto`
+  onto an existing folder merges into it, so files from an older build would
+  survive. The old app goes to the Trash, so it can be put back.
+- **The build is unregistered and deleted afterwards.** macOS registers an
+  app as soon as it is built. Every build carries the bundle
+  id `com.benji.Whitespace`, and macOS may open any copy it knows about when
+  Whitespace is launched by name. Debug builds in `/tmp/whitespace-dd` have the
+  same problem; launch those by path (`open -n …`), as `CLAUDE.md` does.
+
+To see which copies macOS knows about:
+
+```bash
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -dump | awk '/^path:/{p=$2} /identifier: +com.benji.Whitespace$/{print p}' | sort -u
+```
+
+Forget a stale one with `lsregister -u <path to .app>`, then move it to the
+Trash.
 
 ## Signing
 
