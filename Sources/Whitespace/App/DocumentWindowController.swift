@@ -50,17 +50,4 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate {
     @objc func toggleShortcutOverlay(_ sender: Any?) {
         ui.showShortcutOverlay.toggle()
     }
-
-    @objc func maximizeWindow(_ sender: Any?) {
-        window?.zoom(sender)
-    }
-
-    /// AppKit's own Enter Full Screen item is bound to the Globe key on
-    /// macOS 26, and Globe does not exist on most external keyboards. An
-    /// NSMenuItem holds one key equivalent, so ⌃⌘F needs a second item. It has
-    /// its own action because AppKit retitles every `toggleFullScreen:` item
-    /// to Enter/Exit Full Screen, and would then not add its own Globe item.
-    @objc func toggleFullScreenFromMenu(_ sender: Any?) {
-        window?.toggleFullScreen(sender)
-    }
 }

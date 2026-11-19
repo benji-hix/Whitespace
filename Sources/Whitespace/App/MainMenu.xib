@@ -160,9 +160,13 @@
 <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
 <connections><action selector="maximizeWindow:" target="-1" id="m069"/></connections>
 </menuItem>
-<menuItem title="Toggle Full Screen" keyEquivalent="f" id="m070">
-<modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+<menuItem title="Toggle Full Screen" id="m070">
+<modifierMask key="keyEquivalentModifierMask"/>
 <connections><action selector="toggleFullScreenFromMenu:" target="-1" id="m071"/></connections>
+</menuItem>
+<menuItem title="Enter Full Screen" id="m200">
+<modifierMask key="keyEquivalentModifierMask"/>
+<connections><action selector="toggleFullScreen:" target="-1" id="m201"/></connections>
 </menuItem>
 </items>
 </menu>
