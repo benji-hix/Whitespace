@@ -192,6 +192,26 @@ final class WhitespaceDocumentShellTests: XCTestCase {
         XCTAssertFalse(tv.isCoalescingUndo, "the next keystroke after a save must register a new edit")
     }
 
+    /// Paste and drop go through the editor's own `readSelection`. With
+    /// grouping by event (as in the app), an edit is only counted if it
+    /// registers with the undo manager, so this checks that it does.
+    func testPasteRegistersAnUndoableEdit() throws {
+        let (doc, tv) = try openInWindow("hello")
+        let undo = try XCTUnwrap(doc.undoManager)
+        undo.groupsByEvent = true
+        XCTAssertFalse(undo.canUndo)
+
+        let board = NSPasteboard(name: NSPasteboard.Name("whitespace-test-\(UUID().uuidString)"))
+        addTeardownBlock { @MainActor in board.releaseGlobally() }
+        board.clearContents()
+        board.setString(", world", forType: .string)
+        tv.setSelectedRange(NSRange(location: 5, length: 0))
+        XCTAssertTrue(tv.readSelection(from: board))
+
+        XCTAssertEqual(doc.textStorage.string, "hello, world")
+        XCTAssertTrue(undo.canUndo, "a paste must register with the undo manager or NSDocument never counts it")
+    }
+
     /// Appearance repaints rewrite attributes across the whole storage. They
     /// are not edits: no dirty mark, nothing to undo.
     func testThemeAndFontRepaintsAreNotEdits() throws {

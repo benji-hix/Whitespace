@@ -22,16 +22,23 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
 
     /// Save As can change the type; the editor's formatting mode follows it.
     ///
-    /// NSDocument declares `fileType` nonisolated. It is set on the main thread
-    /// here because reads (`canConcurrentlyReadDocuments`) and writes
-    /// (`canAsynchronouslyWrite`) both stay on main.
+    /// NSDocument declares `fileType` nonisolated. Here it is set on the main
+    /// thread, because reads (`canConcurrentlyReadDocuments`) and writes
+    /// (`canAsynchronouslyWrite`) both stay on main; the hop is a guard, not a
+    /// path that runs today.
     override var fileType: String? {
         didSet {
-            MainActor.assumeIsolated {
-                editor?.formattingEnabled = isMarkdown
-                editor?.isRichText = isMarkdown
+            if Thread.isMainThread {
+                MainActor.assumeIsolated { matchEditorToFileType() }
+            } else {
+                Task { @MainActor [weak self] in self?.matchEditorToFileType() }
             }
         }
+    }
+
+    private func matchEditorToFileType() {
+        editor?.formattingEnabled = isMarkdown
+        editor?.isRichText = isMarkdown
     }
 
     var contentType: UTType { fileType.flatMap { UTType($0) } ?? .plainText }
