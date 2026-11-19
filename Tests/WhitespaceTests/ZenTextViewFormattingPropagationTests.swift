@@ -61,7 +61,7 @@ final class ZenTextViewFormattingPropagationTests: XCTestCase, NSTextViewDelegat
 
         selectAllAndBold()
 
-        XCTAssertEqual(textView.currentStyledRuns(),
+        XCTAssertEqual(textView.styledRuns,
                        [StyledRun(text: "hello", bold: true, italic: false)],
                        "storage should carry the bold")
         XCTAssertGreaterThan(changeCount, afterTyping,
@@ -75,7 +75,7 @@ final class ZenTextViewFormattingPropagationTests: XCTestCase, NSTextViewDelegat
         textView.setSelectedRange(NSRange(location: 0, length: 5))
         pressCommand("i", keyCode: 34)
 
-        XCTAssertEqual(textView.currentStyledRuns(),
+        XCTAssertEqual(textView.styledRuns,
                        [StyledRun(text: "hello", bold: false, italic: true)])
         XCTAssertGreaterThan(changeCount, afterTyping)
     }
@@ -92,7 +92,7 @@ final class ZenTextViewFormattingPropagationTests: XCTestCase, NSTextViewDelegat
 
         let undo = try XCTUnwrap(textView.undoManager)
         undo.undo()
-        XCTAssertEqual(textView.currentStyledRuns(), [],
+        XCTAssertEqual(textView.styledRuns, [],
                        "known gap: ⌘Z after ⌘B still unwinds the typing, not the formatting")
     }
 
@@ -105,7 +105,7 @@ final class ZenTextViewFormattingPropagationTests: XCTestCase, NSTextViewDelegat
 
         selectAllAndBold()
 
-        XCTAssertEqual(textView.currentStyledRuns(), [StyledRun(text: "hello", bold: false, italic: false)])
+        XCTAssertEqual(textView.styledRuns, [StyledRun(text: "hello", bold: false, italic: false)])
         XCTAssertEqual(changeCount, afterTyping, "an inert chord must not report a change")
     }
 }

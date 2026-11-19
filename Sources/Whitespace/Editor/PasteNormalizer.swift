@@ -7,6 +7,45 @@ struct StyledRun: Equatable {
     var italic: Bool
 }
 
+extension StyledRun {
+    /// Faithful snapshot of an attributed string as styled runs — text
+    /// verbatim (whitespace and newlines included), the app's font faces
+    /// mapped back to flags. The document calls this at save time on its text
+    /// storage; `PasteNormalizer.attributedString(runs:baseAttributes:)` is
+    /// the reverse.
+    ///
+    /// Faces are recognised by font name, not traits: only the app's own
+    /// faces count, which is what the storage holds.
+    static func runs(in attributed: NSAttributedString) -> [StyledRun] {
+        guard attributed.length > 0 else { return [] }
+        let nsString = attributed.string as NSString
+        var runs: [StyledRun] = []
+        attributed.enumerateAttribute(.font, in: NSRange(location: 0, length: attributed.length)) { value, range, _ in
+            let font = value as? NSFont
+            let bold = isBold(font)
+            let italic = isItalic(font)
+            let text = nsString.substring(with: range)
+            if var last = runs.last, last.bold == bold, last.italic == italic {
+                last.text += text
+                runs[runs.count - 1] = last
+            } else {
+                runs.append(StyledRun(text: text, bold: bold, italic: italic))
+            }
+        }
+        return runs
+    }
+
+    static func isBold(_ font: NSFont?) -> Bool {
+        guard let name = font?.fontName else { return false }
+        return name == WhitespaceFont.bold || name == WhitespaceFont.boldItalic
+    }
+
+    static func isItalic(_ font: NSFont?) -> Bool {
+        guard let name = font?.fontName else { return false }
+        return name == WhitespaceFont.italic || name == WhitespaceFont.boldItalic
+    }
+}
+
 enum PasteNormalizer {
 
     /// Canonical mapping from bold/italic flags to a WhitespaceFont face name.

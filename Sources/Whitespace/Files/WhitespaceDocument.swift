@@ -1,67 +1,83 @@
 // Sources/Whitespace/Files/WhitespaceDocument.swift
-import SwiftUI
+import AppKit
 import UniformTypeIdentifiers
 
-struct WhitespaceDocument: FileDocument {
-    static let markdownType = UTType(importedAs: "net.daringfireball.markdown")
+/// One open file. The document owns its text: `textStorage` is the single
+/// source of truth, laid out and edited directly by the window's `ZenTextView`.
+/// Styled runs and markdown exist only at read and save time.
+///
+/// The storage holds faces only (regular, bold, italic, bold-italic). Size,
+/// paragraph style and colour belong to the editor, which restyles the storage
+/// when it attaches and after any wholesale replacement.
+final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
+    nonisolated static let markdownType = UTType(importedAs: "net.daringfireball.markdown")
 
-    /// SwiftUI's document controller types untitled documents (and defaults
-    /// the save panel's format popup) from the FIRST readable/writable
-    /// entry, ignoring the instance's contentType — so the order of both
-    /// lists must follow the new-files preference.
-    private static var prefersPlainText: Bool {
-        UserDefaults.standard.string(forKey: NewDocumentType.defaultsKey)
-            == NewDocumentType.plainText.rawValue
-    }
+    let textStorage = NSTextStorage()
 
-    static var readableContentTypes: [UTType] {
-        prefersPlainText
-            ? [.plainText, .text, markdownType]
-            : [markdownType, .plainText, .text]
-    }
+    /// The editor showing this document, once its window exists. Wholesale
+    /// replacement needs it to reset scrolling and restyle.
+    weak var editor: ZenTextView?
 
-    static var writableContentTypes: [UTType] {
-        prefersPlainText
-            ? [.plainText, markdownType]
-            : [markdownType, .plainText]
-    }
+    override class var autosavesInPlace: Bool { true }
 
-    /// A new untitled document of the type Settings ▸ Documents ▸ New Files
-    /// asks for.
+    /// Tests save documents in the temporary folder, which has no version
+    /// store, so NSDocument would preserve each old version in
+    /// ~/Library/Autosave Information — the owner's real folder, shared with
+    /// the test host — and leave it there.
+    override class var preservesVersions: Bool { !AppDelegate.isRunningTests }
+
+    /// Save As can change the type; the editor's formatting mode follows it.
     ///
-    /// Reads UserDefaults rather than `PreferencesStore` because
-    /// `DocumentGroup`'s autoclosure is Sendable and cannot reference
-    /// main-actor state — and because the content-type lists above already
-    /// derive from the same key, so this keeps one source of truth rather than
-    /// two that can disagree.
-    static func newUntitled() -> WhitespaceDocument {
-        WhitespaceDocument(contentType: prefersPlainText ? .plainText : markdownType)
-    }
-
-    /// The document's content, styled. Plain-text documents always hold
-    /// plain runs; only markdown documents round-trip bold/italic.
-    var runs: [StyledRun]
-    var contentType: UTType
-
-    var text: String { runs.map(\.text).joined() }
-
-    init(text: String = "", contentType: UTType = .plainText) {
-        self.runs = text.isEmpty
-            ? []
-            : [StyledRun(text: text, bold: false, italic: false)]
-        self.contentType = contentType
-    }
-
-    init(runs: [StyledRun], contentType: UTType) {
-        self.runs = runs
-        self.contentType = contentType
-    }
-
-    init(data: Data, type: UTType) throws {
-        guard !data.isEmpty else {
-            self.init(text: "", contentType: type)
-            return
+    /// NSDocument declares `fileType` nonisolated. Here it is set on the main
+    /// thread, because reads (`canConcurrentlyReadDocuments`) and writes
+    /// (`canAsynchronouslyWrite`) both stay on main; the hop is a guard, not a
+    /// path that runs today.
+    override var fileType: String? {
+        didSet {
+            if Thread.isMainThread {
+                MainActor.assumeIsolated { matchEditorToFileType() }
+            } else {
+                Task { @MainActor [weak self] in self?.matchEditorToFileType() }
+            }
         }
+    }
+
+    private func matchEditorToFileType() {
+        editor?.formattingEnabled = isMarkdown
+        editor?.isRichText = isMarkdown
+    }
+
+    var contentType: UTType { fileType.flatMap { UTType($0) } ?? .plainText }
+    var isMarkdown: Bool { contentType.conforms(to: Self.markdownType) }
+    var runs: [StyledRun] { StyledRun.runs(in: textStorage) }
+
+    /// The save panel's format picker. The Plain Text document type lists
+    /// three text UTIs so the app can open them all, but it saves only one.
+    override func writableTypes(for saveOperation: NSDocument.SaveOperationType) -> [String] {
+        [Self.markdownType.identifier, UTType.plainText.identifier]
+    }
+
+    override func makeWindowControllers() {
+        guard let app = NSApp.delegate as? AppDelegate else { return }
+        addWindowController(DocumentWindowController(
+            document: self,
+            themeStore: app.themeStore,
+            preferences: app.preferencesStore,
+            keybindingStore: app.keybindingStore
+        ))
+    }
+
+    // MARK: - Reading
+
+    nonisolated override func read(from data: Data, ofType typeName: String) throws {
+        let runs = try Self.decode(data, type: UTType(typeName) ?? .plainText)
+        // canConcurrentlyReadDocuments is false, so AppKit reads documents on
+        // the main thread; the storage is main-actor state.
+        MainActor.assumeIsolated { replaceContent(with: runs) }
+    }
+
+    nonisolated static func decode(_ data: Data, type: UTType) throws -> [StyledRun] {
+        guard !data.isEmpty else { return [] }
         let string: String
         if let utf8 = String(data: data, encoding: .utf8) {
             string = utf8
@@ -70,48 +86,85 @@ struct WhitespaceDocument: FileDocument {
         } else {
             throw CocoaError(.fileReadInapplicableStringEncoding)
         }
-        if type.conforms(to: Self.markdownType) {
-            self.init(runs: MarkdownText.decode(string), contentType: type)
-        } else {
-            self.init(text: string, contentType: type)
+        if type.conforms(to: markdownType) {
+            return MarkdownText.decode(string)
         }
+        return [StyledRun(text: string, bold: false, italic: false)]
     }
 
-    init(configuration: ReadConfiguration) throws {
-        let type = configuration.contentType
-        let data = configuration.file.regularFileContents ?? Data()
-        try self.init(data: data, type: type)
+    /// The only way content is replaced wholesale (open, revert, restoration).
+    /// The steps stay together: the scroll anchor and the undo stack both refer
+    /// to the old content, and the new content arrives as bare faces.
+    func replaceContent(with runs: [StyledRun]) {
+        editor?.invalidateScrollAnchor()
+        undoManager?.removeAllActions()
+        textStorage.setAttributedString(
+            PasteNormalizer.attributedString(runs: runs, baseAttributes: [:])
+        )
+        editor?.restyleContent()
     }
 
-    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let data = try approvedData(for: configuration.contentType)
-        return FileWrapper(regularFileWithContents: data)
+    // MARK: - Writing
+
+    /// Every save, autosaves included, is a point where typing must stop
+    /// coalescing. NSTextView folds consecutive keystrokes into one undo
+    /// action, and NSDocument counts edits by undo group; typing that carried
+    /// on after a save joined the action from before it, so the document
+    /// stayed clean and was never autosaved again.
+    override func save(to url: URL, ofType typeName: String,
+                       for saveOperation: NSDocument.SaveOperationType,
+                       completionHandler: @escaping (Error?) -> Void) {
+        editor?.breakUndoCoalescing()
+        super.save(to: url, ofType: typeName, for: saveOperation, completionHandler: completionHandler)
     }
 
-    /// The write, minus SwiftUI's `WriteConfiguration` — which has no public
-    /// initializer, so this is the deepest point a test can drive.
-    ///
-    /// Throws `userCancelled` when the user declines to flatten, which is the
-    /// code NSDocument treats as "abandon quietly, show no error".
+    override func data(ofType typeName: String) throws -> Data {
+        try approvedData(for: UTType(typeName) ?? .plainText)
+    }
+
+    /// The write, minus NSDocument. Throws `userCancelled` when the user
+    /// declines to flatten, which NSDocument treats as "abandon quietly".
     func approvedData(
         for type: UTType,
         defaults: UserDefaults = .standard,
         ask: @escaping @MainActor (UserDefaults) -> Bool = { PlainTextConversionGate.presentWarning(defaults: $0) }
     ) throws -> Data {
+        let runs = runs
         if !type.conforms(to: Self.markdownType),
            !PlainTextConversionGate.approveFlattening(runs: runs, defaults: defaults, ask: ask) {
             throw CocoaError(.userCancelled)
         }
-        return try encodedData(for: type)
+        return try Self.encode(runs, for: type)
     }
 
     func encodedData(for type: UTType) throws -> Data {
-        let string = type.conforms(to: Self.markdownType)
+        try Self.encode(runs, for: type)
+    }
+
+    private static func encode(_ runs: [StyledRun], for type: UTType) throws -> Data {
+        let string = type.conforms(to: markdownType)
             ? MarkdownText.encode(runs: runs)
-            : text
+            : runs.map(\.text).joined()
         guard let data = string.data(using: .utf8) else {
             throw CocoaError(.fileWriteInapplicableStringEncoding)
         }
         return data
+    }
+
+    // MARK: - NSTextViewDelegate
+
+    /// Through the delegate rather than the window, so the editor and the
+    /// document share one undo stack wherever the view is hosted.
+    func undoManager(for view: NSTextView) -> UndoManager? { undoManager }
+
+    func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange,
+                  replacementString: String?) -> Bool {
+        // A nil replacement is an attribute-only edit (⌘B/⌘I on a selection).
+        // TextKit 2 registers no undo action for it, so NSDocument, which
+        // counts edits through the undo manager, would never mark the document
+        // edited. Text edits are already counted; counting them here too would
+        // leave the document dirty after undoing back to the saved state.
+        if replacementString == nil { updateChangeCount(.changeDone) }
+        return true
     }
 }

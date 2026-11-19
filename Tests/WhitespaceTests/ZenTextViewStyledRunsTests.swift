@@ -21,7 +21,7 @@ final class ZenTextViewStyledRunsTests: XCTestCase {
     }
 
     func testEmptyStorageExtractsNoRuns() {
-        XCTAssertEqual(makeView().currentStyledRuns(), [])
+        XCTAssertEqual(makeView().styledRuns, [])
     }
 
     func testRoundTripThroughStorage() {
@@ -35,13 +35,13 @@ final class ZenTextViewStyledRunsTests: XCTestCase {
         tv.textStorage?.setAttributedString(
             PasteNormalizer.attributedString(runs: original, baseAttributes: tv.typingAttributes)
         )
-        XCTAssertEqual(tv.currentStyledRuns(), original)
+        XCTAssertEqual(tv.styledRuns, original)
     }
 
     func testPlainTypingExtractsSinglePlainRun() {
         let tv = makeView()
         tv.insertText("hello world", replacementRange: NSRange(location: 0, length: 0))
-        XCTAssertEqual(tv.currentStyledRuns(), [run("hello world")])
+        XCTAssertEqual(tv.styledRuns, [run("hello world")])
     }
 
     func testBoldToggleProducesBoldRun() {
@@ -53,6 +53,6 @@ final class ZenTextViewStyledRunsTests: XCTestCase {
             isARepeat: false, keyCode: 11
         )!)
         tv.insertText("b", replacementRange: NSRange(location: 1, length: 0))
-        XCTAssertEqual(tv.currentStyledRuns(), [run("a"), run("b", bold: true)])
+        XCTAssertEqual(tv.styledRuns, [run("a"), run("b", bold: true)])
     }
 }

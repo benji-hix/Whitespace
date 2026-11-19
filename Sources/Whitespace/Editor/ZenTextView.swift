@@ -51,7 +51,15 @@ final class ZenTextView: NSTextView {
     // MARK: - Init (TextKit 2 stack)
 
     override convenience init(frame: NSRect) {
+        self.init(frame: frame, textStorage: NSTextStorage())
+    }
+
+    /// Builds the TextKit 2 stack on a text storage someone else owns — in the
+    /// app, the document's. `NSTextContentStorage.textStorage` is settable, so
+    /// the document's storage is the one the editor lays out and edits.
+    convenience init(frame: NSRect, textStorage: NSTextStorage) {
         let contentStorage = NSTextContentStorage()
+        contentStorage.textStorage = textStorage
         let layoutManager  = NSTextLayoutManager()
         let container = NSTextContainer(
             size: NSSize(width: frame.width, height: .greatestFiniteMagnitude)
@@ -580,11 +588,40 @@ final class ZenTextView: NSTextView {
 
     // MARK: - Apply Theme/Prefs
 
+    // The last values applied, so a wholesale content replacement can restyle
+    // the new content the same way.
+    private var appliedFont: (size: CGFloat, lineHeightMultiple: CGFloat)?
+    private var appliedColors: (text: NSColor, cursor: NSColor, selection: NSColor)?
+
+    /// The one setup path for a fresh editor: font, then colour, applied to
+    /// the content already in the attached storage. The order matters because
+    /// `applyFont` replaces `typingAttributes` wholesale; colour applied first
+    /// was dropped, and a document opened in the dark theme drew in black.
+    func setUp(fontSize: CGFloat, lineHeightMultiple: CGFloat,
+               text: NSColor, cursor: NSColor, selection: NSColor) {
+        applyFont(size: fontSize, lineHeightMultiple: lineHeightMultiple)
+        applyColors(text: text, cursor: cursor, selection: selection)
+    }
+
+    /// Re-applies the current font and colour to the whole storage, after its
+    /// content was replaced wholesale (revert, restoration). The document
+    /// stores faces only, so new content arrives without size, paragraph
+    /// style or colour.
+    func restyleContent() {
+        if let font = appliedFont {
+            applyFont(size: font.size, lineHeightMultiple: font.lineHeightMultiple)
+        }
+        if let colors = appliedColors {
+            applyColors(text: colors.text, cursor: colors.cursor, selection: colors.selection)
+        }
+    }
+
     func applyTheme(_ theme: Theme) {
         applyColors(text: theme.textColor, cursor: theme.cursorColor, selection: theme.selectionColor)
     }
 
     func applyColors(text: NSColor, cursor: NSColor, selection: NSColor) {
+        appliedColors = (text, cursor, selection)
         textColor                  = text
         insertionPointColor        = cursor
         selectedTextAttributes     = [.backgroundColor: selection]
@@ -601,6 +638,7 @@ final class ZenTextView: NSTextView {
     }
 
     func applyFont(size: CGFloat, lineHeightMultiple: CGFloat) {
+        appliedFont = (size, lineHeightMultiple)
         let pStyle = NSMutableParagraphStyle()
         pStyle.lineHeightMultiple = lineHeightMultiple
         pStyle.paragraphSpacing = 4
@@ -617,43 +655,10 @@ final class ZenTextView: NSTextView {
         storage.endEditing()
     }
 
-    // MARK: - Styled-run extraction
-
-    /// Faithful snapshot of the storage as styled runs — text verbatim
-    /// (whitespace and newlines included), the app's font faces mapped back
-    /// to flags. This is the editor→document direction of the sync;
-    /// PasteNormalizer.attributedString(runs:baseAttributes:) is the
-    /// reverse.
-    func currentStyledRuns() -> [StyledRun] {
-        guard let storage = textStorage, storage.length > 0 else { return [] }
-        let nsString = storage.string as NSString
-        var runs: [StyledRun] = []
-        storage.enumerateAttributes(in: NSRange(location: 0, length: storage.length)) { attrs, range, _ in
-            let font = attrs[.font] as? NSFont
-            let bold = isBoldFont(font)
-            let italic = isItalicFont(font)
-            let text = nsString.substring(with: range)
-            if var last = runs.last, last.bold == bold, last.italic == italic {
-                last.text += text
-                runs[runs.count - 1] = last
-            } else {
-                runs.append(StyledRun(text: text, bold: bold, italic: italic))
-            }
-        }
-        return runs
-    }
-
     // MARK: - Bold / Italic
 
-    private func isBoldFont(_ font: NSFont?) -> Bool {
-        guard let name = font?.fontName else { return false }
-        return name == WhitespaceFont.bold || name == WhitespaceFont.boldItalic
-    }
-
-    private func isItalicFont(_ font: NSFont?) -> Bool {
-        guard let name = font?.fontName else { return false }
-        return name == WhitespaceFont.italic || name == WhitespaceFont.boldItalic
-    }
+    private func isBoldFont(_ font: NSFont?) -> Bool { StyledRun.isBold(font) }
+    private func isItalicFont(_ font: NSFont?) -> Bool { StyledRun.isItalic(font) }
 
     private func fontName(bold: Bool, italic: Bool) -> String {
         PasteNormalizer.fontName(bold: bold, italic: italic)
@@ -684,17 +689,10 @@ final class ZenTextView: NSTextView {
         let range = selectedRange()
         if range.length > 0 {
             // An attribute-only edit still has to go through NSTextView's change
-            // contract. `shouldChangeText` registers the undo grouping — a nil
-            // replacement string is how AppKit is told "attributes only" — and
-            // `didChangeText` fires the delegate that pushes currentStyledRuns()
-            // into the document.
-            //
-            // Without them ⌘B on a selection changed the text storage and
-            // nothing else: the bold rendered on screen, the document's runs
-            // never heard about it, so it was absent from the save, absent from
-            // the flatten warning's formatting check, and not undoable. Typing
-            // after ⌘B looked fine only because insertText fires didChangeText
-            // for its own reasons.
+            // contract. A nil replacement string is how AppKit is told
+            // "attributes only", and it is how the document's delegate knows to
+            // count the edit: TextKit 2 registers no undo action for it, so
+            // NSDocument would otherwise never mark the document edited.
             guard shouldChangeText(in: range, replacementString: nil) else { return }
             textStorage?.addAttribute(.font, value: newFont, range: range)
             didChangeText()

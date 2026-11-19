@@ -18,11 +18,13 @@ targets:
       path: Sources/Whitespace/App/Info.plist
       properties:
         NSPrincipalClass: NSApplication
+        NSMainNibFile: MainMenu
         CFBundleDisplayName: Whitespace
         CFBundleDocumentTypes:
           - CFBundleTypeName: Plain Text
             CFBundleTypeRole: Editor
             LSHandlerRank: Alternate
+            NSDocumentClass: Whitespace.WhitespaceDocument
             LSItemContentTypes:
               - public.plain-text
               - public.text
@@ -30,6 +32,7 @@ targets:
           - CFBundleTypeName: Markdown Document
             CFBundleTypeRole: Editor
             LSHandlerRank: Alternate
+            NSDocumentClass: Whitespace.WhitespaceDocument
             LSItemContentTypes:
               - net.daringfireball.markdown
         UTImportedTypeDeclarations:
@@ -81,3 +84,8 @@ schemes:
     test:
       targets:
         - WhitespaceTests
+      # The test host is the real app under the owner's bundle id; it must not
+      # reopen the owner's last session. xcodebuild passes this today; it is
+      # declared so it does not depend on that.
+      commandLineArguments:
+        "-ApplePersistenceIgnoreState YES": true

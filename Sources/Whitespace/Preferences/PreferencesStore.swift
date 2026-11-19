@@ -15,8 +15,8 @@ enum ColumnWidth: String, CaseIterable, Codable {
 enum NewDocumentType: String, CaseIterable, Codable {
     case markdown, plainText
 
-    /// Shared with WhitespaceDocument, whose static writableContentTypes
-    /// must consult the preference outside any store instance.
+    /// Shared with WhitespaceDocumentController, which types new untitled
+    /// documents from it outside any store instance.
     static let defaultsKey = "whitespace.prefs.newDocumentType"
 }
 
