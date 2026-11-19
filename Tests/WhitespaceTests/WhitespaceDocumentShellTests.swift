@@ -50,15 +50,29 @@ final class WhitespaceDocumentShellTests: XCTestCase {
         spinRunLoop()
         let editor = try XCTUnwrap(doc.editor, "the hosted editor should register with its document")
         window.makeFirstResponder(editor)
+        doc.undoManager?.groupsByEvent = false
         return (doc, editor)
     }
 
-    /// Typing opens an automatic undo group that AppKit's event loop closes at
-    /// the end of each event; NSDocument counts the edit when it closes. A test
-    /// has no event loop, so it closes the group the same way.
-    private func endEvent(_ doc: WhitespaceDocument) {
-        if let undo = doc.undoManager, undo.groupingLevel > 0 { undo.endUndoGrouping() }
+    /// One keyboard event, as AppKit's event loop frames it: an undo group
+    /// opened before the action and closed after. NSDocument counts an edit
+    /// when a non-empty group closes. Tests have no event loop, so the test
+    /// window's undo manager groups explicitly (see `openInWindow`).
+    private func asOneEvent(_ doc: WhitespaceDocument, _ action: () -> Void) {
+        let undo = doc.undoManager!
+        undo.beginUndoGrouping()
+        action()
+        undo.endUndoGrouping()
         spinRunLoop()
+    }
+
+    /// A plain keystroke through `keyDown`, the path NSTextView coalesces
+    /// typing on (programmatic `insertText` does not coalesce).
+    private func typeKey(_ tv: ZenTextView, _ character: String, keyCode: UInt16) {
+        tv.keyDown(with: NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+            windowNumber: tv.window?.windowNumber ?? 0, context: nil, characters: character,
+            charactersIgnoringModifiers: character, isARepeat: false, keyCode: keyCode)!)
     }
 
     private func pressCommandB(_ tv: ZenTextView) {
@@ -132,7 +146,7 @@ final class WhitespaceDocumentShellTests: XCTestCase {
         XCTAssertFalse(doc.isDocumentEdited)
 
         tv.setSelectedRange(NSRange(location: 0, length: 5))
-        pressCommandB(tv)
+        asOneEvent(doc) { pressCommandB(tv) }
 
         XCTAssertEqual(doc.runs, [StyledRun(text: "hello", bold: true, italic: false)])
         XCTAssertTrue(doc.isDocumentEdited)
@@ -143,14 +157,39 @@ final class WhitespaceDocumentShellTests: XCTestCase {
     func testTypingThenUndoingReturnsTheDocumentToClean() throws {
         let (doc, tv) = try openInWindow("hello")
 
-        tv.insertText("!", replacementRange: NSRange(location: 5, length: 0))
-        endEvent(doc)
+        asOneEvent(doc) { tv.insertText("!", replacementRange: NSRange(location: 5, length: 0)) }
         XCTAssertTrue(doc.isDocumentEdited)
 
         tv.undoManager?.undo()
-        endEvent(doc)
+        spinRunLoop()
         XCTAssertEqual(doc.textStorage.string, "hello")
         XCTAssertFalse(doc.isDocumentEdited)
+    }
+
+    /// NSTextView folds consecutive typing into one undo action. Typing that
+    /// continues after a save would join the action registered before it.
+    /// AppKit opens an undo group only when something registers, so no group
+    /// opens, NSDocument hears of no edit, and the document stays clean: never
+    /// autosaved, and closable without a prompt. Seen in the running app.
+    ///
+    /// Tested through the coalescing state rather than the change count,
+    /// because a test has no event loop to open and close groups by event.
+    func testASaveBreaksTypingCoalescing() throws {
+        let (doc, tv) = try openInWindow("hello")
+        let url = try XCTUnwrap(doc.fileURL)
+
+        tv.setSelectedRange(NSRange(location: 5, length: 0))
+        asOneEvent(doc) { typeKey(tv, "a", keyCode: 0) }
+        XCTAssertTrue(tv.isCoalescingUndo, "precondition: keyboard typing coalesces")
+
+        let saved = expectation(description: "autosave finished")
+        doc.save(to: url, ofType: markdown.identifier, for: .autosaveInPlaceOperation) { error in
+            XCTAssertNil(error)
+            saved.fulfill()
+        }
+        wait(for: [saved], timeout: 5)
+
+        XCTAssertFalse(tv.isCoalescingUndo, "the next keystroke after a save must register a new edit")
     }
 
     /// Appearance repaints rewrite attributes across the whole storage. They

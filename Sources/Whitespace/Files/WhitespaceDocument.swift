@@ -93,6 +93,18 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
 
     // MARK: - Writing
 
+    /// Every save, autosaves included, is a point where typing must stop
+    /// coalescing. NSTextView folds consecutive keystrokes into one undo
+    /// action, and NSDocument counts edits by undo group; typing that carried
+    /// on after a save joined the action from before it, so the document
+    /// stayed clean and was never autosaved again.
+    override func save(to url: URL, ofType typeName: String,
+                       for saveOperation: NSDocument.SaveOperationType,
+                       completionHandler: @escaping (Error?) -> Void) {
+        editor?.breakUndoCoalescing()
+        super.save(to: url, ofType: typeName, for: saveOperation, completionHandler: completionHandler)
+    }
+
     override func data(ofType typeName: String) throws -> Data {
         try approvedData(for: UTType(typeName) ?? .plainText)
     }
