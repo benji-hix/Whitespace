@@ -127,7 +127,7 @@ Rules that must not regress:
 
 ## 5. Deliberate debt and open items
 
-**Open gap — the Settings window exposes no accessibility elements.** `entire contents` of `Whitespace Settings` returns zero elements over the accessibility API, so VoiceOver and any assistive tooling cannot reach a single control; document windows expose their text areas normally. Suspect the custom window styling (transparent titlebar, `fullSizeContentView`, clear background — now set in `SettingsWindowController`) combined with `.ultraThinMaterial`. Not re-checked after the shell move; not investigated further — noted because it is an accessibility defect, not a cosmetic one.
+**No longer reproduces — the Settings window exposed no accessibility elements.** Recorded earlier as zero elements over the accessibility API. Re-checked 2026-11-18 on both the old shell and the new `SettingsWindowController`: 36 elements each, every control reachable. Cause of the earlier reading unknown; re-check if assistive tooling reports it again.
 
 **Open gap — ⌘B is not independently undoable.** AppKit records no attribute-restoring action for `shouldChangeText(in:replacementString: nil)` under TextKit 2, so ⌘Z after a formatting change unwinds the typing rather than the formatting. Pre-existing and separate from the propagation fix below; pinned by `testFormattingIsNotYetIndependentlyUndoable` so the day it changes, that test fails and gets updated. Fixing it means registering the old attributed substring with the undo manager by hand.
 
