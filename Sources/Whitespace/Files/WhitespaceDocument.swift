@@ -20,6 +20,12 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
 
     override class var autosavesInPlace: Bool { true }
 
+    /// Tests save documents in the temporary folder, which has no version
+    /// store, so NSDocument would preserve each old version in
+    /// ~/Library/Autosave Information — the owner's real folder, shared with
+    /// the test host — and leave it there.
+    override class var preservesVersions: Bool { !AppDelegate.isRunningTests }
+
     /// Save As can change the type; the editor's formatting mode follows it.
     ///
     /// NSDocument declares `fileType` nonisolated. Here it is set on the main
