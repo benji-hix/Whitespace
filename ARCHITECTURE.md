@@ -18,7 +18,7 @@ NSDocument provides — natively, do not hand-roll any of these — untitled doc
 
 **Shell.** AppKit runs the lifecycle directly. `main.swift` sets `AppDelegate` and calls `NSApplicationMain`, which loads `MainMenu.xib` (the menu bar, nothing else). `AppDelegate.applicationWillFinishLaunching` registers the Crimson Pro faces **first** — faces are recognised by font name, so a read before registration flattens bold and italic silently — then instantiates `WhitespaceDocumentController`, which becomes `shared` and types untitled documents from the New Files preference. `applicationShouldOpenUntitledFile` is a real delegate method now and a cold launch lands on a blank page. Under XCTest the delegate opens no untitled window and neither saves nor restores window state, because the hosted test bundle launches the real app with the owner's bundle id.
 
-`DocumentWindowController` builds each document window once: hidden title bar and traffic lights, `fullSizeContentView`, tabs disallowed, cascaded. It hosts `CanvasView` in an `NSHostingView` and owns that window's `CanvasUIState`. `SettingsWindowController` hosts `PreferencesView` at the pane's designed size.
+`DocumentWindowController` builds each document window once: hidden title bar and traffic lights, `fullSizeContentView`, tabs disallowed, cascaded. It hosts `CanvasView` in an `NSHostingView` and owns that window's `CanvasUIState`. `SettingsWindowController` hosts `PreferencesView` at the pane's designed size; Escape and ⌘, close it as well as ⌘W (⌘, brings it forward instead when it is behind a document window).
 
 ### Stores (state layer)
 

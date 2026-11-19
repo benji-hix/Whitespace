@@ -87,6 +87,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             themeStore: themeStore
         )
         settingsWindowController = controller
-        controller.showWindow(sender)
+        if let window = controller.window,
+           SettingsWindowController.shouldClose(isVisible: window.isVisible, isKey: window.isKeyWindow) {
+            window.performClose(sender)
+        } else {
+            controller.showWindow(sender)
+        }
     }
 }
