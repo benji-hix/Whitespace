@@ -7,6 +7,7 @@ import SwiftUI
 /// state, which the View menu reaches through the responder chain.
 final class DocumentWindowController: NSWindowController, NSWindowDelegate {
     let ui = CanvasUIState()
+    private static var cascadePoint = NSPoint.zero
 
     init(document: WhitespaceDocument, themeStore: ThemeStore,
          preferences: PreferencesStore, keybindingStore: KeybindingStore) {
@@ -26,6 +27,9 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate {
         window.contentMinSize = NSSize(width: 600, height: 400)
         window.isRestorable = !AppDelegate.isRunningTests
         window.center()
+        // Code-built windows don't cascade on their own; without this every
+        // new document opens exactly on top of the last.
+        Self.cascadePoint = window.cascadeTopLeft(from: Self.cascadePoint)
 
         super.init(window: window)
         window.delegate = self
