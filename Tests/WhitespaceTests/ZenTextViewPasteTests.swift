@@ -77,7 +77,7 @@ final class ZenTextViewPasteTests: XCTestCase {
         let ok = tv.readSelection(from: pasteboard(with: src))
         XCTAssertTrue(ok)
 
-        XCTAssertEqual(tv.currentStyledRuns(), [StyledRun(text: "loud", bold: false, italic: false)])
+        XCTAssertEqual(tv.styledRuns, [StyledRun(text: "loud", bold: false, italic: false)])
     }
 
     func testPasteReplacesSelectionAndFiresChangeNotification() {

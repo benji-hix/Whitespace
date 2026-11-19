@@ -2,15 +2,15 @@
 import SwiftUI
 
 struct CanvasView: View {
-    @Binding var document: WhitespaceDocument
+    let document: WhitespaceDocument
+    /// Owned by the window controller, so menu actions reach this window's
+    /// overlays through the responder chain.
+    @Bindable var ui: CanvasUIState
 
     @Environment(ThemeStore.self) private var themeStore
     @Environment(PreferencesStore.self) private var prefs
     @Environment(KeybindingStore.self) private var keybindingStore
 
-    // Per-window: each document window owns its overlay state; the menu
-    // bar reaches the key window's copy via the focused-value system.
-    @State private var ui = CanvasUIState()
     @State private var autoDismissTask: Task<Void, Never>?
     @State private var editorFocusRequest = 0
 
@@ -36,8 +36,6 @@ struct CanvasView: View {
     }
 
     var body: some View {
-        @Bindable var ui = ui
-
         GeometryReader { geo in
             ZStack {
                 // Layer 1: Background
@@ -47,12 +45,11 @@ struct CanvasView: View {
                 HStack {
                     Spacer(minLength: 0)
                     ZenTextViewRepresentable(
-                        runs: $document.runs,
+                        document: document,
                         themeStore: themeStore,
                         preferences: prefs,
                         keybindingStore: keybindingStore,
-                        focusRequestID: editorFocusRequest,
-                        formattingEnabled: document.contentType.conforms(to: WhitespaceDocument.markdownType)
+                        focusRequestID: editorFocusRequest
                     )
                     .frame(maxWidth: prefs.columnWidth.maxPoints, maxHeight: .infinity)
                     .mask { edgeFade(forHeight: geo.size.height) }
@@ -79,7 +76,6 @@ struct CanvasView: View {
                 .allowsHitTesting(ui.showShortcutOverlay)
             }
         }
-        .focusedSceneValue(\.canvasUI, ui)
         .animation(.easeInOut(duration: 0.15), value: ui.showCommandPalette)
         .animation(.timingCurve(0.6, 0.0, 0.4, 1.0, duration: 0.6), value: ui.showShortcutOverlay)
         .onChange(of: ui.showCommandPalette) { _, isOn in

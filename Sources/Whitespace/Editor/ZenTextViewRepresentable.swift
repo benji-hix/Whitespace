@@ -2,8 +2,11 @@
 import AppKit
 import SwiftUI
 
+/// Hosts the editor for one document. The document's text storage is the
+/// editor's storage, so there is no content to sync in either direction: this
+/// only forwards appearance and preferences.
 struct ZenTextViewRepresentable: NSViewRepresentable {
-    @Binding var runs: [StyledRun]
+    let document: WhitespaceDocument
     let themeStore: ThemeStore
     let preferences: PreferencesStore
     let keybindingStore: KeybindingStore
@@ -14,10 +17,6 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
     /// back (e.g. after the command palette is dismissed).
     var focusRequestID: Int = 0
 
-    /// False for plain-text documents: formatting chords go inert and
-    /// paste strips all styling.
-    var formattingEnabled: Bool = true
-
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
         scrollView.hasVerticalScroller = false
@@ -26,26 +25,24 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
         scrollView.wantsLayer = true
         scrollView.contentView.wantsLayer = true
 
-        let textView = ZenTextView(frame: .zero)
+        let textView = ZenTextView(frame: .zero, textStorage: document.textStorage)
         textView.minSize = NSSize(width: 0, height: 0)
         textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
-        textView.delegate = context.coordinator
+        textView.delegate = document
         textView.keybindingStore = keybindingStore
-        textView.formattingEnabled = formattingEnabled
-        textView.isRichText = formattingEnabled
-        textView.applyColors(
+        // False for plain-text documents: formatting chords go inert and paste
+        // strips all styling. The document keeps it current across Save As.
+        textView.formattingEnabled = document.isMarkdown
+        textView.isRichText = document.isMarkdown
+        textView.setUp(
+            fontSize: CGFloat(preferences.fontSize),
+            lineHeightMultiple: preferences.lineHeightMultiple,
             text: themeStore.displayedTextColor,
             cursor: themeStore.displayedCursorColor,
             selection: themeStore.displayedSelectionColor
         )
-        textView.applyFont(
-            size: CGFloat(preferences.fontSize),
-            lineHeightMultiple: preferences.lineHeightMultiple
-        )
         textView.scrollSpeed = preferences.scrollSpeed
-        textView.textStorage?.setAttributedString(
-            PasteNormalizer.attributedString(runs: runs, baseAttributes: textView.typingAttributes)
-        )
+        document.editor = textView
         wire(textView)
 
         // Sync coordinator tracking state to avoid redundant calls on first updateNSView
@@ -67,12 +64,7 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? ZenTextView else { return }
 
-        // Issue 5: Keep coordinator's parent reference fresh
-        context.coordinator.parent = self
-
         textView.keybindingStore = keybindingStore
-        textView.formattingEnabled = formattingEnabled
-        textView.isRichText = formattingEnabled
 
         // Issue 2: Only apply font/theme when values actually changed
         let newSize = CGFloat(preferences.fontSize)
@@ -104,26 +96,10 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
             textView.window?.makeFirstResponder(textView)
         }
 
-        // Only sync content if changed externally (e.g. document revert,
-        // restoration). Rebuilding from runs applies the current font,
-        // colors and paragraph style via the typing attributes.
-        if textView.currentStyledRuns() != runs {
-            // The cached scroll target refers to the previous content's
-            // layout. After replacing the content, invalidate so the next
-            // recenter snaps unconditionally.
-            textView.invalidateScrollAnchor()
-            // The undo stack refers to the previous content; undo after a
-            // wholesale replacement must not resurrect it.
-            textView.undoManager?.removeAllActions()
-            textView.textStorage?.setAttributedString(
-                PasteNormalizer.attributedString(runs: runs, baseAttributes: textView.typingAttributes)
-            )
-        }
-
         wire(textView)
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
     private func wire(_ textView: ZenTextView) {
         let prefs = preferences
@@ -133,25 +109,12 @@ struct ZenTextViewRepresentable: NSViewRepresentable {
 
     // MARK: - Coordinator
 
-    final class Coordinator: NSObject, NSTextViewDelegate {
-        var parent: ZenTextViewRepresentable
+    final class Coordinator {
         var lastFontSize: CGFloat = 0
         var lastLineHeight: CGFloat = 0
         var lastTheme: Theme? = nil
         var lastProgress: Double = .nan
         var lastScrollSpeed: Double = .nan
         var lastFocusRequestID: Int = 0
-
-        init(_ parent: ZenTextViewRepresentable) {
-            self.parent = parent
-        }
-
-        func textDidChange(_ notification: Notification) {
-            guard let textView = notification.object as? ZenTextView else { return }
-            let current = textView.currentStyledRuns()
-            if parent.runs != current {
-                parent.runs = current
-            }
-        }
     }
 }

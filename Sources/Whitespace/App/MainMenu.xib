@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24000" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<dependencies>
+<plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24000"/>
+</dependencies>
+<objects>
+<customObject id="-2" userLabel="File's Owner" customClass="NSApplication"/>
+<customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+<customObject id="-3" userLabel="Application" customClass="NSObject"/>
+<menu title="Main Menu" systemMenu="main" id="mainmenu">
+<items>
+<menuItem title="Whitespace" id="m020">
+<modifierMask key="keyEquivalentModifierMask"/>
+<menu key="submenu" title="Whitespace" systemMenu="apple" id="m019">
+<items>
+<menuItem title="About Whitespace" id="m001">
+<modifierMask key="keyEquivalentModifierMask"/>
+<connections><action selector="orderFrontStandardAboutPanel:" target="-1" id="m002"/></connections>
+</menuItem>
+<menuItem isSeparatorItem="YES" id="m003"/>
+<menuItem title="Settings…" keyEquivalent="," id="m004">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="showSettingsWindow:" target="-1" id="m005"/></connections>
+</menuItem>
+<menuItem isSeparatorItem="YES" id="m006"/>
+<menuItem title="Services" id="m008">
+<modifierMask key="keyEquivalentModifierMask"/>
+<menu key="submenu" title="Services" systemMenu="services" id="m007">
+<items>
+
+</items>
+</menu>
+</menuItem>
+<menuItem isSeparatorItem="YES" id="m009"/>
+<menuItem title="Hide Whitespace" keyEquivalent="h" id="m010">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="hide:" target="-1" id="m011"/></connections>
+</menuItem>
+<menuItem title="Hide Others" keyEquivalent="h" id="m012">
+<modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+<connections><action selector="hideOtherApplications:" target="-1" id="m013"/></connections>
+</menuItem>
+<menuItem title="Show All" id="m014">
+<modifierMask key="keyEquivalentModifierMask"/>
+<connections><action selector="unhideAllApplications:" target="-1" id="m015"/></connections>
+</menuItem>
+<menuItem isSeparatorItem="YES" id="m016"/>
+<menuItem title="Quit Whitespace" keyEquivalent="q" id="m017">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="terminate:" target="-1" id="m018"/></connections>
+</menuItem>
+</items>
+</menu>
+</menuItem>
+<menuItem title="File" id="m043">
+<modifierMask key="keyEquivalentModifierMask"/>
+<menu key="submenu" title="File" id="m042">
+<items>
+<menuItem title="New" keyEquivalent="n" id="m021">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="newDocument:" target="-1" id="m022"/></connections>
+</menuItem>
+<menuItem title="Open…" keyEquivalent="o" id="m023">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="openDocument:" target="-1" id="m024"/></connections>
+</menuItem>
+<menuItem title="Open Recent" id="m028">
+<modifierMask key="keyEquivalentModifierMask"/>
+<menu key="submenu" title="Open Recent" systemMenu="recentDocuments" id="m027">
+<items>
+<menuItem title="Clear Menu" id="m025">
+<modifierMask key="keyEquivalentModifierMask"/>
+<connections><action selector="clearRecentDocuments:" target="-1" id="m026"/></connections>
+</menuItem>
+</items>
+</menu>
+</menuItem>
+<menuItem isSeparatorItem="YES" id="m029"/>
+<menuItem title="Close" keyEquivalent="w" id="m030">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="performClose:" target="-1" id="m031"/></connections>
+</menuItem>
+<menuItem title="Save" keyEquivalent="s" id="m032">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="saveDocument:" target="-1" id="m033"/></connections>
+</menuItem>
+<menuItem title="Duplicate" keyEquivalent="s" id="m034">
+<modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
+<connections><action selector="duplicateDocument:" target="-1" id="m035"/></connections>
+</menuItem>
+<menuItem title="Save As…" keyEquivalent="s" alternate="YES" id="m036">
+<modifierMask key="keyEquivalentModifierMask" shift="YES" option="YES" command="YES"/>
+<connections><action selector="saveDocumentAs:" target="-1" id="m037"/></connections>
+</menuItem>
+<menuItem title="Rename…" id="m038">
+<modifierMask key="keyEquivalentModifierMask"/>
+<connections><action selector="renameDocument:" target="-1" id="m039"/></connections>
+</menuItem>
+<menuItem title="Move To…" id="m040">
+<modifierMask key="keyEquivalentModifierMask"/>
+<connections><action selector="moveDocument:" target="-1" id="m041"/></connections>
+</menuItem>
+</items>
+</menu>
+</menuItem>
+<menuItem title="Edit" id="m060">
+<modifierMask key="keyEquivalentModifierMask"/>
+<menu key="submenu" title="Edit" id="m059">
+<items>
+<menuItem title="Undo" keyEquivalent="z" id="m044">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="undo:" target="-1" id="m045"/></connections>
+</menuItem>
+<menuItem title="Redo" keyEquivalent="z" id="m046">
+<modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
+<connections><action selector="redo:" target="-1" id="m047"/></connections>
+</menuItem>
+<menuItem isSeparatorItem="YES" id="m048"/>
+<menuItem title="Cut" keyEquivalent="x" id="m049">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="cut:" target="-1" id="m050"/></connections>
+</menuItem>
+<menuItem title="Copy" keyEquivalent="c" id="m051">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="copy:" target="-1" id="m052"/></connections>
+</menuItem>
+<menuItem title="Paste" keyEquivalent="v" id="m053">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="paste:" target="-1" id="m054"/></connections>
+</menuItem>
+<menuItem title="Delete" id="m055">
+<modifierMask key="keyEquivalentModifierMask"/>
+<connections><action selector="delete:" target="-1" id="m056"/></connections>
+</menuItem>
+<menuItem title="Select All" keyEquivalent="a" id="m057">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="selectAll:" target="-1" id="m058"/></connections>
+</menuItem>
+</items>
+</menu>
+</menuItem>
+<menuItem title="View" id="m073">
+<modifierMask key="keyEquivalentModifierMask"/>
+<menu key="submenu" title="View" id="m072">
+<items>
+<menuItem title="Toggle Dark Mode" keyEquivalent="d" id="m061">
+<modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
+<connections><action selector="toggleDarkMode:" target="-1" id="m062"/></connections>
+</menuItem>
+<menuItem title="Command Palette" keyEquivalent="p" id="m063">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="toggleCommandPalette:" target="-1" id="m064"/></connections>
+</menuItem>
+<menuItem title="Shortcut Overlay" keyEquivalent="/" id="m065">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="toggleShortcutOverlay:" target="-1" id="m066"/></connections>
+</menuItem>
+<menuItem isSeparatorItem="YES" id="m067"/>
+<menuItem title="Maximize Window" keyEquivalent="m" id="m068">
+<modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
+<connections><action selector="maximizeWindow:" target="-1" id="m069"/></connections>
+</menuItem>
+<menuItem title="Toggle Full Screen" keyEquivalent="f" id="m070">
+<modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+<connections><action selector="toggleFullScreenFromMenu:" target="-1" id="m071"/></connections>
+</menuItem>
+</items>
+</menu>
+</menuItem>
+<menuItem title="Window" id="m082">
+<modifierMask key="keyEquivalentModifierMask"/>
+<menu key="submenu" title="Window" systemMenu="window" id="m081">
+<items>
+<menuItem title="Minimize" keyEquivalent="m" id="m074">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="performMiniaturize:" target="-1" id="m075"/></connections>
+</menuItem>
+<menuItem title="Zoom" id="m076">
+<modifierMask key="keyEquivalentModifierMask"/>
+<connections><action selector="performZoom:" target="-1" id="m077"/></connections>
+</menuItem>
+<menuItem isSeparatorItem="YES" id="m078"/>
+<menuItem title="Bring All to Front" id="m079">
+<modifierMask key="keyEquivalentModifierMask"/>
+<connections><action selector="arrangeInFront:" target="-1" id="m080"/></connections>
+</menuItem>
+</items>
+</menu>
+</menuItem>
+<menuItem title="Help" id="m086">
+<modifierMask key="keyEquivalentModifierMask"/>
+<menu key="submenu" title="Help" systemMenu="help" id="m085">
+<items>
+<menuItem title="Whitespace Help" keyEquivalent="?" id="m083">
+<modifierMask key="keyEquivalentModifierMask" command="YES"/>
+<connections><action selector="showHelp:" target="-1" id="m084"/></connections>
+</menuItem>
+</items>
+</menu>
+</menuItem>
+</items>
+</menu>
+</objects>
+</document>

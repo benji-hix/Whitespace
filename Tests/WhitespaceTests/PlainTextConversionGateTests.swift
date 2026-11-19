@@ -74,7 +74,7 @@ final class PlainTextConversionGateTests: XCTestCase {
     }
 
     func testSaveAnywayWritesFlattenedBytesToDisk() throws {
-        let doc = WhitespaceDocument(runs: formatted, contentType: .plainText)
+        let doc = makeDocument(runs: formatted, type: .plainText)
         let data = try doc.approvedData(for: .plainText, defaults: defaults, ask: { _ in true })
 
         let url = try writeToTemp(data)
@@ -84,7 +84,7 @@ final class PlainTextConversionGateTests: XCTestCase {
     }
 
     func testCancelAbortsTheSaveAndWritesNothing() {
-        let doc = WhitespaceDocument(runs: formatted, contentType: .plainText)
+        let doc = makeDocument(runs: formatted, type: .plainText)
         XCTAssertThrowsError(
             try doc.approvedData(for: .plainText, defaults: defaults, ask: { _ in false })
         ) { error in
@@ -95,7 +95,7 @@ final class PlainTextConversionGateTests: XCTestCase {
 
     /// Markdown keeps its formatting, so it must write without ever asking.
     func testMarkdownWriteIsNotGated() throws {
-        let doc = WhitespaceDocument(runs: formatted, contentType: WhitespaceDocument.markdownType)
+        let doc = makeDocument(runs: formatted, type: WhitespaceDocument.markdownType)
         var asked = false
         let data = try doc.approvedData(
             for: WhitespaceDocument.markdownType,
@@ -108,7 +108,7 @@ final class PlainTextConversionGateTests: XCTestCase {
 
     func testSuppressedSaveWritesWithoutAsking() throws {
         defaults.set(true, forKey: PlainTextConversionGate.suppressKey)
-        let doc = WhitespaceDocument(runs: formatted, contentType: .plainText)
+        let doc = makeDocument(runs: formatted, type: .plainText)
         let data = try doc.approvedData(for: .plainText, defaults: defaults, ask: { _ in false })
         XCTAssertEqual(String(data: data, encoding: .utf8), "plain loud")
     }

@@ -18,11 +18,13 @@ targets:
       path: Sources/Whitespace/App/Info.plist
       properties:
         NSPrincipalClass: NSApplication
+        NSMainNibFile: MainMenu
         CFBundleDisplayName: Whitespace
         CFBundleDocumentTypes:
           - CFBundleTypeName: Plain Text
             CFBundleTypeRole: Editor
             LSHandlerRank: Alternate
+            NSDocumentClass: Whitespace.WhitespaceDocument
             LSItemContentTypes:
               - public.plain-text
               - public.text
@@ -30,6 +32,7 @@ targets:
           - CFBundleTypeName: Markdown Document
             CFBundleTypeRole: Editor
             LSHandlerRank: Alternate
+            NSDocumentClass: Whitespace.WhitespaceDocument
             LSItemContentTypes:
               - net.daringfireball.markdown
         UTImportedTypeDeclarations:

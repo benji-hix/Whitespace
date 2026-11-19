@@ -2,8 +2,8 @@
 import SwiftUI
 
 struct PreferencesView: View {
-    /// The pane's designed size. Also applied to the window itself, because a
-    /// restored frame otherwise wins — see `PrefsWindowAccessor`.
+    /// The pane's designed size; `SettingsWindowController` sizes its window
+    /// from it.
     static let paneSize = CGSize(width: 500, height: 580)
 
     @State private var selectedTab: PrefTab = .general
@@ -40,7 +40,6 @@ struct PreferencesView: View {
         // without scrolling.
         .frame(width: PreferencesView.paneSize.width, height: PreferencesView.paneSize.height)
         .background(.ultraThinMaterial)
-        .background(PrefsWindowAccessor())
     }
 
     private func tabButton(_ label: String, tab: PrefTab) -> some View {
@@ -331,30 +330,4 @@ private struct PrefRow<Control: View>: View {
                 .foregroundStyle(Color.primary.opacity(0.05))
         }
     }
-}
-
-// MARK: - Window
-
-private struct PrefsWindowAccessor: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        DispatchQueue.main.async {
-            guard let window = view.window else { return }
-            window.titlebarAppearsTransparent = true
-            window.titleVisibility = .hidden
-            window.styleMask.insert(.fullSizeContentView)
-            window.isOpaque = false
-            window.backgroundColor = .clear
-            // SwiftUI restores this window's saved frame, which pins it to
-            // whatever height it had the first time it was opened — so simply
-            // growing the content frame above does nothing for anyone who has
-            // opened Settings before. The pane is not user-resizable, so there
-            // is no user intent to preserve: assert the designed size.
-            if window.contentView?.frame.size != PreferencesView.paneSize {
-                window.setContentSize(PreferencesView.paneSize)
-            }
-        }
-        return view
-    }
-    func updateNSView(_ nsView: NSView, context: Context) {}
 }

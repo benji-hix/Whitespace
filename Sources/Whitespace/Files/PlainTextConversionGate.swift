@@ -6,14 +6,15 @@ import AppKit
 ///
 /// The write path asks *during* the write and blocks on the answer, rather
 /// than aborting and trying to resume. Aborting cannot work: throwing from
-/// `fileWrapper` discards the destination the user chose in the save panel,
+/// the write discards the destination the user chose in the save panel,
 /// and the only way back in — re-sending `save:` — targets the document's
 /// existing URL and type instead, and is a no-op outright when the document
 /// is not dirty. That is why "Save Anyway" silently wrote nothing.
 ///
-/// SwiftUI calls `fileWrapper` off the main thread, so the alert runs on main
-/// while the serialization thread waits. The main-thread branch exists because
-/// hopping to main from main would deadlock.
+/// NSDocument calls `data(ofType:)` on the main thread (writes are not
+/// asynchronous), so the main-thread branch is the one that runs; hopping to
+/// main from main would deadlock. The off-main branch is left from the SwiftUI
+/// shell and goes when the gate moves before the write.
 @MainActor
 enum PlainTextConversionGate {
     static let suppressKey = "whitespace.prefs.suppressPlainTextConversionWarning"
