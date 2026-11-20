@@ -159,7 +159,7 @@ final class WhitespaceDocumentProtectionTests: XCTestCase {
 
         for operation in [NSDocument.SaveOperationType.autosaveInPlaceOperation, .saveOperation, .saveAsOperation] {
             let error = save(doc, to: url, operation)
-            XCTAssertEqual((error as? CocoaError)?.code, .fileWriteNoPermission, "\(operation)")
+            XCTAssertEqual((error as? CocoaError)?.code, .fileWriteUnknown, "\(operation)")
             XCTAssertEqual(try Data(contentsOf: url), original, "the bytes must be untouched after \(operation)")
         }
         XCTAssertTrue(doc.isProtected)

@@ -169,9 +169,12 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
         return target.isEqual(source)
     }
 
+    /// NSDocument shows its own "could not be saved" line, then the reason.
+    /// A permission code would make it add "You don't have permission".
     private var protectedWriteError: CocoaError {
-        CocoaError(.fileWriteNoPermission, userInfo: [
-            NSLocalizedDescriptionKey: "“\(displayName ?? "This document")” was not saved, so its original markdown stays as it is.",
+        CocoaError(.fileWriteUnknown, userInfo: [
+            NSLocalizedFailureReasonErrorKey:
+                "Whitespace can’t save it back exactly as it is, so the original file stays untouched.",
             NSLocalizedRecoverySuggestionErrorKey:
                 "Choose File ▸ Duplicate to keep your changes in a new document.",
         ])
@@ -215,11 +218,11 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
         on window: NSWindow?, completion: @escaping @MainActor (ProtectedEditChoice) -> Void
     ) {
         let alert = NSAlert()
-        alert.messageText = "This file has markdown Whitespace doesn’t keep."
+        alert.messageText = "Whitespace can’t save this file back exactly as it is."
         alert.informativeText = """
-            Editing it here rewrites the whole file in Whitespace’s own markdown: \
-            links, code and other formatting become plain text. \
-            Duplicate leaves the original untouched.
+            Editing it here rewrites the file in Whitespace’s own format, which \
+            can change what Whitespace doesn’t support, such as links, code or \
+            line endings. Duplicate leaves the original untouched.
             """
         alert.addButton(withTitle: "Duplicate")
         alert.addButton(withTitle: "Cancel").keyEquivalent = "\u{1b}"
