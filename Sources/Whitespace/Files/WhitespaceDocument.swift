@@ -24,7 +24,11 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
     /// store, so NSDocument would preserve each old version in
     /// ~/Library/Autosave Information — the owner's real folder, shared with
     /// the test host — and leave it there.
-    override class var preservesVersions: Bool { !AppDelegate.isRunningTests }
+    ///
+    /// Nonisolated because AppKit reads it on a background queue after an
+    /// in-place write; as a main-actor member, Swift's isolation check
+    /// crashed the app on every Save of an edited file.
+    nonisolated override class var preservesVersions: Bool { !AppDelegate.isRunningTests }
 
     /// Save As can change the type; the editor's formatting mode follows it.
     ///
