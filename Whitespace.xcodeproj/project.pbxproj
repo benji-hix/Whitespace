@@ -20,6 +20,7 @@
 		1A10F1B09096FD8513AFA28A /* TypewriterScrollTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC4B4A0538F1C47BD4D9A28 /* TypewriterScrollTests.swift */; };
 		24305DD06BEB53E4439665A8 /* PreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10A908D4DCBCA45DD80015B /* PreferencesStore.swift */; };
 		2C75898E00F1FB98CF52B520 /* ShortcutBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD0C5E01898C8DF154BF663 /* ShortcutBinding.swift */; };
+		2C78E2DF46A56E176687D31F /* FullscreenPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01FE643C720C419EE315603 /* FullscreenPresentation.swift */; };
 		3096B4DCD2761FFA849DCA8A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0CE42F87EEFEEDEB2DE787 /* Theme.swift */; };
 		3530E142BD44799C2829115B /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E98F00D123D89F09B3E7E8 /* main.swift */; };
 		3B5EECD891E77EED4CC18A53 /* PlainTextConversionGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFFC7E8D4A48F89E04DEAB85 /* PlainTextConversionGateTests.swift */; };
@@ -32,6 +33,7 @@
 		533756DDD23776C22E7A5AEC /* EdgeFadeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EC093D697A88E2F71ABE77 /* EdgeFadeTests.swift */; };
 		5913D495E74B025FC10D00EE /* ZenTextViewSetUpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D86DEA9F3431E642C1F8CB32 /* ZenTextViewSetUpTests.swift */; };
 		5F0FF0FC644F2F54C0C63AD8 /* CrimsonPro-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8E0CB9D1D61C42DDE5907771 /* CrimsonPro-LightItalic.ttf */; };
+		742D3466377271B9C951F85E /* FullscreenPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1DA1C48DFB0903C147B67D2 /* FullscreenPresentationTests.swift */; };
 		7430C26A34C58DE214EA9DAC /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */; };
 		7C62784B113B52CDD1F99D44 /* CanvasUIState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEF2008F149F31FECC10343 /* CanvasUIState.swift */; };
 		7D4E0EFB8788922C148A4AA2 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1001F43E5CA7F698FDB60C /* CanvasView.swift */; };
@@ -114,6 +116,7 @@
 		934E611E8AAE4E419803C7CB /* PreferencesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesStoreTests.swift; sourceTree = "<group>"; };
 		98B96D363510B76A69836A2C /* WhitespaceDocumentShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceDocumentShellTests.swift; sourceTree = "<group>"; };
 		9AEF2008F149F31FECC10343 /* CanvasUIState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasUIState.swift; sourceTree = "<group>"; };
+		A1DA1C48DFB0903C147B67D2 /* FullscreenPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenPresentationTests.swift; sourceTree = "<group>"; };
 		A39B3E7EB6DDD98B9053950B /* WhitespaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceTests.swift; sourceTree = "<group>"; };
 		A53F61A65ADEFDB4F4BA1182 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		A69B04F7783FD3AC16A9DF69 /* DocumentCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentCodec.swift; sourceTree = "<group>"; };
@@ -121,6 +124,7 @@
 		A9B193E1D01F4740E8BAEB06 /* PasteNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteNormalizer.swift; sourceTree = "<group>"; };
 		AB277AB588476D7B507160DC /* TypewriterRecenterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypewriterRecenterTests.swift; sourceTree = "<group>"; };
 		AEA176D78D29F0669F15F559 /* WhitespaceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhitespaceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B01FE643C720C419EE315603 /* FullscreenPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenPresentation.swift; sourceTree = "<group>"; };
 		B2F500D4886EFEBD2158887F /* ThemeStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeStoreTests.swift; sourceTree = "<group>"; };
 		B3E79137EBE3B1FA06B7F004 /* MainMenu.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
 		B868BE2900834A87A94F7077 /* ZenTextViewKeyDownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenTextViewKeyDownTests.swift; sourceTree = "<group>"; };
@@ -179,6 +183,7 @@
 			children = (
 				6292A7FB91D536262498D540 /* AppDelegate.swift */,
 				10189F2137623E9636E8E92F /* DocumentWindowController.swift */,
+				B01FE643C720C419EE315603 /* FullscreenPresentation.swift */,
 				7E4424A60587F3916AA424C9 /* Info.plist */,
 				14E98F00D123D89F09B3E7E8 /* main.swift */,
 				B3E79137EBE3B1FA06B7F004 /* MainMenu.xib */,
@@ -249,6 +254,7 @@
 			children = (
 				F74192A812FF3DFF4CED0CF2 /* DocumentCodecTests.swift */,
 				14EC093D697A88E2F71ABE77 /* EdgeFadeTests.swift */,
+				A1DA1C48DFB0903C147B67D2 /* FullscreenPresentationTests.swift */,
 				0DDA9B86E2DF8FAC9BA75586 /* KeybindingStoreTests.swift */,
 				D617750ADFDA9776450B4278 /* MarkdownTextDecodeTests.swift */,
 				B8DE46291F2F308170D5B519 /* MarkdownTextEncodeTests.swift */,
@@ -422,6 +428,7 @@
 			files = (
 				490CBA1260B6565CC22B4491 /* DocumentCodecTests.swift in Sources */,
 				533756DDD23776C22E7A5AEC /* EdgeFadeTests.swift in Sources */,
+				742D3466377271B9C951F85E /* FullscreenPresentationTests.swift in Sources */,
 				F9178DF3C8307F56A738C60F /* KeybindingStoreTests.swift in Sources */,
 				186AA5A248B450638EE1AF9C /* MarkdownTextDecodeTests.swift in Sources */,
 				AAA8D611B0F4CDBEA5030A12 /* MarkdownTextEncodeTests.swift in Sources */,
@@ -460,6 +467,7 @@
 				A7974370930D1F031BC45EE3 /* DocumentWindowController.swift in Sources */,
 				B9EF5A7B8912408BCEF9040F /* EdgeFade.swift in Sources */,
 				997E42F699BEE988CC7CF08E /* FontNames.swift in Sources */,
+				2C78E2DF46A56E176687D31F /* FullscreenPresentation.swift in Sources */,
 				D8DADF38B89DC67FCAAED4CA /* GrainBackground.swift in Sources */,
 				8D3A523F82BE76372FCA4D67 /* KeybindingAction.swift in Sources */,
 				9886773E6AAC3729C4A6B6B3 /* KeybindingStore.swift in Sources */,

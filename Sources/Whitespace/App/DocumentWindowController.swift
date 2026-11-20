@@ -45,6 +45,23 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate {
         fatalError("DocumentWindowController is built in code")
     }
 
+    // MARK: - Fullscreen
+
+    func window(_ window: NSWindow,
+                willUseFullScreenPresentationOptions proposedOptions: NSApplication.PresentationOptions = []
+    ) -> NSApplication.PresentationOptions {
+        FullscreenPresentation.options
+    }
+
+    // Fullscreen slides the title bar down with the menu bar. The buttons hidden
+    // at creation were still hidden there on macOS 27, but that is AppKit's
+    // choice to keep, not ours; re-assert it so a release can't bring them back.
+    func windowWillEnterFullScreen(_ notification: Notification) {
+        for type in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+            window?.standardWindowButton(type)?.isHidden = true
+        }
+    }
+
     // MARK: - View menu
 
     @objc func toggleCommandPalette(_ sender: Any?) {
