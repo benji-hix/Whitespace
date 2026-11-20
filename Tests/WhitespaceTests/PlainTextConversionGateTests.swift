@@ -209,9 +209,10 @@ final class PlainTextConversionGateTests: XCTestCase {
 
     /// Characterization, not a wish: the flatten keeps the undo stack, so
     /// undoing a deletion made before the save brings that text back bold.
-    /// Nothing asks again; the next save writes it flattened. If this starts
-    /// failing, the undo behaviour changed: update the test and §5.
-    func testUndoCanBringBoldBackButNothingAsksAgain() throws {
+    /// Autosave writes it flattened without asking; the next ⌘S asks again,
+    /// as for any formatted content, and drops the bold. If this starts
+    /// failing, the undo behaviour changed: update the test and §2.
+    func testUndoCanBringBoldBackAutosaveStaysQuietSaveAsks() throws {
         let (doc, _, prompts) = try openMarkdown("**loud quiet**", answer: true)
         doc.makeWindowControllers()
         let window = try XCTUnwrap(doc.windowControllers.first?.window)
@@ -241,8 +242,12 @@ final class PlainTextConversionGateTests: XCTestCase {
         ])
 
         XCTAssertNil(save(doc, to: target, as: .plainText, .autosaveInPlaceOperation).first ?? nil)
-        XCTAssertEqual(prompts.count, 1)
+        XCTAssertEqual(prompts.count, 1, "autosave never asks")
         XCTAssertEqual(try String(contentsOf: target, encoding: .utf8), "loud quiet")
+
+        XCTAssertNil(save(doc, to: target, as: .plainText, .saveOperation).first ?? nil)
+        XCTAssertEqual(prompts.count, 2, "a user Save with bold back asks again")
+        XCTAssertEqual(StyledRun.runs(in: doc.textStorage), [StyledRun(text: "loud quiet", bold: false, italic: false)])
     }
 
     func testAFailedSaveKeepsTheFormatting() throws {

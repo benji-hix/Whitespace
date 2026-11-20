@@ -171,8 +171,8 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
     /// which would reset the selection, the scroll anchor and the undo stack.
     /// The storage is edited directly, outside the text view, so this
     /// registers no undo and leaves the document clean: it now matches its
-    /// file. Undo can still bring back text that was bold; the next save
-    /// writes it flattened without asking.
+    /// file. Undo can still bring back text that was bold: an autosave writes
+    /// it flattened without asking, and the next Save asks again.
     func dropFormatting() {
         let full = NSRange(location: 0, length: textStorage.length)
         var formatted: [(NSRange, NSFont)] = []
