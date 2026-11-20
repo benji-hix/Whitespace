@@ -41,11 +41,15 @@ final class WhitespaceDocumentTests: XCTestCase {
         XCTAssertEqual(doc.contentType, markdown)
     }
 
-    func testReadFallsBackToLatin1WhenNotUTF8() throws {
+    /// Was `testReadFallsBackToLatin1WhenNotUTF8`. The fallback guessed, and a
+    /// wrong guess saved back as UTF-8 rewrote every accented byte; the owner
+    /// chose refusal instead.
+    func testReadRefusesNonUTF8() {
         // 0xE9 is "é" in Latin-1, invalid as a standalone UTF-8 byte.
         let data = Data([0x68, 0xE9, 0x6C, 0x6C, 0x6F]) // "héllo" Latin-1
-        let doc = try read(data, as: .plainText)
-        XCTAssertEqual(doc.textStorage.string, "héllo")
+        XCTAssertThrowsError(try read(data, as: .plainText)) { error in
+            XCTAssertEqual((error as? CocoaError)?.code, .fileReadInapplicableStringEncoding)
+        }
     }
 
     func testReadEmptyData() throws {

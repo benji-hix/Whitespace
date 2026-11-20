@@ -69,27 +69,23 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
 
     // MARK: - Reading
 
+    /// BOM and line endings as read, written back on save.
+    private(set) var format = TextFileFormat()
+
+    /// The file holds something a save would not write back byte for byte
+    /// (see `DocumentCodec`). Until the owner chooses Edit Anyway, edits ask
+    /// first and nothing is written over the original file.
+    var isProtected = false
+
     nonisolated override func read(from data: Data, ofType typeName: String) throws {
-        let runs = try Self.decode(data, type: UTType(typeName) ?? .plainText)
+        let decoded = try DocumentCodec.decode(data, as: UTType(typeName) ?? .plainText)
         // canConcurrentlyReadDocuments is false, so AppKit reads documents on
         // the main thread; the storage is main-actor state.
-        MainActor.assumeIsolated { replaceContent(with: runs) }
-    }
-
-    nonisolated static func decode(_ data: Data, type: UTType) throws -> [StyledRun] {
-        guard !data.isEmpty else { return [] }
-        let string: String
-        if let utf8 = String(data: data, encoding: .utf8) {
-            string = utf8
-        } else if let latin1 = String(data: data, encoding: .isoLatin1) {
-            string = latin1
-        } else {
-            throw CocoaError(.fileReadInapplicableStringEncoding)
+        MainActor.assumeIsolated {
+            format = decoded.format
+            isProtected = !decoded.isLossless
+            replaceContent(with: decoded.runs)
         }
-        if type.conforms(to: markdownType) {
-            return MarkdownText.decode(string)
-        }
-        return [StyledRun(text: string, bold: false, italic: false)]
     }
 
     /// The only way content is replaced wholesale (open, revert, restoration).
@@ -115,7 +111,15 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
                        for saveOperation: NSDocument.SaveOperationType,
                        completionHandler: @escaping (Error?) -> Void) {
         editor?.breakUndoCoalescing()
-        super.save(to: url, ofType: typeName, for: saveOperation, completionHandler: completionHandler)
+        super.save(to: url, ofType: typeName, for: saveOperation) { error in
+            // A Save As that got this far wrote somewhere other than the
+            // original (`writeSafely` refuses that), and the document now
+            // refers to a file it wrote itself.
+            if error == nil, saveOperation == .saveAsOperation {
+                MainActor.assumeIsolated { self.isProtected = false }
+            }
+            completionHandler(error)
+        }
     }
 
     override func data(ofType typeName: String) throws -> Data {
@@ -134,21 +138,104 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
            !PlainTextConversionGate.approveFlattening(runs: runs, defaults: defaults, ask: ask) {
             throw CocoaError(.userCancelled)
         }
-        return try Self.encode(runs, for: type)
+        return DocumentCodec.encode(runs, as: type, format: format)
     }
 
     func encodedData(for type: UTType) throws -> Data {
-        try Self.encode(runs, for: type)
+        DocumentCodec.encode(runs, as: type, format: format)
     }
 
-    private static func encode(_ runs: [StyledRun], for type: UTType) throws -> Data {
-        let string = type.conforms(to: markdownType)
-            ? MarkdownText.encode(runs: runs)
-            : runs.map(\.text).joined()
-        guard let data = string.data(using: .utf8) else {
-            throw CocoaError(.fileWriteInapplicableStringEncoding)
+    // MARK: - Protection
+
+    /// The guarantee behind the edit gate: whatever path an edit took, a
+    /// protected document never writes over its original file. Every write
+    /// NSDocument makes (save, autosave in place, Save As, duplicate) comes
+    /// through here.
+    override func writeSafely(to url: URL, ofType typeName: String,
+                              for saveOperation: NSDocument.SaveOperationType) throws {
+        if isProtected, isOriginalFile(url) { throw protectedWriteError }
+        try super.writeSafely(to: url, ofType: typeName, for: saveOperation)
+    }
+
+    /// By file identity when both exist, so a symlink or a differently cased
+    /// path to the same file still counts as the original.
+    private func isOriginalFile(_ url: URL) -> Bool {
+        guard let original = fileURL else { return false }
+        if url.standardizedFileURL == original.standardizedFileURL { return true }
+        let key: Set<URLResourceKey> = [.fileResourceIdentifierKey]
+        guard let target = try? url.resourceValues(forKeys: key).fileResourceIdentifier,
+              let source = try? original.resourceValues(forKeys: key).fileResourceIdentifier
+        else { return false }
+        return target.isEqual(source)
+    }
+
+    private var protectedWriteError: CocoaError {
+        CocoaError(.fileWriteNoPermission, userInfo: [
+            NSLocalizedDescriptionKey: "“\(displayName ?? "This document")” was not saved, so its original markdown stays as it is.",
+            NSLocalizedRecoverySuggestionErrorKey:
+                "Choose File ▸ Duplicate to keep your changes in a new document.",
+        ])
+    }
+
+    /// A duplicate holds what this window shows, unprotected. NSDocument
+    /// builds it from a file (a copy of the original, or our own encoding),
+    /// and re-reading either can come back different or protected again.
+    override func duplicate() throws -> NSDocument {
+        let copy = try super.duplicate()
+        if let copy = copy as? WhitespaceDocument {
+            copy.replaceContent(with: runs)
+            copy.isProtected = false
         }
-        return data
+        return copy
+    }
+
+    enum ProtectedEditChoice { case duplicate, cancel, editAnyway }
+
+    /// Shows the sheet; tests replace it.
+    var askBeforeEditingProtected: @MainActor (NSWindow?, @escaping @MainActor (ProtectedEditChoice) -> Void) -> Void
+        = WhitespaceDocument.presentProtectedEditSheet
+
+    private var isAskingToEdit = false
+
+    private func askToEditProtected(in window: NSWindow?) {
+        guard !isAskingToEdit else { return }
+        isAskingToEdit = true
+        askBeforeEditingProtected(window) { [weak self] choice in
+            guard let self else { return }
+            isAskingToEdit = false
+            switch choice {
+            case .duplicate: duplicate(nil)
+            case .cancel: break
+            case .editAnyway: isProtected = false
+            }
+        }
+    }
+
+    private static func presentProtectedEditSheet(
+        on window: NSWindow?, completion: @escaping @MainActor (ProtectedEditChoice) -> Void
+    ) {
+        let alert = NSAlert()
+        alert.messageText = "This file has markdown Whitespace doesn’t keep."
+        alert.informativeText = """
+            Editing it here rewrites the whole file in Whitespace’s own markdown: \
+            links, code and other formatting become plain text. \
+            Duplicate leaves the original untouched.
+            """
+        alert.addButton(withTitle: "Duplicate")
+        alert.addButton(withTitle: "Cancel").keyEquivalent = "\u{1b}"
+        alert.addButton(withTitle: "Edit Anyway")
+        let choose: @MainActor (NSApplication.ModalResponse) -> Void = { response in
+            switch response {
+            case .alertFirstButtonReturn: completion(.duplicate)
+            case .alertThirdButtonReturn: completion(.editAnyway)
+            default: completion(.cancel)
+            }
+        }
+        if let window {
+            alert.beginSheetModal(for: window) { response in MainActor.assumeIsolated { choose(response) } }
+        } else {
+            choose(alert.runModal())
+        }
     }
 
     // MARK: - NSTextViewDelegate
@@ -159,6 +246,13 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
 
     func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange,
                   replacementString: String?) -> Bool {
+        // Typing, paste and ⌘B on a selection all arrive here first. The
+        // edit is dropped while the owner decides; Edit Anyway lets the next
+        // one through.
+        if isProtected {
+            askToEditProtected(in: textView.window)
+            return false
+        }
         // A nil replacement is an attribute-only edit (⌘B/⌘I on a selection).
         // TextKit 2 registers no undo action for it, so NSDocument, which
         // counts edits through the undo manager, would never mark the document
