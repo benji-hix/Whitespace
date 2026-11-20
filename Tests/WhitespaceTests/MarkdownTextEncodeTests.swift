@@ -101,4 +101,12 @@ final class MarkdownTextEncodeTests: XCTestCase {
             "**a\\*b**"
         )
     }
+
+    /// Typed text that looks like an HTML entity would reload as the character
+    /// it names ("&amp;" as "&"), so its "&" is escaped. A bare "&" is not.
+    func testEscapesAmpersandsThatWouldStartAnEntity() {
+        XCTAssertEqual(MarkdownText.encode(runs: [run("&amp; &#169; &#xA9;")]), "\\&amp; \\&#169; \\&#xA9;")
+        XCTAssertEqual(MarkdownText.encode(runs: [run("salt & pepper, &; a&b")]), "salt & pepper, &; a&b")
+        XCTAssertEqual(MarkdownText.decode("\\&amp;").map(\.text).joined(), "&amp;")
+    }
 }

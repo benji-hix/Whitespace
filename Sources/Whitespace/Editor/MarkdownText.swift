@@ -51,12 +51,24 @@ enum MarkdownText {
     }
 
     private static func escaped(_ text: String) -> String {
+        let chars = Array(text)
         var out = ""
-        for ch in text {
-            if escapables.contains(ch) { out.append("\\") }
+        for (index, ch) in chars.enumerated() {
+            if escapables.contains(ch) || (ch == "&" && startsEntity(chars[(index + 1)...])) {
+                out.append("\\")
+            }
             out.append(ch)
         }
         return out
+    }
+
+    /// "&amp;", "&#169;", "&#xA9;": the parser would turn typed text like this
+    /// into the character it names. A bare "&" is left alone so prose like
+    /// "salt & pepper" stays readable in other editors.
+    private static func startsEntity(_ rest: ArraySlice<Character>) -> Bool {
+        let body = rest.drop(while: { $0 == "#" })
+        let name = body.prefix(while: { $0.isASCII && ($0.isLetter || $0.isNumber) })
+        return !name.isEmpty && body.dropFirst(name.count).first == ";"
     }
 
     /// Inline-only parsing keeps newlines literal and ignores block syntax;
