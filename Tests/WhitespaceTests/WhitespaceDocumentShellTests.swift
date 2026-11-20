@@ -119,6 +119,21 @@ final class WhitespaceDocumentShellTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), "old **new**")
     }
 
+    /// AppKit reads `preservesVersions` on a background queue after an
+    /// in-place save. As a main-actor member it trapped there and crashed the
+    /// app on every Save of an edited file. Read the way AppKit reads it,
+    /// through Objective-C, off the main thread: before the fix this crashes
+    /// the test host.
+    func testPreservesVersionsCanBeReadOffTheMainThread() {
+        let read = expectation(description: "read off main")
+        DispatchQueue.global().async {
+            let value = (WhitespaceDocument.self as AnyObject).value(forKey: "preservesVersions") as? Bool
+            XCTAssertEqual(value, false, "off under XCTest")
+            read.fulfill()
+        }
+        wait(for: [read], timeout: 5)
+    }
+
     func testRevertReplacesTheStorageAndRestylesTheEditor() throws {
         let (doc, url) = try openFile("*lean* text")
         let tv = attachEditor(to: doc)

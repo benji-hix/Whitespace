@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// id. Under XCTest it opens no untitled window and marks its windows
     /// unrestorable; restoring the owner's session is switched off by the
     /// scheme's `-ApplePersistenceIgnoreState YES` (see `TestHostTests`).
-    static var isRunningTests: Bool {
+    nonisolated static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 

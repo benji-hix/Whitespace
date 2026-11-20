@@ -24,7 +24,11 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
     /// store, so NSDocument would preserve each old version in
     /// ~/Library/Autosave Information — the owner's real folder, shared with
     /// the test host — and leave it there.
-    override class var preservesVersions: Bool { !AppDelegate.isRunningTests }
+    ///
+    /// Nonisolated because AppKit reads it on a background queue after an
+    /// in-place write; as a main-actor member, Swift's isolation check
+    /// crashed the app on every Save of an edited file.
+    nonisolated override class var preservesVersions: Bool { !AppDelegate.isRunningTests }
 
     /// Save As can change the type; the editor's formatting mode follows it.
     ///
@@ -102,43 +106,97 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
 
     // MARK: - Writing
 
+    /// A Save or Save As that would flatten formatting into plain text asks
+    /// first (`PlainTextConversionGate`). The save is held while the sheet is
+    /// up and then carries on, or ends as cancelled, with exactly one call to
+    /// `completionHandler` either way: NSDocument queues every later save and
+    /// autosave behind this one until it hears back.
+    override func save(to url: URL, ofType typeName: String,
+                       for saveOperation: NSDocument.SaveOperationType,
+                       completionHandler: @escaping (Error?) -> Void) {
+        let type = UTType(typeName) ?? .plainText
+        guard PlainTextConversionGate.shouldAsk(before: saveOperation, to: type, runs: runs,
+                                                defaults: conversionDefaults) else {
+            performSave(to: url, ofType: typeName, for: saveOperation, completionHandler: completionHandler)
+            return
+        }
+        askBeforeFlattening(windowForSheet, conversionDefaults) { approved in
+            if approved {
+                self.performSave(to: url, ofType: typeName, for: saveOperation, completionHandler: completionHandler)
+            } else {
+                completionHandler(CocoaError(.userCancelled))
+            }
+        }
+    }
+
     /// Every save, autosaves included, is a point where typing must stop
     /// coalescing. NSTextView folds consecutive keystrokes into one undo
     /// action, and NSDocument counts edits by undo group; typing that carried
     /// on after a save joined the action from before it, so the document
     /// stayed clean and was never autosaved again.
-    override func save(to url: URL, ofType typeName: String,
-                       for saveOperation: NSDocument.SaveOperationType,
-                       completionHandler: @escaping (Error?) -> Void) {
+    private func performSave(to url: URL, ofType typeName: String,
+                             for saveOperation: NSDocument.SaveOperationType,
+                             completionHandler: @escaping (Error?) -> Void) {
         editor?.breakUndoCoalescing()
         super.save(to: url, ofType: typeName, for: saveOperation) { error in
-            // A Save As that got this far wrote somewhere other than the
-            // original (`writeSafely` refuses that), and the document now
-            // refers to a file it wrote itself.
-            if error == nil, saveOperation == .saveAsOperation {
-                MainActor.assumeIsolated { self.isProtected = false }
+            MainActor.assumeIsolated {
+                if error == nil {
+                    // A Save As that got this far wrote somewhere other than the
+                    // original (`writeSafely` refuses that), and the document now
+                    // refers to a file it wrote itself.
+                    if saveOperation == .saveAsOperation { self.isProtected = false }
+                    if PlainTextConversionGate.isUserSave(saveOperation),
+                       !(UTType(typeName) ?? .plainText).conforms(to: Self.markdownType) {
+                        self.dropFormatting()
+                    }
+                }
             }
             completionHandler(error)
         }
     }
 
-    override func data(ofType typeName: String) throws -> Data {
-        try approvedData(for: UTType(typeName) ?? .plainText)
+    /// Where the flatten warning reads and records its suppression; tests
+    /// use their own suite.
+    var conversionDefaults: UserDefaults = .standard
+
+    /// Shows the flatten warning; tests replace it.
+    var askBeforeFlattening: @MainActor (NSWindow?, UserDefaults, @escaping @MainActor (Bool) -> Void) -> Void
+        = PlainTextConversionGate.presentWarning
+
+    /// After a user save to plain text the file holds no formatting, so the
+    /// screen drops it too; otherwise the bold stays visible but exists nowhere.
+    /// Only after a successful write, so a failed save keeps the bold.
+    ///
+    /// Faces are swapped in place rather than through `replaceContent(with:)`,
+    /// which would reset the selection, the scroll anchor and the undo stack.
+    /// The storage is edited directly, outside the text view, so this
+    /// registers no undo and leaves the document clean: it now matches its
+    /// file. Undo can still bring back text that was bold: an autosave writes
+    /// it flattened without asking, and the next Save asks again.
+    func dropFormatting() {
+        let full = NSRange(location: 0, length: textStorage.length)
+        var formatted: [(NSRange, NSFont)] = []
+        textStorage.enumerateAttribute(.font, in: full) { value, range, _ in
+            guard let font = value as? NSFont,
+                  StyledRun.isBold(font) || StyledRun.isItalic(font),
+                  let regular = NSFont(name: WhitespaceFont.regular, size: font.pointSize)
+            else { return }
+            formatted.append((range, regular))
+        }
+        if !formatted.isEmpty {
+            textStorage.beginEditing()
+            for (range, regular) in formatted { textStorage.addAttribute(.font, value: regular, range: range) }
+            textStorage.endEditing()
+        }
+        if let editor, let font = editor.typingAttributes[.font] as? NSFont,
+           StyledRun.isBold(font) || StyledRun.isItalic(font),
+           let regular = NSFont(name: WhitespaceFont.regular, size: font.pointSize) {
+            editor.typingAttributes[.font] = regular
+        }
     }
 
-    /// The write, minus NSDocument. Throws `userCancelled` when the user
-    /// declines to flatten, which NSDocument treats as "abandon quietly".
-    func approvedData(
-        for type: UTType,
-        defaults: UserDefaults = .standard,
-        ask: @escaping @MainActor (UserDefaults) -> Bool = { PlainTextConversionGate.presentWarning(defaults: $0) }
-    ) throws -> Data {
-        let runs = runs
-        if !type.conforms(to: Self.markdownType),
-           !PlainTextConversionGate.approveFlattening(runs: runs, defaults: defaults, ask: ask) {
-            throw CocoaError(.userCancelled)
-        }
-        return DocumentCodec.encode(runs, as: type, format: format)
+    override func data(ofType typeName: String) throws -> Data {
+        try encodedData(for: UTType(typeName) ?? .plainText)
     }
 
     func encodedData(for type: UTType) throws -> Data {
