@@ -10,7 +10,12 @@ Whitespace is a single-target macOS writing app: an AppKit `NSDocument` shell ar
 
 ### Documents (data layer)
 
-`WhitespaceDocument` (an `NSDocument` subclass) is the only document model. It owns an `NSTextStorage`, **the single source of truth**: the window's `ZenTextView` lays out and edits that storage directly. Styled runs and markdown exist only at read and save time. `read(from:ofType:)` decodes through `MarkdownText` into the storage; `data(ofType:)` snapshots runs with `StyledRun.runs(in:)` and encodes them, consulting `PlainTextConversionGate` before any write that would flatten formatting. The type is `fileType`; a Save As that changes it switches the editor's formatting mode.
+`WhitespaceDocument` (an `NSDocument` subclass) is the only document model. It owns an `NSTextStorage`, **the single source of truth**: the window's `ZenTextView` lays out and edits that storage directly. Styled runs and markdown exist only at read and save time. `read(from:ofType:)` decodes through `DocumentCodec` into the storage; `data(ofType:)` snapshots runs with `StyledRun.runs(in:)` and encodes them, consulting `PlainTextConversionGate` before any write that would flatten formatting. The type is `fileType`; a Save As that changes it switches the editor's formatting mode.
+
+**Reading is UTF-8 only, and byte-exact or protected.** `DocumentCodec.decode` refuses anything that is not UTF-8 (`fileReadInapplicableStringEncoding`, with a reason NSDocument shows under its "could not be opened" line), keeps a BOM and uniform CRLF in `TextFileFormat` so the save writes them back, and reports `isLossless`: whether encoding what it decoded gives back the same bytes. A document read from a lossy file is **protected** (`isProtected`), in two layers:
+
+- **Write refusal, the guarantee.** `writeSafely(to:ofType:for:)`, which every NSDocument write passes through, throws while the document is protected and the destination is its original file (compared by file identity, so a differently cased path counts). Save As or export elsewhere is allowed; a successful Save As ends protection, because the document now refers to a file it wrote.
+- **Edit gate, the UX.** The document's `textView(_:shouldChangeTextIn:replacementString:)` refuses the first edit (typing, paste, ⌘B on a selection) and asks: Duplicate, Cancel, or Edit Anyway. Edit Anyway clears protection; the asking keystroke is dropped. Duplicate opens an untitled, unprotected copy holding the runs on screen (`duplicate()` sets them, because re-reading NSDocument's copy can come back different). Revert re-reads, so it restores protection.
 
 The storage holds **faces only** (regular, bold, italic, bold-italic). Size, paragraph style and colour belong to the editor, which restyles the storage when it attaches and after any wholesale replacement.
 
@@ -47,12 +52,13 @@ A fresh editor is configured through one entry point, `setUp(...)`: **font, then
 Typewriter centring depends on `textContainerInset.height` being **half the current viewport**, which is what puts the first line of an empty document in the middle of the screen. It must be driven by the scroll view's own `frameDidChangeNotification`, never by `NSWindow.didResizeNotification` alone: the window notification arrives before AppKit re-lays-out the scroll view. Measured entering fullscreen — the window already reported 1440 while `contentSize` was still 486, so the inset was computed from the old value and the first line sat at 17% of the screen, inside the top fade.
 
 - `PasteNormalizer` — staged paste/drag normalization
-- `MarkdownText` — markdown encode/decode (the document's serialization)
+- `MarkdownText` — markdown encode/decode of the text
+- `DocumentCodec` — bytes ↔ runs for both types: UTF-8 check, BOM and line endings, the lossless check
 - `StyledRun.runs(in:)` — the faithful storage → runs snapshot taken at save time (text verbatim; the app's faces mapped back to flags)
 
 ### Data flow for text
 
-Keystroke → `ZenTextView` → the document's `NSTextStorage`. That is the whole path while writing: no per-keystroke extraction, no binding. NSDocument counts edits through the undo manager it shares with the editor (the document is the text view's delegate and answers `undoManager(for:)`), and autosaves in place. Save → `data(ofType:)` → `StyledRun.runs(in:)` → `MarkdownText.encode` or plain text. Open, revert and restoration → `read(from:ofType:)` → `replaceContent(with:)`, which **must** keep the reset block together (§4.4).
+Keystroke → `ZenTextView` → the document's `NSTextStorage`. That is the whole path while writing: no per-keystroke extraction, no binding. NSDocument counts edits through the undo manager it shares with the editor (the document is the text view's delegate and answers `undoManager(for:)`), and autosaves in place. Save → `data(ofType:)` → `StyledRun.runs(in:)` → `DocumentCodec.encode` (markdown or plain text, in the file's own format). Open, revert and restoration → `read(from:ofType:)` → `DocumentCodec.decode` → `replaceContent(with:)`, which **must** keep the reset block together (§4.4).
 
 ```mermaid
 graph TD
@@ -70,7 +76,8 @@ graph TD
     Zen -->|edits| TS
     Zen -.->|delegate, undo manager| Doc
     Zen --> TS2[TypewriterScroll - pure] & PN[PasteNormalizer - pure]
-    Doc --> MD[MarkdownText - pure] & Gate[PlainTextConversionGate]
+    Doc --> Codec[DocumentCodec - pure] & Gate[PlainTextConversionGate]
+    Codec --> MD[MarkdownText - pure]
     TH & PS & KS -->|persist| UD[(UserDefaults)]
     Doc -->|md or txt files| Disk[(Disk)]
 ```
@@ -81,7 +88,8 @@ graph TD
 |---|---|---|
 | ⌘B / ⌘I | Toggle bold/italic | **Silently inert** — no beep, no reaction (owner decision) |
 | Paste | Keeps bold/italic, strips everything else | Strips all styling |
-| On disk | `**bold**`, `*italic*`, `***both***`; prose `\`-escapes `` \ * _ ` [ < ~ `` | Exactly the characters on screen |
+| On disk | `**bold**`, `*italic*`, `***both***`; prose `\`-escapes `` \ * _ ` [ < ~ ``, and `&` where it would start an entity (`&amp;`) | Exactly the characters on screen |
+| Encoding | UTF-8, BOM kept if present; LF, or CRLF if the file used it | Same |
 | `isRichText` | true | false |
 
 Rules that must not regress:
@@ -89,7 +97,8 @@ Rules that must not regress:
 - **Underline does not exist anywhere in the app.** `StyledRun` has no underline field; do not add one (markdown cannot express it).
 - New documents default to `.md`; Settings ▸ Documents ▸ New Files switches the default (`whitespace.prefs.newDocumentType`). `WhitespaceDocumentController.defaultType` reads it; without the override AppKit would take the first Editor type in Info.plist, which is Plain Text. The save panel's format picker offers exactly Markdown Document and Plain Text (`writableTypes(for:)`), although the Plain Text document type lists three text UTIs for opening.
 - Saving formatted content to `.plainText` triggers one warning via `PlainTextConversionGate` (suppression: `whitespace.prefs.suppressPlainTextConversionWarning`, resettable at Settings ▸ Documents ▸ Flatten Warning). **The gate asks during the write and blocks on the answer.** NSDocument calls `data(ofType:)` on the main thread (writes are not asynchronous), so the alert runs modally inside the write; approve falls through, cancel throws `userCancelled`. The gate's off-main `DispatchQueue.main.sync` branch is left from the SwiftUI shell and goes when the gate moves before the write. Do not reinstate the old abort-and-resume shape: throwing discards the destination chosen in the save panel, and the only way back in — re-sending `save:` — targets the document's existing URL and is a no-op outright on a clean document, so "Save Anyway" silently wrote nothing from P3.7 until 2026-07-27.
-- Dialect limits (accepted): only bold/italic round-trip; foreign markdown constructs (links, code spans; block syntax is never interpreted) flatten to their visible text on load; a file's single trailing newline is dropped on first load (stable thereafter).
+- Dialect limits (accepted): only bold/italic round-trip; foreign markdown constructs (links, code spans, `_x_`, needless escapes like `\.`; block syntax is never interpreted) flatten to their visible text on load, and such a file is protected (§1) until the owner chooses. Trailing newlines survive (measured 2026-11-19; the old "dropped on first load" note no longer holds).
+- Emphasis the encoder cannot express (accepted, guard-caught): bold → bold-italic → italic with no gap between (the `*` runs merge), and emphasis whose edge is punctuation touching a letter (`a**(b)**`). The encoder writes them, they read back differently, and the next open protects the file. Pinned by `testEmphasisTheEncoderCannotExpressIsCaughtByTheGuard`; everything else the encoder writes is lossless (`testOwnOutputIsLosslessForSeparatedEmphasis`).
 
 ## 3. What the engagement changed
 
@@ -110,6 +119,7 @@ Rules that must not regress:
 | P3.6 | New-file type preference (.md default) |
 | P3.7 | Plain-text conversion warning with suppression |
 | Shell | `DocumentGroup` replaced by an owned `NSDocument` shell: document-owned text storage, AppKit lifecycle, window controllers, `MainMenu.xib`; dark-launch colour fixed (2026-11-18) |
+| Codec | `DocumentCodec`: UTF-8 only (Latin-1 fallback deleted), BOM and CRLF kept, lossy files protected from overwrite; typed entities escaped (2026-11-19) |
 
 ## 4. Conventions for new code (rules)
 
@@ -117,7 +127,7 @@ Rules that must not regress:
 2. **New command/shortcut**: add a real menu item — that is the single dispatch point for any chord a menu can express. Never add a disabled placeholder menu item. Never duplicate a menu chord in `keyDown` (dead code; the menu intercepts first). `keyDown` is only for chords menus can't own (⌘B/⌘I/⌘+/⌘− and `KeybindingStore` lookups). Menu items live in `MainMenu.xib` with nil-targeted actions: window state is reached through the responder chain (`DocumentWindowController`), app state through `AppDelegate` — never a shared app-wide UI-state object. The menu bar is hand-built, so nothing appears for free: diff it against the previous menu (accessibility dump) when changing it. A ⌃⌘F key equivalent declared in the nib is rewritten by AppKit to the Globe key, so the two full-screen chords are assigned in `applicationDidFinishLaunching`. When adding an app-level shortcut, also update `ShortcutOverlayView.appShortcuts`.
 3. **Keyboard handling in SwiftUI overlays**: `.onKeyPress`/`.onMoveCommand`/`.onExitCommand` do NOT fire while an AppKit field editor has focus. Use the `CommandPaletteView` patterns: `.onSubmit` for Return, invisible `Button` + bare `.keyboardShortcut` for arrows, local `NSEvent` monitor (installed `onAppear`, removed `onDisappear`) for Escape.
 4. **Wholesale content replacement** goes only through `WhitespaceDocument.replaceContent(with:)`, which keeps the reset block together: `invalidateScrollAnchor()` → `undoManager?.removeAllActions()` → rebuild the storage's faces via `PasteNormalizer.attributedString(runs:baseAttributes:)` → `restyleContent()`. Breaking it up reintroduces stale-anchor scrolling, cross-document undo, or unstyled text.
-5. **Document I/O**: serialization lives in `MarkdownText`/`encodedData` (pure, testable); `read(from:ofType:)` and `data(ofType:)` stay thin and UI-free. `read` is nonisolated in the SDK but runs on main (`canConcurrentlyReadDocuments` is false), hence `MainActor.assumeIsolated`. Edit counting: NSDocument counts edits registered with the undo manager; only paths that register none call `updateChangeCount(.changeDone)` (today: attribute-only edits, recognised by a nil replacement string in the delegate). Counting every change would double-count and the document would never return to clean. Every save breaks the editor's typing coalescing (`WhitespaceDocument.save(to:ofType:for:completionHandler:)`); without it, typing that continues after a save registers no new undo group and is never counted. Anything destructive at write time goes through a gate (see `PlainTextConversionGate`), never a dialog in the write path.
+5. **Document I/O**: serialization lives in `DocumentCodec`/`MarkdownText` (pure, testable), and any change to it comes with a byte-exact round-trip test; `read(from:ofType:)` and `data(ofType:)` stay thin and UI-free. `read` is nonisolated in the SDK but runs on main (`canConcurrentlyReadDocuments` is false), hence `MainActor.assumeIsolated`. Edit counting: NSDocument counts edits registered with the undo manager; only paths that register none call `updateChangeCount(.changeDone)` (today: attribute-only edits, recognised by a nil replacement string in the delegate). Counting every change would double-count and the document would never return to clean. Every save breaks the editor's typing coalescing (`WhitespaceDocument.save(to:ofType:for:completionHandler:)`); without it, typing that continues after a save registers no new undo group and is never counted. Anything destructive at write time goes through a gate (see `PlainTextConversionGate`), never a dialog in the write path. A new write path must reach `writeSafely(to:ofType:for:)`, where the protected-file refusal lives; a new edit path must go through `shouldChangeText`, where the edit gate lives.
 6. **Editor logic** that is decision-shaped (geometry, classification, normalization, serialization) lives in a pure type with value inputs and unit tests — `TypewriterScroll`, `PasteNormalizer`, `MarkdownText` are the exemplars. TK2/AppKit calls stay in the view; decisions move out.
 7. **Tests**: XCTest; stores with `UserDefaults(suiteName:)` + domain wipe in tearDown; `ZenTextView` behavior via offscreen `NSWindow` hosting (`ZenTextViewUndoTests`); document behaviour through the real window (`makeWindowControllers()`, see `WhitespaceDocumentShellTests`). Typing opens an undo group that only the app's event loop closes, so tests close it before asserting the change count. Any document a test edits gets a temporary file URL and is closed in teardown: an edited untitled document would autosave into the owner's real Autosave Information, which the test host shares. For the same reason `WhitespaceDocument.preservesVersions` is off under XCTest: saving a file in the temporary folder otherwise leaves a `.genstore.noindex` version store in that folder on every run; `keyDown` via constructed `NSEvent.keyEvent` chords; round-trip tests for any serialization. **Offscreen hosting cannot reproduce TK2 stale-layout bugs** — it settles layout synchronously, so anything that depends on the viewport layout pass (caret baseline, recentering) passes with or without the fix. Measured in `ZenTextViewCaretBaselineTests`: reverting the fix, and forcing `invalidateLayout(for:)` before the read, both still passed. Write those tests as characterization and verify the actual behavior on screen. **Never assert on an animated result either** — `animator().setBoundsOrigin` does not commit while the display is asleep, so a suite that checks the scrolled position turns red overnight with numbers identical to a real regression. Assert the decision (`currentScrollTarget`) and let AppKit own applying it.
 8. **Adding files**: the pbxproj and `Info.plist` are generated — run `xcodegen generate` after creating a file; declare Info.plist keys (document types, UTIs) in `project.yml`. Never edit either artifact by hand.
@@ -134,6 +144,8 @@ Rules that must not regress:
 **Fixed 2026-11-18 — documents opened in the dark theme drew in black.** `makeNSView` applied colours, then `applyFont` replaced `typingAttributes` wholesale, dropping the foreground colour, and the content was built from those attributes. Fixed in the shell move by the single `setUp` entry point (font → colour); see §1 Editor. ⌘+/⌘− still replace `typingAttributes`, so text typed after them loses the colour until the next theme change: open, fixed next.
 
 **Fixed 2026-11-18 — typing after a save was never counted.** Found during the shell move: NSTextView coalesces consecutive typing into one undo action, and AppKit opens an undo group only when something registers, so a keystroke continuing after an autosave joined the action from before it. NSDocument saw no edit, never autosaved again, and would close without asking. Every save now calls `breakUndoCoalescing()`. Pinned by `testASaveBreaksTypingCoalescing`, which checks the coalescing state because tests have no event loop to group by event.
+
+**Open — kill-line skips the protected-file gate.** `killLine()` edits the storage without `shouldChangeText`, so on a protected document it changes the text without asking. The write refusal still keeps the original file intact; the document is left with changes it cannot save in place (Duplicate or Save As keeps them). Fixed by the kill-line change contract step; pinned by `testKillLineSkipsTheGateButTheFileStaysSafe`.
 
 **Open — autosave re-asks after Save Anyway to `.txt`.** Observed on both shells: after Save As plain text with Save Anyway, the storage still holds bold, so the next autosave raises the flatten warning again. Belongs to moving the gate before the write.
 
