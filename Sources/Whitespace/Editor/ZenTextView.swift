@@ -594,9 +594,10 @@ final class ZenTextView: NSTextView {
     private var appliedColors: (text: NSColor, cursor: NSColor, selection: NSColor)?
 
     /// The one setup path for a fresh editor: font, then colour, applied to
-    /// the content already in the attached storage. The order matters because
-    /// `applyFont` replaces `typingAttributes` wholesale; colour applied first
-    /// was dropped, and a document opened in the dark theme drew in black.
+    /// the content already in the attached storage. `applyFont` once replaced
+    /// `typingAttributes` wholesale, so colour applied first was dropped and a
+    /// document opened in the dark theme drew in black. It merges now; the
+    /// order is kept so setup never depends on that.
     func setUp(fontSize: CGFloat, lineHeightMultiple: CGFloat,
                text: NSColor, cursor: NSColor, selection: NSColor) {
         applyFont(size: fontSize, lineHeightMultiple: lineHeightMultiple)
@@ -644,7 +645,12 @@ final class ZenTextView: NSTextView {
         pStyle.paragraphSpacing = 4
         pStyle.firstLineHeadIndent = size * 2
         let regularFont = NSFont(name: WhitespaceFont.regular, size: size) ?? NSFont.systemFont(ofSize: size)
-        typingAttributes = [.font: regularFont, .paragraphStyle: pStyle]
+        // Merge, not replace: typing attributes also carry the theme colour,
+        // and text typed after ⌘+/⌘− would otherwise draw in default black.
+        var attrs = typingAttributes
+        attrs[.font] = regularFont
+        attrs[.paragraphStyle] = pStyle
+        typingAttributes = attrs
         guard let storage = textStorage, storage.length > 0 else { return }
         storage.beginEditing()
         storage.enumerateAttribute(.font, in: NSRange(location: 0, length: storage.length)) { value, range, _ in
