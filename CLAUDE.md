@@ -44,7 +44,7 @@ This repo follows the standard team flow even though it has one owner, so the ha
 ## Build, test, run
 
 Plain `xcodebuild` is the baseline and needs nothing else running. Verified 2026-11-19 on
-Xcode 27.2: 185 tests, 0 failures, about 18 s of test time (`TypewriterRecenterTests` is
+Xcode 27.2: 192 tests, 0 failures, about 20 s of test time (`TypewriterRecenterTests` is
 nearly all of it).
 
 ```bash
@@ -119,9 +119,10 @@ UIKit-only names compile on macOS and are never called.
   Every save breaks the editor's typing coalescing, or typing after a save is never counted.
   Tests have no event loop, so they frame each event with an explicit undo group
   (`WhitespaceDocumentShellTests`).
-- **Save path testing.** Drive `data(ofType:)`, `approvedData(for:)` and `encodedData(for:)`
-  directly; for autosave and revert, open a document from a temporary file and call
-  `save(to:ofType:for:)` or `revert(toContentsOf:ofType:)`.
+- **Save path testing.** Drive `data(ofType:)` and `encodedData(for:)` directly; for saves,
+  autosave and revert, open a document from a temporary file and call
+  `save(to:ofType:for:)` or `revert(toContentsOf:ofType:)`. The flatten warning is asked
+  there, so replace `askBeforeFlattening` and set `conversionDefaults` to a test suite.
 - **Concurrency.** Swift 6 strict checking with nonisolated default isolation; mark UI types
   and UI tests `@MainActor` explicitly.
 - **Driving the app.** Synthetic keystrokes are unreliable on this Mac (keyboard remappers);
