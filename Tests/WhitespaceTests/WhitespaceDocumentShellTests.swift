@@ -173,14 +173,13 @@ final class WhitespaceDocumentShellTests: XCTestCase {
     /// nothing reached undo, so ⌘Z could not bring the text back and NSDocument
     /// never knew. Single-line content, so this pins the contract and not
     /// whether a kill also takes the line's newline.
-    func testKillLineIsUndoableAndCounted() throws {
+    func testKillLineIsUndoable() throws {
         let (doc, tv) = try openInWindow("hello world")
         let store = makeTestKeybindingStore(for: self)
         tv.setSelectedRange(NSRange(location: 5, length: 0))
 
         asOneEvent(doc) { press(.killLine, on: tv, store: store) }
         XCTAssertEqual(doc.textStorage.string, "hello")
-        XCTAssertTrue(doc.isDocumentEdited)
 
         tv.undoManager?.undo()
         spinRunLoop()
@@ -280,6 +279,27 @@ final class WhitespaceDocumentShellTests: XCTestCase {
 
         XCTAssertEqual(doc.textStorage.string, "hello, world")
         XCTAssertTrue(undo.canUndo, "a paste must register with the undo manager or NSDocument never counts it")
+    }
+
+    /// The paste test's twin for kill-line, without an explicit undo group:
+    /// an explicit group counts as an edit even when nothing registers, so
+    /// only grouping by event shows whether the kill itself registered.
+    /// NSDocument counts an edit when the event's group closes, which needs a
+    /// real event loop, so the change count itself is not checkable here;
+    /// registration is what it counts.
+    func testKillLineRegistersWithTheUndoManager() throws {
+        let (doc, tv) = try openInWindow("hello world")
+        let undo = try XCTUnwrap(doc.undoManager)
+        undo.groupsByEvent = true
+        XCTAssertFalse(undo.canUndo)
+        let store = makeTestKeybindingStore(for: self)
+        tv.setSelectedRange(NSRange(location: 5, length: 0))
+
+        press(.killLine, on: tv, store: store)
+        spinRunLoop()
+
+        XCTAssertEqual(doc.textStorage.string, "hello")
+        XCTAssertTrue(undo.canUndo, "a kill must register with the undo manager or NSDocument never counts it")
     }
 
     /// Appearance repaints rewrite attributes across the whole storage. They
