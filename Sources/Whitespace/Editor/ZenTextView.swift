@@ -810,6 +810,8 @@ final class ZenTextView: NSTextView {
         guard let storage = textStorage else { return }
         let str = storage.string as NSString
         let loc = selectedRange().location
+        // Includes the newline, unlike macOS's ⌃K: kept by the owner's choice
+        // (ARCHITECTURE.md §5).
         let lineRange = str.lineRange(for: NSRange(location: loc, length: 0))
         let restLength = lineRange.upperBound - loc
         guard restLength > 0 else { return }
