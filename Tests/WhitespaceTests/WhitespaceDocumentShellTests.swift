@@ -167,6 +167,61 @@ final class WhitespaceDocumentShellTests: XCTestCase {
         XCTAssertTrue(doc.isDocumentEdited)
     }
 
+    // MARK: - Delete keybindings (the change contract)
+
+    /// Kill-line edited the storage without `shouldChangeText`/`didChangeText`:
+    /// nothing reached undo, so ⌘Z could not bring the text back and NSDocument
+    /// never knew. Single-line content, so this pins the contract and not
+    /// whether a kill also takes the line's newline.
+    func testKillLineIsUndoableAndCounted() throws {
+        let (doc, tv) = try openInWindow("hello world")
+        let store = makeTestKeybindingStore(for: self)
+        tv.setSelectedRange(NSRange(location: 5, length: 0))
+
+        asOneEvent(doc) { press(.killLine, on: tv, store: store) }
+        XCTAssertEqual(doc.textStorage.string, "hello")
+        XCTAssertTrue(doc.isDocumentEdited)
+
+        tv.undoManager?.undo()
+        spinRunLoop()
+        XCTAssertEqual(doc.textStorage.string, "hello world", "⌘Z should bring the killed text back")
+        XCTAssertFalse(doc.isDocumentEdited, "undoing the only edit returns the document to clean")
+    }
+
+    /// A kill after typing is its own undo step: one ⌘Z restores the killed
+    /// text and keeps the typing.
+    func testKillAfterTypingIsItsOwnUndoStep() throws {
+        let (doc, tv) = try openInWindow("hello world")
+        let store = makeTestKeybindingStore(for: self)
+        tv.setSelectedRange(NSRange(location: 5, length: 0))
+
+        asOneEvent(doc) { typeKey(tv, "s", keyCode: 1) }
+        asOneEvent(doc) { press(.killLine, on: tv, store: store) }
+        XCTAssertEqual(doc.textStorage.string, "hellos")
+
+        tv.undoManager?.undo()
+        spinRunLoop()
+        XCTAssertEqual(doc.textStorage.string, "hellos world", "one ⌘Z undoes the kill, not the typing")
+    }
+
+    /// The audit: every delete keybinding edits through the change contract,
+    /// so each one can be undone back to a clean document.
+    func testEveryDeleteKeybindingIsUndoable() throws {
+        for action in KeybindingAction.allCases {
+            let (doc, tv) = try openInWindow("hello world")
+            let store = makeTestKeybindingStore(for: self)
+            tv.setSelectedRange(NSRange(location: 5, length: 0))
+
+            asOneEvent(doc) { press(action, on: tv, store: store) }
+            XCTAssertNotEqual(doc.textStorage.string, "hello world", "\(action) deleted nothing")
+
+            tv.undoManager?.undo()
+            spinRunLoop()
+            XCTAssertEqual(doc.textStorage.string, "hello world", "\(action) is not undoable")
+            XCTAssertFalse(doc.isDocumentEdited, "\(action) left the document dirty after undo")
+        }
+    }
+
     /// Typing is counted through the undo manager only. Counting it a second
     /// time would leave the document dirty after undoing back to the save.
     func testTypingThenUndoingReturnsTheDocumentToClean() throws {
