@@ -74,6 +74,43 @@ final class ZenTextViewCaretBaselineTests: XCTestCase {
                        "caret height — \(message)", file: file, line: line)
     }
 
+    // MARK: - A font-size change moves the drawn caret
+
+    // ⌘+/⌘− restyle the storage without an edit or a selection change, so
+    // nothing refreshed the drawn caret: it stayed where the old size put it
+    // until the next blink tick, up to 0.53 s. These check the refresh is
+    // asked for; on-screen timing is beyond an offscreen window (see above).
+
+    private func assertDrawnCaretFollowsFontSizeChange(
+        _ message: String, file: StaticString = #filePath, line: UInt = #line
+    ) {
+        textView.applyFont(size: 18, lineHeightMultiple: 1.6)
+        let end = textView.string.utf16.count
+        textView.setSelectedRange(NSRange(location: end, length: 0))
+        guard let before = textView.displayedCursorFrame else {
+            return XCTFail("caret not drawn before the change — \(message)", file: file, line: line)
+        }
+
+        textView.applyFont(size: 36, lineHeightMultiple: 1.6)
+
+        guard let drawn = textView.displayedCursorFrame,
+              let expected = textView.currentCursorBarRect() else {
+            return XCTFail("caret not drawn after the change — \(message)", file: file, line: line)
+        }
+        XCTAssertNotEqual(expected, before, "the size change should move the caret — \(message)",
+                          file: file, line: line)
+        XCTAssertEqual(drawn, expected, "drawn caret is stale — \(message)", file: file, line: line)
+    }
+
+    func testDrawnCaretFollowsAFontSizeChange() {
+        textView.insertText("first paragraph\nsecond", replacementRange: NSRange(location: 0, length: 0))
+        assertDrawnCaretFollowsFontSizeChange("caret at end of text")
+    }
+
+    func testDrawnCaretFollowsAFontSizeChangeInAnEmptyDocument() {
+        assertDrawnCaretFollowsFontSizeChange("empty document")
+    }
+
     /// The reported trigger: the first glyph typed on a fresh line.
     func testCaretSitsOnBaselineForFirstGlyphOfFreshLine() {
         textView.insertText("first line", replacementRange: NSRange(location: 0, length: 0))

@@ -544,6 +544,13 @@ final class ZenTextView: NSTextView {
         cursorView.isHidden = false
     }
 
+    /// Where the caret is drawn right now, or nil while it is hidden. Internal
+    /// so tests can check the drawn caret follows changes that move the text
+    /// without moving the selection.
+    var displayedCursorFrame: NSRect? {
+        cursorView.isHidden ? nil : cursorView.frame
+    }
+
     private func startCursorBlink() {
         stopCursorBlink()
         cursorOn = true
@@ -640,6 +647,10 @@ final class ZenTextView: NSTextView {
 
     func applyFont(size: CGFloat, lineHeightMultiple: CGFloat) {
         appliedFont = (size, lineHeightMultiple)
+        // Restyling moves the text without an edit or a selection change, so
+        // nothing else repaints the drawn caret: it would sit where the old
+        // size put it until the next blink tick.
+        defer { resetCursorBlink() }
         let pStyle = NSMutableParagraphStyle()
         pStyle.lineHeightMultiple = lineHeightMultiple
         pStyle.paragraphSpacing = 4
