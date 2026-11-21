@@ -187,6 +187,9 @@ final class WhitespaceDocument: NSDocument, NSTextViewDelegate {
             textStorage.beginEditing()
             for (range, regular) in formatted { textStorage.addAttribute(.font, value: regular, range: range) }
             textStorage.endEditing()
+            // Regular is narrower than bold, and this is neither an edit nor a
+            // selection change, so the drawn caret would stay put until a blink.
+            editor?.resetCursorBlink()
         }
         if let editor, let font = editor.typingAttributes[.font] as? NSFont,
            StyledRun.isBold(font) || StyledRun.isItalic(font),

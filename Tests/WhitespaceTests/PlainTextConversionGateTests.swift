@@ -196,6 +196,29 @@ final class PlainTextConversionGateTests: XCTestCase {
         XCTAssertEqual(doc.undoManager?.canUndo, false, "dropping formatting is not an edit")
     }
 
+    /// Swapping bold for regular narrows the text without an edit or a
+    /// selection change, so nothing moved the drawn caret: it stayed where the
+    /// bold put it until the next blink.
+    func testDrawnCaretFollowsTheDroppedFormatting() throws {
+        let (doc, _, _) = try openMarkdown("**loud quiet words**", answer: true)
+        doc.makeWindowControllers()
+        let window = try XCTUnwrap(doc.windowControllers.first?.window)
+        window.contentView?.layoutSubtreeIfNeeded()
+        spinRunLoop()
+        let editor = try XCTUnwrap(doc.editor)
+        window.makeFirstResponder(editor)
+        editor.setSelectedRange(NSRange(location: editor.string.utf16.count, length: 0))
+        spinRunLoop()
+        let before = try XCTUnwrap(editor.displayedCursorFrame, "caret not drawn before the save")
+
+        XCTAssertNil(save(doc, to: tempURL("txt"), as: .plainText, .saveAsOperation).first ?? nil)
+
+        let drawn = try XCTUnwrap(editor.displayedCursorFrame, "caret not drawn after the save")
+        let expected = try XCTUnwrap(editor.currentCursorBarRect())
+        XCTAssertNotEqual(expected, before, "regular is narrower than bold, so the caret should move")
+        XCTAssertEqual(drawn, expected, "drawn caret is stale")
+    }
+
     /// The bug on `main` until this change: the storage kept its bold, so the
     /// next autosave raised the warning again.
     func testLaterSavesDoNotAskAgain() throws {
