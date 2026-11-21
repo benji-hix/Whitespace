@@ -810,11 +810,19 @@ final class ZenTextView: NSTextView {
         guard let storage = textStorage else { return }
         let str = storage.string as NSString
         let loc = selectedRange().location
+        // Includes the newline, unlike macOS's ⌃K: kept by the owner's choice
+        // (ARCHITECTURE.md §5).
         let lineRange = str.lineRange(for: NSRange(location: loc, length: 0))
         let restLength = lineRange.upperBound - loc
-        if restLength > 0 {
-            replaceCharacters(in: NSRange(location: loc, length: restLength), with: "")
-        }
+        guard restLength > 0 else { return }
+        // Through the change contract, like any edit: that registers undo,
+        // lets the document count it, and gives a protected file's gate the
+        // chance to ask first.
+        let range = NSRange(location: loc, length: restLength)
+        guard shouldChangeText(in: range, replacementString: "") else { return }
+        storage.replaceCharacters(in: range, with: "")
+        didChangeText()
+        setSelectedRange(NSRange(location: loc, length: 0))
     }
 
     override func didChangeText() {

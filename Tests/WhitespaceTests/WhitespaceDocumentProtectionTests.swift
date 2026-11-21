@@ -270,28 +270,53 @@ final class WhitespaceDocumentProtectionTests: XCTestCase {
         XCTAssertTrue(doc.isProtected)
     }
 
-    /// Kill-line edits the storage without the change contract, so it skips
-    /// the gate until step A7. The write refusal still keeps the file safe.
-    func testKillLineSkipsTheGateButTheFileStaysSafe() throws {
-        let (doc, url) = try openFile(lossy)
+    /// Kill-line used to skip the gate: it edited the storage without the
+    /// change contract, so a protected file changed on screen without asking.
+    /// It now asks, and Cancel leaves the text and the file as they were.
+    func testKillLineAsksAndIsDroppedOnCancel() throws {
+        let (doc, tv, prompts) = try openInWindow(lossy, answer: .cancel)
+        let url = try XCTUnwrap(doc.fileURL)
         let original = try Data(contentsOf: url)
-        let prompts = Prompts(answer: .cancel)
-        doc.askBeforeEditingProtected = { _, choose in prompts.count += 1; choose(.cancel) }
-        let suite = "test-protect-keybindings"
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
-        let tv = ZenTextView(frame: NSRect(x: 0, y: 0, width: 400, height: 300), textStorage: doc.textStorage)
-        tv.delegate = doc
-        tv.keybindingStore = KeybindingStore(defaults: defaults)
-        doc.editor = tv
-
+        let store = makeTestKeybindingStore(for: self)
         tv.setSelectedRange(NSRange(location: 3, length: 0))
-        chord(tv, "k", keyCode: 40, [.control])
 
-        XCTAssertEqual(prompts.count, 0, "documents today's bypass; A7 routes kill-line through the gate")
-        XCTAssertEqual(doc.textStorage.string, "see")
-        XCTAssertNotNil(save(doc, to: url, .autosaveInPlaceOperation))
+        refused(doc) { press(.killLine, on: tv, store: store) }
+
+        XCTAssertEqual(prompts.count, 1)
+        XCTAssertEqual(doc.textStorage.string, "see the site and this")
+        XCTAssertFalse(doc.isDocumentEdited)
         XCTAssertEqual(try Data(contentsOf: url), original)
+    }
+
+    /// After Edit Anyway, the asking kill is dropped like the asking keystroke,
+    /// and the next kill goes through.
+    func testKillLineAfterEditAnywayGoesThrough() throws {
+        let (doc, tv, prompts) = try openInWindow(lossy, answer: .editAnyway)
+        let store = makeTestKeybindingStore(for: self)
+        tv.setSelectedRange(NSRange(location: 3, length: 0))
+
+        refused(doc) { press(.killLine, on: tv, store: store) }
+        XCTAssertFalse(doc.isProtected)
+        XCTAssertEqual(doc.textStorage.string, "see the site and this", "the asking kill is dropped")
+
+        asOneEvent(doc) { press(.killLine, on: tv, store: store) }
+        XCTAssertEqual(prompts.count, 1)
+        XCTAssertEqual(doc.textStorage.string, "see")
+        XCTAssertTrue(doc.isDocumentEdited)
+    }
+
+    /// The audit: every delete keybinding reaches the gate on a protected file.
+    func testEveryDeleteKeybindingAsks() throws {
+        for action in KeybindingAction.allCases {
+            let (doc, tv, prompts) = try openInWindow(lossy, answer: .cancel)
+            let store = makeTestKeybindingStore(for: self)
+            tv.setSelectedRange(NSRange(location: 3, length: 0))
+
+            refused(doc) { press(action, on: tv, store: store) }
+
+            XCTAssertEqual(prompts.count, 1, "\(action) did not ask")
+            XCTAssertEqual(doc.textStorage.string, "see the site and this", "\(action) changed a protected file")
+        }
     }
 
     // MARK: - Duplicate
