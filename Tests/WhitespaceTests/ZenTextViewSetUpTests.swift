@@ -46,6 +46,21 @@ final class ZenTextViewSetUpTests: XCTestCase {
         try assertTypingAfterFontSizeChangeKeepsColour(in: "")
     }
 
+    /// ⌘B or ⌘I with nothing selected arms a face for the next typing. A size
+    /// change in between must keep that face, only at the new size.
+    func testArmedFaceSurvivesAFontSizeChange() throws {
+        let tv = try openInDarkTheme("")
+        let armed = try XCTUnwrap(NSFont(name: WhitespaceFont.boldItalic, size: 18))
+        tv.typingAttributes[.font] = armed
+        tv.applyFont(size: 19, lineHeightMultiple: 1.6)
+
+        tv.insertText("loud", replacementRange: NSRange(location: 0, length: 0))
+        let font = try XCTUnwrap(tv.textStorage?.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)
+        XCTAssertEqual(font.fontName, WhitespaceFont.boldItalic, "the armed face was dropped")
+        XCTAssertEqual(font.pointSize, 19)
+        XCTAssertEqual(tv.styledRuns, [StyledRun(text: "loud", bold: true, italic: true)])
+    }
+
     private func assertTypingAfterFontSizeChangeKeepsColour(
         in markdown: String, file: StaticString = #filePath, line: UInt = #line
     ) throws {

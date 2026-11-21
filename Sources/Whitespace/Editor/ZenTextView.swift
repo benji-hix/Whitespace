@@ -645,10 +645,13 @@ final class ZenTextView: NSTextView {
         pStyle.paragraphSpacing = 4
         pStyle.firstLineHeadIndent = size * 2
         let regularFont = NSFont(name: WhitespaceFont.regular, size: size) ?? NSFont.systemFont(ofSize: size)
-        // Merge, not replace: typing attributes also carry the theme colour,
-        // and text typed after ⌘+/⌘− would otherwise draw in default black.
+        // Merge, not replace: typing attributes also carry the theme colour
+        // and any face ⌘B/⌘I armed for the next typing. Text typed after
+        // ⌘+/⌘− would otherwise draw in default black, in the regular face.
         var attrs = typingAttributes
-        attrs[.font] = regularFont
+        let armed = attrs[.font] as? NSFont
+        let armedName = fontName(bold: isBoldFont(armed), italic: isItalicFont(armed))
+        attrs[.font] = NSFont(name: armedName, size: size) ?? regularFont
         attrs[.paragraphStyle] = pStyle
         typingAttributes = attrs
         guard let storage = textStorage, storage.length > 0 else { return }
