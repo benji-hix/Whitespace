@@ -88,7 +88,7 @@
 <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
 <connections><action selector="duplicateDocument:" target="-1" id="m035"/></connections>
 </menuItem>
-<menuItem title="Save As…" keyEquivalent="s" alternate="YES" id="m036">
+<menuItem title="Save As…" keyEquivalent="s" id="m036">
 <modifierMask key="keyEquivalentModifierMask" shift="YES" option="YES" command="YES"/>
 <connections><action selector="saveDocumentAs:" target="-1" id="m037"/></connections>
 </menuItem>
