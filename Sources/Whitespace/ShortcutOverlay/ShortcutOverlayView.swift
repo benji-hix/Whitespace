@@ -18,7 +18,7 @@ struct ShortcutOverlayView: View {
         ("New File", "⌘N"),
         ("Open File", "⌘O"),
         ("Save", "⌘S"),
-        ("Save As", "⌘⇧S"),
+        ("Save As", "⌘⌥⇧S"),
         ("Preferences", "⌘,"),
         ("Increase Font", "⌘+"),
         ("Decrease Font", "⌘–"),
