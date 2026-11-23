@@ -191,6 +191,23 @@ final class WhitespaceDocumentShellTests: XCTestCase {
         XCTAssertTrue(doc.isDocumentEdited)
     }
 
+    /// With typing and ⌘B as separate events, as the event loop frames them,
+    /// ⌘Z takes back the bold and leaves the typing.
+    func testUndoAfterBoldTakesBackTheBoldOnly() throws {
+        let (doc, tv) = try openInWindow("")
+        asOneEvent(doc) { tv.insertText("hello", replacementRange: NSRange(location: 0, length: 0)) }
+        tv.setSelectedRange(NSRange(location: 0, length: 5))
+        asOneEvent(doc) { pressCommandB(tv) }
+        XCTAssertEqual(doc.runs, [StyledRun(text: "hello", bold: true, italic: false)])
+
+        doc.undoManager?.undo()
+        XCTAssertEqual(doc.runs, [StyledRun(text: "hello", bold: false, italic: false)],
+                       "the first ⌘Z should remove the bold and keep the text")
+
+        doc.undoManager?.undo()
+        XCTAssertEqual(doc.textStorage.string, "", "the second ⌘Z removes the typing")
+    }
+
     // MARK: - Delete keybindings (the change contract)
 
     /// Kill-line edited the storage without `shouldChangeText`/`didChangeText`:
