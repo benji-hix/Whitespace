@@ -573,8 +573,9 @@ final class ZenTextView: NSTextView {
     }
 
     /// Re-phase the blink so the cursor is solid for a full on-cycle right
-    /// after user activity (typing, clicking, arrow keys).
-    private func resetCursorBlink() {
+    /// after user activity (typing, clicking, arrow keys), and repaint it
+    /// wherever the text now puts it.
+    func resetCursorBlink() {
         guard blinkTimer != nil else { return }
         cursorOn = true
         updateCursorView()
