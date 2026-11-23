@@ -44,7 +44,7 @@ This repo follows the standard team flow even though it has one owner, so the ha
 ## Build, test, run
 
 Plain `xcodebuild` is the baseline and needs nothing else running. Verified 2026-11-21 on
-Xcode 27.2: 207 tests, 0 failures, about 25 s of test time (`TypewriterRecenterTests` is
+Xcode 27.2: 208 tests, 0 failures, about 25 s of test time (`TypewriterRecenterTests` is
 most of it; the delete-keybinding audits open a window per action).
 
 ```bash

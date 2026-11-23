@@ -119,6 +119,30 @@ final class WhitespaceDocumentShellTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), "old **new**")
     }
 
+    /// ⌘W on an edited file that already has a home asks nothing: with
+    /// autosave in place, NSDocument writes the edit and closes. Closed through
+    /// the window, the way ⌘W does, and checked on disk.
+    func testClosingAnEditedFileWritesTheEditWithoutAsking() throws {
+        let (doc, url) = try openFile("draft")
+        doc.makeWindowControllers()
+        let window = try XCTUnwrap(doc.windowControllers.first?.window)
+        window.contentView?.layoutSubtreeIfNeeded()
+        spinRunLoop()
+        let tv = try XCTUnwrap(doc.editor)
+        window.makeFirstResponder(tv)
+        doc.undoManager?.groupsByEvent = false
+        asOneEvent(doc) { tv.insertText(" two", replacementRange: NSRange(location: 5, length: 0)) }
+        XCTAssertTrue(doc.isDocumentEdited)
+
+        window.performClose(nil)
+        let deadline = Date().addingTimeInterval(5)
+        while doc.windowControllers.isEmpty == false, Date() < deadline { spinRunLoop() }
+
+        XCTAssertTrue(doc.windowControllers.isEmpty, "the window should close without a sheet")
+        XCTAssertNil(window.attachedSheet)
+        XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), "draft two")
+    }
+
     /// AppKit reads `preservesVersions` on a background queue after an
     /// in-place save. As a main-actor member it trapped there and crashed the
     /// app on every Save of an edited file. Read the way AppKit reads it,
@@ -165,6 +189,23 @@ final class WhitespaceDocumentShellTests: XCTestCase {
 
         XCTAssertEqual(doc.runs, [StyledRun(text: "hello", bold: true, italic: false)])
         XCTAssertTrue(doc.isDocumentEdited)
+    }
+
+    /// With typing and ⌘B as separate events, as the event loop frames them,
+    /// ⌘Z takes back the bold and leaves the typing.
+    func testUndoAfterBoldTakesBackTheBoldOnly() throws {
+        let (doc, tv) = try openInWindow("")
+        asOneEvent(doc) { tv.insertText("hello", replacementRange: NSRange(location: 0, length: 0)) }
+        tv.setSelectedRange(NSRange(location: 0, length: 5))
+        asOneEvent(doc) { pressCommandB(tv) }
+        XCTAssertEqual(doc.runs, [StyledRun(text: "hello", bold: true, italic: false)])
+
+        doc.undoManager?.undo()
+        XCTAssertEqual(doc.runs, [StyledRun(text: "hello", bold: false, italic: false)],
+                       "the first ⌘Z should remove the bold and keep the text")
+
+        doc.undoManager?.undo()
+        XCTAssertEqual(doc.textStorage.string, "", "the second ⌘Z removes the typing")
     }
 
     // MARK: - Delete keybindings (the change contract)

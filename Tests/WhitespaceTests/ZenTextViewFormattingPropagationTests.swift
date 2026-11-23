@@ -80,22 +80,6 @@ final class ZenTextViewFormattingPropagationTests: XCTestCase, NSTextViewDelegat
         XCTAssertGreaterThan(changeCount, afterTyping)
     }
 
-    /// Undo of a formatting change is a separate, pre-existing gap: AppKit does
-    /// not record an attribute-restoring action for `shouldChangeText` with a
-    /// nil replacement under TextKit 2, so ⌘Z after ⌘B removes the typing
-    /// instead of the bold. Pinned here so the behaviour is stated rather than
-    /// discovered, and so the day it is fixed this test fails and gets updated.
-    /// Tracked in ARCHITECTURE.md §5.
-    func testFormattingIsNotYetIndependentlyUndoable() throws {
-        textView.insertText("hello", replacementRange: NSRange(location: 0, length: 0))
-        selectAllAndBold()
-
-        let undo = try XCTUnwrap(textView.undoManager)
-        undo.undo()
-        XCTAssertEqual(textView.styledRuns, [],
-                       "known gap: ⌘Z after ⌘B still unwinds the typing, not the formatting")
-    }
-
     /// Plain-text documents consume the chord silently (ARCHITECTURE.md §2), so
     /// nothing should change and nothing should be reported.
     func testFormattingChordIsInertInPlainTextDocuments() {
